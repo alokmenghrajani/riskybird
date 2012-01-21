@@ -1,3 +1,38 @@
-Risky Bird
+Introduction
+------------
+Regular Expressions are notoriously hard to get right. When you are writing a new expression, it
+is hard for reviewers to read & assert with confidence that the expression is correct. Tweaking
+existing expressions can often lead to unintended consequences.
 
-TODO: write a readme
+RiskyBird tries to mitigate this by offering a set of tools for software engineers:
+
+1.  A parser: guarantees the expression is well formed.
+2.  A pretty printer: helps interpret the regular expression.
+3.  A lint engine: catches common mistakes.
+4.  A unittest engine: prevents future mishapes.
+5.  A collaboration platform: reviewers can add tests and provide feedback.
+
+Some notes
+----------
+I haven't found a nice place to put these, so leaving these notes here.
+
+Here are some tips to help you write better regular expressions:
+
+1. Is the language regular(*)? We have often tried to write regular expressions for languages which are not regular! This
+   always leads to issues down the road. If the language is not regular, you will need to use a Lexer/Grammar.
+
+   * regular expression engines actually implement some features which cannot be described by regular languages (in the
+     formal sense), but you get my point.
+
+2. Can I use a less powerful but faster library (i.e. pattern matching instead of regular expressions)?
+
+3. Am I trying to match a URI (or part of one)? It is **extreemly hard** to get URI parsing right, and different
+   browsers interpret URIs differently. The only way to get this right is to split the URI into parts (protocol,
+   user, password, domain, port, path, etc.), run the desired checks on the parts and then rebuilt a new URI with
+   the proper escaping applied to each part. Again, we have libraries to do this!
+
+   If you aren't convinced this is required, go read the browser security handbook or the Tangled Web.
+
+4. Don't be lazy. If you know your expression should match the beginning of a string put the ^ anchor. If you
+   are expecting a ".", use \. instead of the dot metacharacter. Use non capturing groups when you don't need
+   to capture a group. Etc.
