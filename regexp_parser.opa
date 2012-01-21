@@ -15,7 +15,7 @@ and elementary =
   { edollar } or
   { string echar } or
   { regexp egroup } or
-  { rset eset } 
+  { rset eset }
 
 and rset =
   { bool neg, list(item) items }
@@ -38,7 +38,7 @@ module RegexpParser {
   simple = parser
   | ~basic ~simple -> List.cons(basic, simple)
   | ~basic -> [basic]
-  
+
   basic = parser
   | ~elementary ~postfix -> { belt: elementary, bpost: postfix }
   | ~elementary -> { belt: elementary, bpost: { noop } }
@@ -66,16 +66,16 @@ module RegexpParser {
 
   item = parser
   | x = { Rule.alphanum_char } "-" y = { Rule.alphanum_char } ->
-    { irange: { rstart: x, rend: y } } 
+    { irange: { rstart: x, rend: y } }
   | x = { Rule.alphanum_char } -> { ichar: x }
   | " " -> { ichar: " " }
 
-  function regexp make(string s) { 
+  function regexp parse(string s) {
     match (Parser.try_parse(regexp, s)) {
      case {some: result}: result;
      case {none}: [];
     }
-  } 
+  }
 
 }
 

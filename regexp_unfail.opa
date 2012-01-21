@@ -11,22 +11,22 @@
  *   - adding comments
  *
  * Running:
- * opa-plugin-builder -o regexp_unfail_binding regexp_unfail_binding.js; opa --parser js-like regexp_unfail_binding.opp regexp_unfail.opa --
+ * opa-plugin-builder -o regexp_unfail_binding regexp_unfail_binding.js; opa --parser js-like regexp_unfail_binding.opp regexp_parser.opa regexp_unfail.opa --
  */
 
 import stdlib.themes.bootstrap
 import stdlib.web.client
 
-type regexp = {
+type regexp_result = {
   string regexp,
   string comment,
   intmap(string) true_positives,
   intmap(string) true_negatives
 }
 
-database intmap(regexp) /regexps
+database intmap(regexp_result) /regexps
 
-server exposed function slog(obj) {
+server exposed function my_log(obj) {
   Debug.warning(Debug.dump(obj))
 }
 
@@ -61,7 +61,7 @@ function save_data(int id) {
     #true_negatives
   )
 
-  regexp r = {
+  regexp_result r = {
     regexp: Dom.get_value(#regexp),
     comment: Dom.get_content(#comment),
     true_positives: true_positives,
@@ -74,7 +74,7 @@ function save_data(int id) {
   Client.goto("/{id2}")
 }
 
-function resource display(regexp data, int id) {
+function resource display(regexp_result data, int id) {
   Resource.styled_page(
     "RegexpUnfail | compose",
     ["/resources/regexp_unfail.css"],
@@ -111,6 +111,17 @@ function resource display(regexp data, int id) {
                 </p>
               </div>
               <div class="span8"><textarea rows="4" class="xxlarge" id=#comment>{data.comment}</textarea></div>
+            </div>
+            <div class="row">
+              <div class="span4">
+                <h3>Parser output</h3>
+                <p>
+                  For now, just some debugging info.
+                </p>
+              </div>
+              <div class="span8">
+                <div id=#parser_output/>
+              </div>
             </div>
             <div class="row hidden" id=#lint>
               <div class="span4">
@@ -151,7 +162,7 @@ function resource display(regexp data, int id) {
   )
 }
 
-function void load_tests(regexp data) {
+function void load_tests(regexp_result data) {
   Map.iter(
     function(int _, string s) {
       #true_positives =+ get_result_div(s, true)
@@ -274,18 +285,25 @@ client function void check_regexp() {
     #true_negatives
   )
   Dom.put_inside(#true_negatives, Dom.of_xhtml(x))
+
+  // Run the parser
+  string regexp = Dom.get_value(#regexp)
+  #parser_output = Debug.dump(RegexpParser.parse(regexp))
   void
 }
 
 function resource start(Uri.relative uri) {
   match (uri) {
     case {path:{nil} ...}:
-      regexp data = {regexp:"", comment:"", true_positives:Map.empty, true_negatives:Map.empty}
+      regexp_result data = {regexp:"", comment:"", true_positives:Map.empty, true_negatives:Map.empty}
       display(data, 0)
-    case {path:{~hd ...} ...}:
+    case {path:{~hd, tl:[]} ...}:
       int id = Int.of_string(hd)
-      regexp data = /regexps[id]
+      regexp_result data = /regexps[id]
       display(data, id)
+    case {~path ...}:
+      my_log(path)
+      Resource.styled_page("hmm", [], <>hi</>)
   }
 }
 
