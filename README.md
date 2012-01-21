@@ -1,4 +1,4 @@
-!(http://imgs.xkcd.com/comics/regular_expressions.png)
+![](http://imgs.xkcd.com/comics/regular_expressions.png "")
 
 Introduction
 ------------
@@ -33,7 +33,7 @@ Here are some tips to help you write better regular expressions:
    user, password, domain, port, path, etc.), run the desired checks on the parts and then rebuilt a new URI with
    the proper escaping applied to each part. Again, we have libraries to do this!
 
-   If you aren't convinced this is required, go read the browser security handbook or the Tangled Web.
+   * If you aren't convinced this is required, go read the browser security handbook or the Tangled Web.
 
 4. Don't be lazy. If you know your expression should match the beginning of a string put the ^ anchor. If you
    are expecting a ".", use \. instead of the dot metacharacter. Use non capturing groups when you don't need
