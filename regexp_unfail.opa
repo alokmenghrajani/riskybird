@@ -11,7 +11,8 @@
  *   - adding comments
  *
  * Running:
- * opa-plugin-builder -o regexp_unfail_binding regexp_unfail_binding.js; opa --parser js-like regexp_unfail_binding.opp regexp_parser.opa regexp_unfail.opa --
+ * opa-plugin-builder -o regexp_unfail_binding regexp_unfail_binding.js
+ * opa --parser js-like regexp_unfail_binding.opp regexp_parser.opa regexp_printer.opa regexp_unfail.opa --
  */
 
 import stdlib.themes.bootstrap
@@ -288,7 +289,7 @@ client function void check_regexp() {
 
   // Run the parser
   string regexp = Dom.get_value(#regexp)
-  #parser_output = Debug.dump(RegexpParser.parse(regexp))
+  #parser_output = RegexpPrinter.pretty_print(RegexpParser.parse(regexp))
   void
 }
 
