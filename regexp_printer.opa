@@ -44,6 +44,7 @@ module RegexpPrinter {
       case {edot}: <b>.</b>
       case {edollar}: <b>$</b>
       case {~echar}: <>{echar}</>
+      case {~egroup}: <>{print_simple_list(egroup)}</>
       case _: <>{Debug.dump(elementary)}</>
     }
   }
@@ -51,8 +52,8 @@ module RegexpPrinter {
   function xhtml print_postfix(postfix) {
     match (postfix) {
       case {noop}: <></>
-      case {star}: <>*</>
-      case {plus}: <>+</>
+      case {star}: <b>*</b>
+      case {plus}: <b>+</b>
     }
   }
 }
