@@ -76,7 +76,7 @@ function save_data(int id) {
 function resource display(regexp_result data, int id) {
   Resource.styled_page(
     "RiskyBird | compose",
-    [],
+    ["/resources/riskybird.css"],
     <>
       <div class="container" onready={function(_){load_tests(data)}}>
         <div class="content">
@@ -310,6 +310,7 @@ function resource start(Uri.relative uri) {
 Server.start(
   Server.http,
   [
+    {resources: @static_include_directory("resources")},
     {dispatch: start}
   ]
 )

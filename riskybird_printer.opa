@@ -1,22 +1,24 @@
 module RegexpPrinter {
   function xhtml pretty_print(regexp parsed_regexp) {
     <>
-      {print_simple_list(parsed_regexp)}
+      <div class="pp">{print_simple_list(parsed_regexp)}</div>
+      <br style="clear: both"/>
       <div>{Debug.dump(parsed_regexp)}</div>
     </>
   }
 
   function xhtml print_simple_list(regexp parsed_regexp) {
-    List.fold(
+    t = List.fold(
       function (simple, r) {
         <>
           {r}
-          {print_basic_list(simple)}
+          {print_basic_list(simple)}<br/>
         </>
       },
       parsed_regexp,
       <></>
     )
+    <span>{t}</span>
   }
 
   function xhtml print_basic_list(simple simple) {
@@ -33,7 +35,7 @@ module RegexpPrinter {
   }
 
   function xhtml print_basic(basic basic) {
-    <span style="border: 1px solid black; margin:1px">
+    <span>
       {print_elementary(basic.belt)}
       {print_postfix(basic.bpost)}
     </span>
