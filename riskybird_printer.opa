@@ -21,7 +21,7 @@ module RegexpPrinter {
       function (simple, r) {
         <>
           {r}
-          {print_basic_list(simple)}<br/>
+          <span>{print_basic_list(simple)}</span><br/>
         </>
       },
       parsed_regexp,

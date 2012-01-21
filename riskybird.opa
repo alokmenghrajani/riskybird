@@ -118,7 +118,7 @@ function resource display(regexp_result data, int id) {
               <div class="span4">
                 <h3>Parser output</h3>
                 <p>
-                  For now, just some debugging info.
+                  Pretty printed output & some debugging info.
                 </p>
               </div>
               <div class="span8">
