@@ -1,3 +1,5 @@
+!(http://imgs.xkcd.com/comics/regular_expressions.png)
+
 Introduction
 ------------
 Regular Expressions are notoriously hard to get right. When you are writing a new expression, it
