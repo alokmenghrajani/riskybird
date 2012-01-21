@@ -1,7 +1,5 @@
 /**
- * RegexpUnfail
- *
- * A utility to help compose and discuss regular expressions.
+ * RiskyBird
  *
  * Todo:
  * - real lint engine
@@ -11,8 +9,8 @@
  *   - adding comments
  *
  * Running:
- * opa-plugin-builder -o regexp_unfail_binding regexp_unfail_binding.js
- * opa --parser js-like regexp_unfail_binding.opp regexp_parser.opa regexp_printer.opa regexp_unfail.opa --
+ * opa-plugin-builder -o riskybird_binding riskybird_binding.js
+ * opa --parser js-like riskybird_binding.opp riskybird_parser.opa riskybird_printer.opa riskybird.opa --
  */
 
 import stdlib.themes.bootstrap
@@ -77,8 +75,8 @@ function save_data(int id) {
 
 function resource display(regexp_result data, int id) {
   Resource.styled_page(
-    "RegexpUnfail | compose",
-    ["/resources/regexp_unfail.css"],
+    "RiskyBird | compose",
+    [],
     <>
       <div class="container" onready={function(_){load_tests(data)}}>
         <div class="content">
@@ -124,7 +122,7 @@ function resource display(regexp_result data, int id) {
                 <div id=#parser_output/>
               </div>
             </div>
-            <div class="row hidden" id=#lint>
+            <div class="row hide" id=#lint>
               <div class="span4">
                 <h3>Lint errors & warnings</h3>
                 <p>
@@ -212,13 +210,13 @@ function void linter_run() {
     }
   if (Option.is_some(l)) {
     if (Dom.is_empty(Dom.select_id("lint_rule1"))) {
-      Dom.remove_class(#lint, "hidden")
+      Dom.remove_class(#lint, "hide")
       Dom.put_at_end(#lint_rules, Dom.of_xhtml(Option.get(l)))
       void
     }
     void
   } else {
-    Dom.add_class(#lint, "hidden")
+    Dom.add_class(#lint, "hide")
     Dom.remove_content(#lint_rules)
     void
   }
@@ -230,11 +228,11 @@ function void append(list, item, expected) {
   Dom.set_value(item, "")
 }
 
-client regexp_test = %%regexp_unfail_binding.regexp_test%%
+client js_test = %%riskybird_binding.js_test%%
 
 client function xhtml get_result_div(string str, bool expected) {
   string regexp = Dom.get_value(#regexp)
-  result = regexp_test(regexp, str)
+  result = js_test(regexp, str)
   id = Dom.fresh_id()
   str2 = if (str == "") { <i>empty string</i> } else { <>{str}</> }
 
@@ -311,7 +309,6 @@ function resource start(Uri.relative uri) {
 Server.start(
   Server.http,
   [
-    {resources: @static_include_directory("resources")},
     {dispatch: start}
   ]
 )

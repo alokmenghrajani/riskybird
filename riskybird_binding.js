@@ -1,4 +1,4 @@
-##register regexp_test : string, string -> bool
+##register js_test : string, string -> bool
 ##args(regexp, str)
 {
   var r = new RegExp(regexp);

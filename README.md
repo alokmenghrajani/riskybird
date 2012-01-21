@@ -14,6 +14,17 @@ RiskyBird tries to mitigate this by offering a set of tools for software enginee
 4.  A unittest engine: prevents future mishapes.
 5.  A collaboration platform: reviewers can add tests and provide feedback.
 
+
+Why RiskyBird
+-------------
+We love AngryBirds and we wanted a name that starts with R.
+
+
+See it in action
+----------------
+When ready, this code will be running on: http://riskybird.quaxio.com/
+
+
 Some notes
 ----------
 I haven't found a nice place to put these, so leaving these notes here.
