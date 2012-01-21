@@ -1,10 +1,19 @@
 module RegexpPrinter {
   function xhtml pretty_print(regexp parsed_regexp) {
-    <>
-      <div class="pp">{print_simple_list(parsed_regexp)}</div>
-      <br style="clear: both"/>
-      <div>{Debug.dump(parsed_regexp)}</div>
-    </>
+    match (parsed_regexp) {
+      case []:
+        <>
+          <div class="alert-message error">
+            <strong>oh snap!</strong> Parsing failed!
+          </div>
+        </>
+      case _:
+        <>
+          <div class="pp">{print_simple_list(parsed_regexp)}</div>
+          <br style="clear: both"/>
+          <div>{Debug.dump(parsed_regexp)}</div>
+        </>
+     }
   }
 
   function xhtml print_simple_list(regexp parsed_regexp) {

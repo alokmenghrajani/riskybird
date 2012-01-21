@@ -1,12 +1,15 @@
 /**
  * RiskyBird
+ * Regular expression authors best friend
  *
  * Todo:
- * - real lint engine
- * - pretty printer
+ * - the parser is currently incomplete
+ * - support various regexp flavors (js, php, etc.)
+ * - write a lint engine which uses the parsed tree
+ *   * how can we reflect changes on the parsed tree on the regexp?
  * - facebook integration
- *   - keep track of who wrote what
- *   - adding comments
+ *   * commenting
+ *   * etc.
  *
  * Running:
  * opa-plugin-builder -o riskybird_binding riskybird_binding.js
