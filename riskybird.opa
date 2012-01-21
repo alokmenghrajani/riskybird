@@ -174,6 +174,7 @@ function void load_tests(regexp_result data) {
     },
     data.true_negatives
   )
+  check_regexp()
   linter_run()
 }
 
