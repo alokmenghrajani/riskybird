@@ -50,9 +50,9 @@ Here are some tips to help you write better regular expressions:
     are expecting a ".", use \. instead of the dot metacharacter. Use non capturing groups when you don't need
     to capture a group. Etc.
 
-5.  Different engines (i.e. different programming languages) behave in slightly different ways. Don't just
-    copy paste regular expressions from one language in to another.
+5.  Different engines / different programming languages behave in slightly different ways (what were you expecting?).
+    Don't just copy paste regular expressions from one language in to another!
 
     Proof:
-    - in JavaScript: new RegExp(/^[\\abc]+$/).test('abc\\'); → true
-    - in PHP: preg_match("/^[\\abc]+$/", "abc\\"); → false
+    - in JavaScript: new RegExp(/^[\\\\abc]+$/).test('abc\\\\'); → true
+    - in PHP: preg_match("/^[\\\\abc]+$/", "abc\\\\"); → false
