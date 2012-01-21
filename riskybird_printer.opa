@@ -18,11 +18,11 @@ module RegexpPrinter {
       parsed_regexp,
       <></>
     )
-    <span>{t}</span>
+    <span class="noborder">{t}</span>
   }
 
   function xhtml print_basic_list(simple simple) {
-    List.fold(
+    t = List.fold(
       function (basic, r) {
         <>
           {r}
@@ -32,6 +32,7 @@ module RegexpPrinter {
       simple,
       <></>
     )
+    <span class="noborder">{t}</span>
   }
 
   function xhtml print_basic(basic basic) {
@@ -47,7 +48,29 @@ module RegexpPrinter {
       case {edollar}: <b>$</b>
       case {~echar}: <>{echar}</>
       case {~egroup}: <>{print_simple_list(egroup)}</>
-      case _: <>{Debug.dump(elementary)}</>
+      case {~eset}: <>{print_set(eset)}</>
+    }
+  }
+
+  function print_set(rset set) {
+    t = List.fold(
+      function(item, r) {
+        i = match (item) {
+          case {~ichar}: <>{ichar}</>
+          case {~irange}: <>{irange.rstart}-{irange.rend}</>
+        }
+        <>
+          {r}
+          {i}
+        </>
+      },
+      set.items,
+      <></>
+    )
+    if (set.neg) {
+      <>[^{t}]</>
+    } else {
+      <>[{t}]</>
     }
   }
 
