@@ -1,22 +1,28 @@
 module RegexpPrinter {
-  function xhtml pretty_print(regexp parsed_regexp) {
+  function xhtml pretty_print(option(regexp) parsed_regexp) {
     match (parsed_regexp) {
-      case []:
+      case {none}:
         <>
           <div class="alert-message error">
             <strong>oh snap!</strong> Parsing failed!
           </div>
         </>
-      case _:
+      case {some: x}:
+        start_anchor = if (x.start_anchor) { "^" } else { "…" }
+        end_anchor = if (x.end_anchor) { "$" } else { "…" }
         <>
-          <div class="pp">{print_simple_list(parsed_regexp)}</div>
+          <div class="pp">
+            <span class="noborder">{start_anchor}</span>
+            {print_simple_list(x.core)}
+            <span class="noborder">{end_anchor}</span>
+          </div>
           <br style="clear: both"/>
           <div>{Debug.dump(parsed_regexp)}</div>
         </>
      }
   }
 
-  function xhtml print_simple_list(regexp parsed_regexp) {
+  function xhtml print_simple_list(core_regexp regexp) {
     t = List.fold(
       function (simple, r) {
         <>
@@ -24,7 +30,7 @@ module RegexpPrinter {
           <span>{print_basic_list(simple)}</span><br/>
         </>
       },
-      parsed_regexp,
+      regexp,
       <></>
     )
     <span class="noborder">{t}</span>
@@ -54,8 +60,6 @@ module RegexpPrinter {
   function xhtml print_elementary(elementary elementary) {
     match (elementary) {
       case {edot}: <b>.</b>
-      case {edollar}: <b>$</b>
-      case {ecaret}: <b>^</b>
       case {~echar}: <>{echar}</>
       case {~egroup}: <>{print_simple_list(egroup)}</>
       case {~eset}: <>{print_set(eset)}</>

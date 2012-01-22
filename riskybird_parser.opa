@@ -1,6 +1,12 @@
+type regexp =
+  { bool start_anchor,
+    core_regexp core,
+    bool end_anchor }
 
-type regexp = list(simple)
+and core_regexp = list(simple)
+
 and simple = list(basic)
+
 and basic  =
    { elementary belt,
      postfix bpost }
@@ -12,10 +18,8 @@ and postfix =
 
 and elementary =
   { edot } or
-  { edollar } or
-  { ecaret } or
   { string echar } or
-  { regexp egroup } or
+  { core_regexp egroup } or
   { rset eset }
 
 and rset =
@@ -30,10 +34,16 @@ and range =
 
 module RegexpParser {
 
-  function regexp coerce(regexp x) { x }
+  function core_regexp coerce(core_regexp x) { x }
 
   regexp = parser
-  | x = { simple } "|" ~regexp -> List.cons(x, regexp)
+  | "^" x = {core_regexp} "$" -> { start_anchor: true, core: x, end_anchor: true }
+  | "^" x = {core_regexp} -> { start_anchor: true, core: x, end_anchor: false }
+  | x = {core_regexp} "$" -> { start_anchor: false, core: x, end_anchor: true }
+  | x = { core_regexp } -> { start_anchor: false, core: x, end_anchor: false }
+
+  core_regexp = parser
+  | x = { simple } "|" ~core_regexp -> List.cons(x, core_regexp)
   | x = { simple } -> [x]
 
   simple = parser
@@ -51,9 +61,7 @@ module RegexpParser {
   elementary = parser
   | ~char -> { echar: char }
   | "." -> { edot }
-  | "$" -> { edollar }
-  | "^" -> { ecaret }
-  | "(" ~regexp ")" -> { egroup: coerce(regexp) }
+  | "(" ~core_regexp ")" -> { egroup: coerce(core_regexp) }
   | "[^" ~items "]" -> { eset: { neg: true, ~items } }
   | "[" ~items "]" -> { eset: { neg:false, ~items } }
 
@@ -72,11 +80,8 @@ module RegexpParser {
   | x = { Rule.alphanum_char } -> { ichar: x }
   | " " -> { ichar: " " }
 
-  function regexp parse(string s) {
-    match (Parser.try_parse(regexp, s)) {
-     case {some: result}: result;
-     case {none}: [];
-    }
+  function option(regexp) parse(string s) {
+    Parser.try_parse(regexp, s)
   }
 
 }

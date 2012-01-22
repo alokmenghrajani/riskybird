@@ -292,6 +292,7 @@ client function void check_regexp() {
   // Run the parser
   string regexp = Dom.get_value(#regexp)
   #parser_output = RegexpPrinter.pretty_print(RegexpParser.parse(regexp))
+//  #parser_output = <>{Debug.dump(RegexpParser.parse(regexp))}</>
   void
 }
 
