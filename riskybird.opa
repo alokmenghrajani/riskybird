@@ -142,19 +142,19 @@ function resource display(regexp_result data, int id) {
                 <h3>True positives</h3>
                 <div id=#true_positives>
                 </div>
-                <input type="text" id=#true_positive placeholder="enter a string which should match" onnewline={function(e) {append(#true_positives, #true_positive, true)}}/>
+                <input type="text" id=#true_positive placeholder="enter a string which should match" onnewline={function(_) {append(#true_positives, #true_positive, true)}}/>
               </div>
 
               <div class="span5 alert-message block-message error">
                 <h3>True negatives</h3>
                 <div id=#true_negatives>
                 </div>
-                <input type="text" id=#true_negative placeholder="enter a string which should not match" onnewline={function(e) {append(#true_negatives, #true_negative, false)}}/>
+                <input type="text" id=#true_negative placeholder="enter a string which should not match" onnewline={function(_) {append(#true_negatives, #true_negative, false)}}/>
               </div>
             </div>
             <div class="row">
               <div class="span8 offset4">
-                <input type="submit" value="Save" class="btn primary" onclick={function(e){save_data(id)}}/>
+                <input type="submit" value="Save" class="btn primary" onclick={function(_){save_data(id)}}/>
               </div>
             </div>
           </section>
@@ -215,7 +215,7 @@ function void linter_run() {
   if (Option.is_some(l)) {
     if (Dom.is_empty(Dom.select_id("lint_rule1"))) {
       Dom.remove_class(#lint, "hide")
-      Dom.put_at_end(#lint_rules, Dom.of_xhtml(Option.get(l)))
+      _ = Dom.put_at_end(#lint_rules, Dom.of_xhtml(Option.get(l)))
       void
     }
     void
@@ -269,7 +269,7 @@ client function void check_regexp() {
     <></>,
     #true_positives
   )
-  Dom.put_inside(#true_positives, Dom.of_xhtml(x))
+  _ = Dom.put_inside(#true_positives, Dom.of_xhtml(x))
 
   x = Dom.fold_deep(
     function xhtml (dom el, xhtml r) {
@@ -287,7 +287,7 @@ client function void check_regexp() {
     <></>,
     #true_negatives
   )
-  Dom.put_inside(#true_negatives, Dom.of_xhtml(x))
+  _ = Dom.put_inside(#true_negatives, Dom.of_xhtml(x))
 
   // Run the parser
   string regexp = Dom.get_value(#regexp)

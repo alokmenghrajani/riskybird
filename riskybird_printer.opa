@@ -55,6 +55,7 @@ module RegexpPrinter {
     match (elementary) {
       case {edot}: <b>.</b>
       case {edollar}: <b>$</b>
+      case {ecaret}: <b>^</b>
       case {~echar}: <>{echar}</>
       case {~egroup}: <>{print_simple_list(egroup)}</>
       case {~eset}: <>{print_set(eset)}</>

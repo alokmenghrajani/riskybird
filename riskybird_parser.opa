@@ -13,6 +13,7 @@ and postfix =
 and elementary =
   { edot } or
   { edollar } or
+  { ecaret } or
   { string echar } or
   { regexp egroup } or
   { rset eset }
@@ -51,6 +52,7 @@ module RegexpParser {
   | ~char -> { echar: char }
   | "." -> { edot }
   | "$" -> { edollar }
+  | "^" -> { ecaret }
   | "(" ~regexp ")" -> { egroup: coerce(regexp) }
   | "[^" ~items "]" -> { eset: { neg: true, ~items } }
   | "[" ~items "]" -> { eset: { neg:false, ~items } }
