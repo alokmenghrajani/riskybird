@@ -4,6 +4,9 @@
  *
  * Todo:
  * - the parser is currently incomplete
+ *   * does not handle a{n}, a{n,m} or a{n,}
+ *   * does not handle a*?
+ *
  * - support various regexp flavors (js, php, etc.)
  * - write a lint engine which uses the parsed tree
  *   * how can we reflect changes on the parsed tree on the regexp?
