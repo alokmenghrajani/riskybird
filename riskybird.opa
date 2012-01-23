@@ -4,9 +4,15 @@
  *
  * Todo:
  * - the parser is currently incomplete
+ *   * ?, \w, \d, \W etc ...
+ *   * [-] [-abc] [abc-]
+ *   * [\] within brackets (will have to play with the different implementations
+ *   * add the symbols @#% etc ... for now it's just alphanumeric
+ * - lint rules
+ *   * overlapping ranges
+ *   * suggest a range when possible [abcd] suggest [a-d]
+ *   * suggest true negative, true positives whenever possible
  * - support various regexp flavors (js, php, etc.)
- * - write a lint engine which uses the parsed tree
- *   * how can we reflect changes on the parsed tree on the regexp?
  * - facebook integration
  *   * commenting
  *   * etc.
