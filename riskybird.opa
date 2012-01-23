@@ -7,9 +7,15 @@
  *   * does not handle a{n}, a{n,m} or a{n,}
  *   * does not handle a*?
  *
+ *   * ?, \w, \d, \W etc ...
+ *   * [-] [-abc] [abc-]
+ *   * [\] within brackets (will have to play with the different implementations
+ *   * add the symbols @#% etc ... for now it's just alphanumeric
+ * - lint rules
+ *   * overlapping ranges
+ *   * suggest a range when possible [abcd] suggest [a-d]
+ *   * suggest true negative, true positives whenever possible
  * - support various regexp flavors (js, php, etc.)
- * - write a lint engine which uses the parsed tree
- *   * how can we reflect changes on the parsed tree on the regexp?
  * - facebook integration
  *   * commenting
  *   * etc.
@@ -145,14 +151,16 @@ function resource display(regexp_result data, int id) {
                 <h3>True positives</h3>
                 <div id=#true_positives>
                 </div>
-                <input type="text" id=#true_positive placeholder="enter a string which should match" onnewline={function(_) {append(#true_positives, #true_positive, true)}}/>
+                <input type="text" id=#true_positive placeholder="enter a string which should match" onnewline={function(_) {append(#true_positives, #true_positive, true)}}
+                  onblur={function(_) {append(#true_positives, #true_positive, true)}}/>
               </div>
 
               <div class="span5 alert-message block-message error">
                 <h3>True negatives</h3>
                 <div id=#true_negatives>
                 </div>
-                <input type="text" id=#true_negative placeholder="enter a string which should not match" onnewline={function(_) {append(#true_negatives, #true_negative, false)}}/>
+                <input type="text" id=#true_negative placeholder="enter a string which should not match" onnewline={function(_) {append(#true_negatives, #true_negative, false)}}
+                  onblur={function(_) {append(#true_negatives, #true_negative, false)}}/>
               </div>
             </div>
             <div class="row">
