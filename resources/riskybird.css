@@ -1,10 +1,31 @@
 .pp span {
   border: 1px solid black;
-  margin: 2px;
-  padding: 1px;
+  margin: 1px;
+  padding: 6px;
   float: left;
 }
 
 .pp .noborder {
   border: 0px;
+}
+
+.pp span .mylabel {
+    border: 0px;
+    margin: 0px;
+    padding: 0px;
+    position: relative;
+    top: -4px;
+    left: -5px;
+    width: 0px;
+    height: 0px;
+    font-size: 10px;
+}
+
+.pp span .mylabel span {
+    border: 0px;
+    white-space: nowrap;
+    margin: 0px;
+    padding: 0px;
+    line-height: 0px;
+    position: absolute;
 }

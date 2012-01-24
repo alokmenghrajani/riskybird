@@ -27,13 +27,13 @@ module RegexpPrinter {
       function (simple, r) {
         <>
           {r}
-          <span>{print_basic_list(simple)}</span><br/>
+          <span class="noborder">{print_basic_list(simple)}</span><br/>
         </>
       },
       regexp,
       <></>
     )
-    <span class="noborder">{t}</span>
+    t
   }
 
   function xhtml print_basic_list(simple simple) {
@@ -52,8 +52,8 @@ module RegexpPrinter {
 
   function xhtml print_basic(basic basic) {
     <span>
-      {print_elementary(basic.belt)}
       {print_postfix(basic.bpost)}
+      {print_elementary(basic.belt)}
     </span>
   }
 
@@ -61,7 +61,10 @@ module RegexpPrinter {
     match (elementary) {
       case {edot}: <b>.</b>
       case {~echar}: <>{echar}</>
-      case {~egroup}: <>{print_simple_list(egroup)}</>
+      case {~egroup}:
+        <span>
+          <span class="mylabel"><span>group N</span></span>{print_simple_list(egroup)}
+        </span>
       case {~eset}: <>{print_set(eset)}</>
     }
   }
@@ -91,8 +94,8 @@ module RegexpPrinter {
   function xhtml print_postfix(postfix) {
     match (postfix) {
       case {noop}: <></>
-      case {star}: <b>*</b>
-      case {plus}: <b>+</b>
+      case {star}: <span class="mylabel"><span>many</span></span>
+      case {plus}: <span class="mylabel"><span>one or more</span></span>
     }
   }
 }
