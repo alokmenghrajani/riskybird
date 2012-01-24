@@ -19,6 +19,8 @@
  * - facebook integration
  *   * commenting
  *   * etc.
+ * - add opa channel magic
+ * - remove save button, everything needs to auto save
  *
  * Running:
  * opa-plugin-builder -o riskybird_binding riskybird_binding.js
@@ -310,8 +312,10 @@ client function void check_regexp() {
 function resource start(Uri.relative uri) {
   match (uri) {
     case {path:{nil} ...}:
-      regexp_result data = {regexp:"", comment:"", true_positives:Map.empty, true_negatives:Map.empty}
-      display(data, 0)
+//      regexp_result data = {regexp:"", comment:"", true_positives:Map.empty, true_negatives:Map.empty}
+      regexp_id = Db.fresh_key(@/regexps)
+      r = Resource.raw_status({address_redirected})
+      Resource.add_header(r, {location:"/{regexp_id}"})
     case {path:{~hd, tl:[]} ...}:
       int id = Int.of_string(hd)
       regexp_result data = /regexps[id]
