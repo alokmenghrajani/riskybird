@@ -24,7 +24,7 @@
  *
  * Running:
  * opa-plugin-builder -o riskybird_binding riskybird_binding.js
- * opa --parser js-like riskybird_binding.opp riskybird_parser.opa riskybird_printer.opa riskybird.opa --
+ * opa --parser js-like riskybird_binding.opp riskybird_parser.opa riskybird_xhtml_printer.opa riskybird_string_printer.opa riskybird.opa --
  */
 
 import stdlib.themes.bootstrap
@@ -304,8 +304,9 @@ client function void check_regexp() {
 
   // Run the parser
   string regexp = Dom.get_value(#regexp)
-  #parser_output = RegexpPrinter.pretty_print(RegexpParser.parse(regexp))
-//  #parser_output = <>{Debug.dump(RegexpParser.parse(regexp))}</>
+  parsed_regexp = RegexpParser.parse(regexp)
+  #parser_output = RegexpXhtmlPrinter.pretty_print(parsed_regexp)
+  #parser_output =+ <>{RegexpStringPrinter.pretty_print(parsed_regexp)}</>
   void
 }
 

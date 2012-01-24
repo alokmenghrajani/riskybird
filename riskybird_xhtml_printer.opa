@@ -1,4 +1,4 @@
-module RegexpPrinter {
+module RegexpXhtmlPrinter {
   function xhtml pretty_print(option(regexp) parsed_regexp) {
     match (parsed_regexp) {
       case {none}:
