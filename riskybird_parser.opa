@@ -42,33 +42,41 @@ module RegexpParser {
   | x = {core_regexp} "$" -> { start_anchor: false, core: x, end_anchor: true }
   | x = { core_regexp } -> { start_anchor: false, core: x, end_anchor: false }
 
+/* Ok this is ugly as hell!!!
+ * I am forced into this nightmare because of erling, first thing he tried was
+ * "((((((((((((((", except that with the original parser (the one with nice code),
+ * it stalls (too much CPU is burnt). I suspect it's the backtracking mechanism of
+ * of the parser costing too much ... eventhough, I didn't look, so don't really know.
+ * However, I can avoid backtracking with this ugly piece of code ... and solve the
+ * problem. Damn you erling!
+*/
   core_regexp = parser
-  | x = { simple } "|" ~core_regexp -> List.cons(x, core_regexp)
-  | x = { simple } -> [x]
-
-  simple = parser
-  | ~basic ~simple -> List.cons(basic, simple)
-  | ~basic -> [basic]
+  | ")" -> [[]]
+  | Rule.eos -> [[]]
+  | "|" ~core_regexp -> List.cons([], core_regexp)
+  | ~basic ~core_regexp ->
+    match(core_regexp) {
+      case {nil}: nil /* never triggered */
+      case { ~hd, ~tl }: 
+         { hd: List.cons(basic, hd), tl: tl }
+    }
 
   basic = parser
   | ~elementary ~postfix -> { belt: elementary, bpost: postfix }
-  | ~elementary -> { belt: elementary, bpost: { noop } }
 
   postfix = parser
   | "*" -> { star }
   | "+" -> { plus }
+  | ""  -> { noop }
 
   elementary = parser
-  | ~char -> { echar: char }
   | "." -> { edot }
-  | "(" ~core_regexp ")" -> { egroup: coerce(core_regexp) }
+  | "(" ~core_regexp -> { egroup: coerce(core_regexp) }
   | "[^" ~items "]" -> { eset: { neg: true, ~items } }
   | "[" ~items "]" -> { eset: { neg:false, ~items } }
-
-  char = parser
-  | "\\" x = { Rule.alphanum_char } -> x
-  | x = { Rule.alphanum_char } -> x
-  | " " -> " "
+  | "\\" x = { Rule.alphanum_char } -> { echar: x}
+  | " " -> {echar: " "}
+  | x = { Rule.alphanum_char } -> { echar: x}
 
   items = parser
   | ~item ~items -> List.cons(item, items)
