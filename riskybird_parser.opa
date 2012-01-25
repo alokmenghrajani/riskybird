@@ -14,7 +14,10 @@ and basic  =
 and postfix =
   { noop } or
   { star } or
-  { plus }
+  { plus } or
+  { int exact } or
+  { int at_least } or
+  { int min, int max } 
 
 and elementary =
   { edot } or
@@ -67,7 +70,14 @@ module RegexpParser {
   postfix = parser
   | "*" -> { star }
   | "+" -> { plus }
+  | "\{" ~repetition -> repetition
   | ""  -> { noop }
+
+  repetition = parser
+  | x = {Rule.integer} "\}" -> {exact: x}
+  | x = {Rule.integer} ",\}"  -> {at_least: x}
+  | x = {Rule.integer} "," y = {Rule.integer} "\}" -> {min:x, max:y}
+
 
   elementary = parser
   | "." -> { edot }

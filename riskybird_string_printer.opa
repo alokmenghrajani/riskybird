@@ -65,6 +65,9 @@ module RegexpStringPrinter {
       case {noop}: ""
       case {star}: "*"
       case {plus}: "+"
+      case {exact: x}: "\{{x}\}"
+      case {at_least: x}: "\{{x},\}"
+      case {~min, ~max}: "\{{min},{max}\}" 
     }
   }
 }
