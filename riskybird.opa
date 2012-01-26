@@ -3,23 +3,29 @@
  * Regular expression authors best friend
  *
  * Todo:
- * - the parser is currently incomplete
- *   * does not handle a*?
+ * - the parser is currently incomplete. It does not handle:
+ *   - does not handle the ungreedy operator "x*?"
+ *   - non capturing groups "(:?...)"
+ *
+ * - the parser also incorrectly parses the following cases:
+ *   - empty group "()"
+ *   - incorrect ranges [z-a]
+ *   - unbalanced stuff "((((" or "))))"
  *
  * - lint rules
- *   * overlapping ranges
- *   * suggest a range when possible [abcd] suggest [a-d]
- *   * suggest true negative, true positives whenever possible
+ *   - clean up character sets:
+ *     - overlapping ranges "[a-mb-n]", "[a-zb-y]"
+ *     - duplicate entires "[aa]"
+ *     - reduce ranges "[ab-cc-d]" to "[a-d]"
  * - support various regexp flavors (js, php, etc.)
- * - facebook integration
- *   * commenting
- *   * etc.
- * - add opa channel magic
- * - remove save button, everything needs to auto save
+ *
+ * - Bugs:
+ *   - empty true positives/true negatives get saved
+ *   - lint rule gets rendered more than once
  *
  * Running:
  * opa-plugin-builder -o riskybird_binding riskybird_binding.js
- * opa --parser js-like riskybird_binding.opp riskybird_parser.opa riskybird_xhtml_printer.opa riskybird_string_printer.opa riskybird.opa --
+ * opa --parser js-like riskybird_binding.opp *.opa
  */
 
 import stdlib.themes.bootstrap
@@ -158,11 +164,6 @@ function resource display(regexp_result data, int id) {
                 </div>
                 <input type="text" id=#true_negative placeholder="enter a string which should not match" onnewline={function(_) {append(#true_negatives, #true_negative, false)}}
                   onblur={function(_) {append(#true_negatives, #true_negative, false)}}/>
-              </div>
-            </div>
-            <div class="row">
-              <div class="span8 offset4">
-                <input type="submit" value="Save" class="btn primary" onclick={function(_){save_data(id)}}/>
               </div>
             </div>
           </section>

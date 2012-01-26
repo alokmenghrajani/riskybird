@@ -1,5 +1,8 @@
-/* Module checking a regular expression for linting errors
-*/
+/**
+ * Lint engine for regular expressions.
+ *
+ * The goal is to detect common mistakes people make (and when possible suggest an auto fix).
+ */
 
 /* The status of the linter */
 type lstatus =
@@ -35,7 +38,7 @@ module CheckerRender {
   function xhtml xhtml_of_error(lerror err) {
     match(err) {
       case {range_not_used: {~rstart, ~rend}}:
-        render(2, "the range [{rstart}-{rend}] is redondant")
+        render(2, "the range [{rstart}-{rend}] is redundant")
       case _: <></>
     }
   }
@@ -69,7 +72,7 @@ module CheckerHelper {
 }
 
 module Checker {
-  
+
   function lstatus lreturn(lstatus st, lstatus st2) {
     match(st) {
       case {error: _}: st
@@ -89,11 +92,11 @@ module Checker {
   function lstatus simple(lstatus st, list(basic) l) {
     List.fold_left(basic, st, l)
   }
-  
+
   function lstatus basic(lstatus st, basic bc) {
     elementary(st, bc.belt)
   }
-  
+
   function lstatus elementary(lstatus st, elementary elt) {
     match(elt) {
       case {eset:{items:l, ...}}:
@@ -104,7 +107,7 @@ module Checker {
       case _: st
      }
    }
-    
+
   function item_state item(item_state state, item it) {
     match(it) {
       case {irange: r}:
