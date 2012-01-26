@@ -88,8 +88,18 @@ module RegexpParser {
   | "(" ~core_regexp -> { egroup: coerce(core_regexp) }
   | "[^" ~items "]" -> { eset: { neg: true, ~items } }
   | "[" ~items "]" -> { eset: { neg:false, ~items } }
-  | "\\" x = { char } -> { escaped_char: x}
+  | "\\" x = { any_char } -> { escaped_char: x}
   | x = { char } -> { echar: x}
+
+  any_char = parser
+  | ~char -> char
+  | x = "[" -> x
+  | x = "]" -> x
+  | x = "+" -> x
+  | x = "*" -> x
+  | x = "." -> x
+  | x = "?" -> x
+  | x = "|" -> x
 
   char = parser
   | x = { Rule.alphanum_char } -> x
@@ -104,14 +114,10 @@ module RegexpParser {
   | x = "&" -> x
   | x = "-" -> x
   | x = ":" -> x
-  | x = "." -> x
   | x = "{" -> x
   | x = "}" -> x
-  | x = "[" -> x
-  | x = "]" -> x
   | x = "(" -> x
   | x = ")" -> x
-  | x = "+" -> x
   | x = "\\" -> x
   | x = "\"" -> x
   | x = "'" -> x
@@ -119,12 +125,10 @@ module RegexpParser {
   | x = "<" -> x
   | x = ">" -> x
   | x = "," -> x
-  | x = "?" -> x
   | x = "/" -> x
   | x = "`" -> x
   | x = "_" -> x
   | x = "=" -> x
-  | x = "|" -> x
   
   items = parser
   | ~item ~items -> List.cons(item, items)
@@ -132,7 +136,7 @@ module RegexpParser {
 
   item = parser
   | "-" -> { ichar: "-" }
-  | "\\" x = { char } -> { iechar: x}
+  | "\\" x = { any_char } -> { iechar: x}
   | " " -> { ichar: " " }
   | x = { char } "-" y = { char } ->
     { irange: { rstart: x, rend: y } }

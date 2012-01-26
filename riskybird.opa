@@ -206,20 +206,24 @@ function void lint_fix_rule1() {
 function void linter_run() {
   // TODO: run a real lint engine
   string regexp = Dom.get_value(#regexp)
+/*
+    <a href="#" onclick={function(_){lint_fix_rule1()}} class="btn small">Fix regular expression</a>
   l =
     if (contains(regexp, ".com") && (contains(regexp, "\\.com") == false)) {
       {some:
-        <div id="lint_rule1" class="alert-message block-message warning span8">
-          <p><span class="icon32 icon-alert"></span> <strong>LINT RULE 1</strong><br/>
-          It seems you are trying to match a URL. You should use <strong>\\.</strong> instead of <strong>.</strong><br/></p>
-          <div class="alert-actions">
-            <a href="#" onclick={function(_){lint_fix_rule1()}} class="btn small">Fix regular expression</a>
-          </div>
-        </div>
       }
     } else {
       {none}
     }
+*/
+  option(regexp) tree_opt = RegexpParser.parse(regexp)
+  l =
+    match(tree_opt) {
+    case {none}: {none}
+    case {some: tree}:
+      lstatus status = Checker.regexp(tree)
+      CheckerRender.error(status)
+   }
   if (Option.is_some(l)) {
     if (Dom.is_empty(Dom.select_id("lint_rule1"))) {
       Dom.remove_class(#lint, "hide")
