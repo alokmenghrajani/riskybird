@@ -15,6 +15,7 @@
  * - lint rules
  *   - clean up character sets:
  *     - overlapping ranges "[a-mb-n]", "[a-zb-y]"
+ *     - detect [A-z] suggested by ben
  *     - duplicate entires "[aa]"
  *     - reduce ranges "[ab-cc-d]" to "[a-d]"
  * - support various regexp flavors (js, php, etc.)
