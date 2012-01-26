@@ -4,13 +4,8 @@
  *
  * Todo:
  * - the parser is currently incomplete
- *   * does not handle a{n}, a{n,m} or a{n,}
  *   * does not handle a*?
  *
- *   * ?, \w, \d, \W etc ...
- *   * [-] [-abc] [abc-]
- *   * [\] within brackets (will have to play with the different implementations
- *   * add the symbols @#% etc ... for now it's just alphanumeric
  * - lint rules
  *   * overlapping ranges
  *   * suggest a range when possible [abcd] suggest [a-d]

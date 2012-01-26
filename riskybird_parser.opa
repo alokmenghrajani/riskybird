@@ -20,8 +20,10 @@ and postfix =
   { int min, int max } 
 
 and elementary =
+  { qmark } or
   { edot } or
   { string echar } or
+  { string escaped_char } or
   { core_regexp egroup } or
   { rset eset }
 
@@ -29,6 +31,7 @@ and rset =
   { bool neg, list(item) items }
 
 and item =
+  { string iechar } or
   { string ichar } or
   { range irange }
 
@@ -80,23 +83,60 @@ module RegexpParser {
 
 
   elementary = parser
+  | "?" -> { qmark }
   | "." -> { edot }
   | "(" ~core_regexp -> { egroup: coerce(core_regexp) }
   | "[^" ~items "]" -> { eset: { neg: true, ~items } }
   | "[" ~items "]" -> { eset: { neg:false, ~items } }
-  | "\\" x = { Rule.alphanum_char } -> { echar: x}
-  | " " -> {echar: " "}
-  | x = { Rule.alphanum_char } -> { echar: x}
+  | "\\" x = { char } -> { escaped_char: x}
+  | x = { char } -> { echar: x}
 
+  char = parser
+  | x = { Rule.alphanum_char } -> x
+  | x = " " -> x
+  | x = "~" -> x
+  | x = "!" -> x
+  | x = "@" -> x
+  | x = "#" -> x
+  | x = "$" -> x
+  | x = "%" -> x
+  | x = "^" -> x
+  | x = "&" -> x
+  | x = "-" -> x
+  | x = ":" -> x
+  | x = "." -> x
+  | x = "{" -> x
+  | x = "}" -> x
+  | x = "[" -> x
+  | x = "]" -> x
+  | x = "(" -> x
+  | x = ")" -> x
+  | x = "+" -> x
+  | x = "\\" -> x
+  | x = "\"" -> x
+  | x = "'" -> x
+  | x = ";" -> x
+  | x = "<" -> x
+  | x = ">" -> x
+  | x = "," -> x
+  | x = "?" -> x
+  | x = "/" -> x
+  | x = "`" -> x
+  | x = "_" -> x
+  | x = "=" -> x
+  | x = "|" -> x
+  
   items = parser
   | ~item ~items -> List.cons(item, items)
   | ~item -> [item]
 
   item = parser
-  | x = { Rule.alphanum_char } "-" y = { Rule.alphanum_char } ->
-    { irange: { rstart: x, rend: y } }
-  | x = { Rule.alphanum_char } -> { ichar: x }
+  | "-" -> { ichar: "-" }
+  | "\\" x = { char } -> { iechar: x}
   | " " -> { ichar: " " }
+  | x = { char } "-" y = { char } ->
+    { irange: { rstart: x, rend: y } }
+  | x = { char } -> { ichar: x }
 
   function option(regexp) parse(string s) {
     Parser.try_parse(regexp, s)

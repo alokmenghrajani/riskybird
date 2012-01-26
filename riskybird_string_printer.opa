@@ -35,7 +35,9 @@ module RegexpStringPrinter {
   function string print_elementary(elementary elementary) {
     match (elementary) {
       case {edot}: "."
+      case {qmark}: "?"
       case {~echar}: "{echar}"
+      case {escaped_char:x}: "\\{x}"
       case {~egroup}: "({print_simple_list(egroup)})"
       case {~eset}: "{print_set(eset)}"
     }
@@ -45,6 +47,7 @@ module RegexpStringPrinter {
     t = List.fold(
       function(item, r) {
         i = match (item) {
+          case {~iechar}: "\\{iechar}"
           case {~ichar}: "{ichar}"
           case {~irange}: "{irange.rstart}-{irange.rend}"
         }

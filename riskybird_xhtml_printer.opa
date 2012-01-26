@@ -60,7 +60,9 @@ module RegexpXhtmlPrinter {
   function xhtml print_elementary(elementary elementary) {
     match (elementary) {
       case {edot}: <b>.</b>
+      case {qmark}: <b>?</b>
       case {~echar}: <>{echar}</>
+      case {escaped_char:x}: <>{"\\{x}"}</>
       case {~egroup}:
         <span>
           <span class="mylabel"><span>group N</span></span>{print_simple_list(egroup)}
@@ -73,6 +75,7 @@ module RegexpXhtmlPrinter {
     t = List.fold(
       function(item, r) {
         i = match (item) {
+          case {~iechar}: <>\\{iechar}</>
           case {~ichar}: <>{ichar}</>
           case {~irange}: <>{irange.rstart}-{irange.rend}</>
         }
