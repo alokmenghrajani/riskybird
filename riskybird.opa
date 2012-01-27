@@ -11,6 +11,7 @@
  *   - empty group "()"
  *   - incorrect ranges [z-a]
  *   - unbalanced stuff "((((" or "))))"
+ *   - eol inside a conditional "^a|bc$"
  *
  * - lint rules
  *   - clean up character sets:
@@ -26,7 +27,7 @@
  *
  * Running:
  * opa-plugin-builder -o riskybird_binding riskybird_binding.js
- * opa --parser js-like riskybird_binding.opp *.opa
+ * opa --parser js-like riskybird_binding.opp *.opa --
  */
 
 import stdlib.themes.bootstrap
