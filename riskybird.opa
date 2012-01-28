@@ -230,7 +230,7 @@ function void linter_run() {
   if (Option.is_some(l)) {
     if (Dom.is_empty(Dom.select_id("lint_rule1"))) {
       Dom.remove_class(#lint, "hide")
-      _ = Dom.put_at_end(#lint_rules, Dom.of_xhtml(Option.get(l)))
+      _ = Dom.put_replace(#lint_rules, Dom.of_xhtml(Option.get(l)))
       void
     }
     void
