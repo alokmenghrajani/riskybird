@@ -1,9 +1,4 @@
-type regexp =
-  { bool start_anchor,
-    core_regexp core,
-    bool end_anchor }
-
-and core_regexp = list(simple)
+type regexp = list(simple)
 
 and simple = list(basic)
 
@@ -17,15 +12,17 @@ and postfix =
   { plus } or
   { int exact } or
   { int at_least } or
-  { int min, int max } 
+  { int min, int max }
 
 and elementary =
   { qmark } or
   { edot } or
   { string echar } or
   { string escaped_char } or
-  { core_regexp egroup } or
-  { rset eset }
+  { regexp egroup } or
+  { rset eset } or
+  { start_anchor } or
+  { end_anchor }
 
 and rset =
   { bool neg, list(item) items }
@@ -40,13 +37,7 @@ and range =
 
 module RegexpParser {
 
-  function core_regexp coerce(core_regexp x) { x }
-
-  regexp = parser
-  | "^" x = {core_regexp} "$" -> { start_anchor: true, core: x, end_anchor: true }
-  | "^" x = {core_regexp} -> { start_anchor: true, core: x, end_anchor: false }
-  | x = {core_regexp} "$" -> { start_anchor: false, core: x, end_anchor: true }
-  | x = { core_regexp } -> { start_anchor: false, core: x, end_anchor: false }
+  function regexp coerce(regexp x) { x }
 
 /* Ok this is ugly as hell!!!
  * I am forced into this nightmare because of erling, first thing he tried was
@@ -55,15 +46,15 @@ module RegexpParser {
  * of the parser costing too much ... eventhough, I didn't look, so don't really know.
  * However, I can avoid backtracking with this ugly piece of code ... and solve the
  * problem. Damn you erling!
-*/
-  core_regexp = parser
+ */
+  regexp = parser
   | ")" -> [[]]
   | Rule.eos -> [[]]
-  | "|" ~core_regexp -> List.cons([], core_regexp)
-  | ~basic ~core_regexp ->
-    match(core_regexp) {
+  | "|" ~regexp -> List.cons([], regexp)
+  | ~basic ~regexp ->
+    match(regexp) {
       case {nil}: nil /* never triggered */
-      case { ~hd, ~tl }: 
+      case { ~hd, ~tl }:
          { hd: List.cons(basic, hd), tl: tl }
     }
 
@@ -85,7 +76,7 @@ module RegexpParser {
   elementary = parser
   | "?" -> { qmark }
   | "." -> { edot }
-  | "(" ~core_regexp -> { egroup: coerce(core_regexp) }
+  | "(" ~regexp -> { egroup: coerce(regexp) }
   | "[^" ~items "]" -> { eset: { neg: true, ~items } }
   | "[" ~items "]" -> { eset: { neg:false, ~items } }
   | "\\" x = { any_char } -> { escaped_char: x}
@@ -129,7 +120,7 @@ module RegexpParser {
   | x = "`" -> x
   | x = "_" -> x
   | x = "=" -> x
-  
+
   items = parser
   | ~item ~items -> List.cons(item, items)
   | ~item -> [item]

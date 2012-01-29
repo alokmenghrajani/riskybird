@@ -32,6 +32,7 @@
 
 import stdlib.themes.bootstrap
 import stdlib.web.client
+import stdlib.database.db3
 
 type regexp_result = {
   string regexp,
@@ -84,7 +85,7 @@ function save_data(int id) {
     true_negatives: true_negatives,
   }
 
-  int id2 = if (id == 0) { Db.fresh_key(@/regexps); } else { id; }
+  int id2 = if (id == 0) { Db3.fresh_key(@/regexps); } else { id; }
   /regexps[id2] <- r
 
   Client.goto("/{id2}")
@@ -316,7 +317,7 @@ function resource start(Uri.relative uri) {
   match (uri) {
     case {path:{nil} ...}:
 //      regexp_result data = {regexp:"", comment:"", true_positives:Map.empty, true_negatives:Map.empty}
-      regexp_id = Db.fresh_key(@/regexps)
+      regexp_id = Db3.fresh_key(@/regexps)
       r = Resource.raw_status({address_redirected})
       Resource.add_header(r, {location:"/{regexp_id}"})
     case {path:{~hd, tl:[]} ...}:

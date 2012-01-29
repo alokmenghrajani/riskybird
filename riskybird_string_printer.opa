@@ -7,14 +7,11 @@ module RegexpStringPrinter {
     match (parsed_regexp) {
       case {none}:
         ""
-      case {some: x}:
-        start_anchor = if (x.start_anchor) { "^" } else { "" }
-        end_anchor = if (x.end_anchor) { "$" } else { "" }
-        "{start_anchor}{print_simple_list(x.core)}{end_anchor}"
+      case {some: x}: print_simple_list(x)
      }
   }
 
-  function string print_simple_list(core_regexp regexp) {
+  function string print_simple_list(regexp regexp) {
     String.concat("|", List.map(print_basic_list, regexp))
   }
 
@@ -40,6 +37,8 @@ module RegexpStringPrinter {
       case {escaped_char:x}: "\\{x}"
       case {~egroup}: "({print_simple_list(egroup)})"
       case {~eset}: "{print_set(eset)}"
+      case {start_anchor}: "^"
+      case {end_anchor}: "$"
     }
   }
 
@@ -70,7 +69,7 @@ module RegexpStringPrinter {
       case {plus}: "+"
       case {exact: x}: "\{{x}\}"
       case {at_least: x}: "\{{x},\}"
-      case {~min, ~max}: "\{{min},{max}\}" 
+      case {~min, ~max}: "\{{min},{max}\}"
     }
   }
 }

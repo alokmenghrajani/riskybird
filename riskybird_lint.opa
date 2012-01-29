@@ -82,10 +82,10 @@ module Checker {
 
   function lstatus regexp(regexp re) {
     lstatus = {ok}
-    core_regexp(lstatus, re.core)
+    core_regexp(lstatus, re)
   }
 
-  function lstatus core_regexp(lstatus st, core_regexp re) {
+  function lstatus core_regexp(lstatus st, regexp re) {
     List.fold_left(simple, st, re)
   }
 

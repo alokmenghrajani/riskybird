@@ -8,13 +8,9 @@ module RegexpXhtmlPrinter {
           </div>
         </>
       case {some: x}:
-        start_anchor = if (x.start_anchor) { "^" } else { "…" }
-        end_anchor = if (x.end_anchor) { "$" } else { "…" }
         <>
           <div class="pp">
-            <span class="noborder pretty_print">{start_anchor}</span>
-            {print_simple_list(x.core)}
-            <span class="noborder pretty_print">{end_anchor}</span>
+            {print_simple_list(x)}
           </div>
           <br style="clear: both"/>
           <div>{Debug.dump(parsed_regexp)}</div>
@@ -30,7 +26,7 @@ module RegexpXhtmlPrinter {
     }
   }
 
-  function xhtml print_simple_list(core_regexp regexp) {
+  function xhtml print_simple_list(regexp regexp) {
     t = List.map(
       print_basic_list,
       regexp)
@@ -71,6 +67,8 @@ module RegexpXhtmlPrinter {
           <span class="mylabel"><span>group N</span></span>{print_simple_list(egroup)}
         </span>
       case {~eset}: <>{print_set(eset)}</>
+      case {start_anchor}: <>^</>
+      case {end_anchor}: <>$</>
     }
   }
 
