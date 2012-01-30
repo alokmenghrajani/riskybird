@@ -2,9 +2,7 @@
  * RiskyBird
  * Regular expression authors best friend
  *
- * Running:
- * opa-plugin-builder -o riskybird_binding riskybird_binding.js
- * opa --parser js-like riskybird_binding.opp *.opa --
+ * Running: make run
  */
 
 import stdlib.themes.bootstrap
