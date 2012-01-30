@@ -63,7 +63,6 @@ module RegexpXhtmlPrinter {
   function xhtml print_elementary(elementary elementary) {
     match (elementary) {
       case {edot}: <b>.</b>
-      case {qmark}: <b>?</b>
       case {~echar}: <>{echar}</>
       case {escaped_char:x}: <>{"\\{x}"}</>
       case {~egroup}:
@@ -102,6 +101,7 @@ module RegexpXhtmlPrinter {
       case {noop}: <></>
       case {star}: <span class="mylabel"><span>many</span></span>
       case {plus}: <span class="mylabel"><span>one or more</span></span>
+      case {qmark}: <span class="mylabel"><span>one or none</span></span>
       case {exact: x}: <span class="mylabel"><span>exactly {x}</span></span>
       case {at_least: x}: <span class="mylabel"><span>at least {x}</span></span>
       case {~min, ~max}: <span class="mylabel"><span>between {min} and {max}</span></span>

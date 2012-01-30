@@ -65,7 +65,7 @@ function save_data(int id) {
   Client.goto("/{id2}")
 }
 
-function resource display(regexp_result data, int id) {
+function resource display(regexp_result data, /*int id*/ _) {
   Resource.styled_page(
     "RiskyBird | compose",
     ["/resources/riskybird.css"],
@@ -226,7 +226,7 @@ client js_test = %%riskybird_binding.js_test%%
 
 client function xhtml get_result_div(string str, bool expected) {
   string regexp = Dom.get_value(#regexp)
-  result = js_test(regexp, str)
+  result = test(regexp, str)
   id = Dom.fresh_id()
   str2 = if (str == "") { <i>empty string</i> } else { <>{str}</> }
 

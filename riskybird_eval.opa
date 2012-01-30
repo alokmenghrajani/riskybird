@@ -88,13 +88,7 @@ function candidates basic(basic re, candidates cands) {
     case { noop }:
       elementary(elt, cands)
     case { star }:
-      match(elt) {
-        case {edot}:
-          // Otherwise it loops, . always returns something
-          List.append(repeat_elt({qmark}, cands), cands)
-        case _:
-          repeat_elt(elt, cands)
-      }
+      List.append(repeat_elt(elt, cands), cands)
     case { plus }:
       simple([{belt:elt, bpost:{noop}}, {belt:elt, bpost:{star}}], cands)
     case { exact: n}:
@@ -146,10 +140,8 @@ function candidate pop_matched(candidate cand) {
 
 function candidates elementary(elementary elt, candidates cands) {
   match(elt) {
-    case { qmark }:
-      map_candidates(consume_any, cands)
     case { edot }:
-      List.append(map_candidates(consume_any, cands), cands)
+      map_candidates(consume_any, cands)
     case {escaped_char:"1"}:
       map_candidates(consume_group(1, _), cands)
     case { ~echar }:
