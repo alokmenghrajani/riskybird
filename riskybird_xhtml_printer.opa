@@ -12,9 +12,9 @@ module RegexpXhtmlPrinter {
         end_anchor = if (x.end_anchor) { "$" } else { "…" }
         <>
           <div class="pp">
-            <span class="noborder">{start_anchor}</span>
+            <span class="noborder pretty_print">{start_anchor}</span>
             {print_simple_list(x.core)}
-            <span class="noborder">{end_anchor}</span>
+            <span class="noborder pretty_print">{end_anchor}</span>
           </div>
           <br style="clear: both"/>
           <div>{Debug.dump(parsed_regexp)}</div>
@@ -22,18 +22,21 @@ module RegexpXhtmlPrinter {
      }
   }
 
+  function xhtml join(list(xhtml) l, xhtml glue) {
+    match (l) {
+      case []: <></>
+      case [x]: x
+      case {~hd, ~tl}: <>{hd}{glue}{join(tl, glue)}</>
+    }
+  }
+
   function xhtml print_simple_list(core_regexp regexp) {
-    t = List.fold(
-      function (simple, r) {
-        <>
-          {r}
-          <span class="noborder">{print_basic_list(simple)}</span><br/>
-        </>
-      },
-      regexp,
-      <></>
-    )
-    t
+    t = List.map(
+      print_basic_list,
+      regexp)
+    r = join(t, <br/>)
+
+    <span class="print_simple_list">{r}</span>
   }
 
   function xhtml print_basic_list(simple simple) {
@@ -47,11 +50,11 @@ module RegexpXhtmlPrinter {
       simple,
       <></>
     )
-    <span class="noborder">{t}</span>
+    <span class="noborder print_basic_list">{t}</span>
   }
 
   function xhtml print_basic(basic basic) {
-    <span>
+    <span class="print_basic">
       {print_postfix(basic.bpost)}
       {print_elementary(basic.belt)}
     </span>
@@ -64,7 +67,7 @@ module RegexpXhtmlPrinter {
       case {~echar}: <>{echar}</>
       case {escaped_char:x}: <>{"\\{x}"}</>
       case {~egroup}:
-        <span>
+        <span class="print_elementary">
           <span class="mylabel"><span>group N</span></span>{print_simple_list(egroup)}
         </span>
       case {~eset}: <>{print_set(eset)}</>

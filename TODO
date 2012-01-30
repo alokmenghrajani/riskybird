@@ -6,6 +6,7 @@ Todo:
   - empty group "()"
   - incorrect ranges [z-a]
   - unbalanced stuff "((((" or "))))"
+  - eol inside a conditional "^a|bc$"
  * - lint rules
   - clean up character sets:
     - overlapping ranges "[a-mb-n]", "[a-zb-y]"
