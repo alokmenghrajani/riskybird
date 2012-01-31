@@ -10,12 +10,12 @@ and postfix =
   { noop } or
   { star } or
   { plus } or
+  { qmark } or
   { int exact } or
   { int at_least } or
   { int min, int max }
 
 and elementary =
-  { qmark } or
   { edot } or
   { string echar } or
   { string escaped_char } or
@@ -64,6 +64,7 @@ module RegexpParser {
   postfix = parser
   | "*" -> { star }
   | "+" -> { plus }
+  | "?" -> { qmark }
   | "\{" ~repetition -> repetition
   | ""  -> { noop }
 
@@ -74,7 +75,6 @@ module RegexpParser {
 
 
   elementary = parser
-  | "?" -> { qmark }
   | "." -> { edot }
   | "(" ~regexp -> { egroup: coerce(regexp) }
   | "[^" ~items "]" -> { eset: { neg: true, ~items } }

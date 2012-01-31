@@ -32,7 +32,6 @@ module RegexpStringPrinter {
   function string print_elementary(elementary elementary) {
     match (elementary) {
       case {edot}: "."
-      case {qmark}: "?"
       case {~echar}: "{echar}"
       case {escaped_char:x}: "\\{x}"
       case {~egroup}: "({print_simple_list(egroup)})"
@@ -67,6 +66,7 @@ module RegexpStringPrinter {
       case {noop}: ""
       case {star}: "*"
       case {plus}: "+"
+      case {qmark}: "?"
       case {exact: x}: "\{{x}\}"
       case {at_least: x}: "\{{x},\}"
       case {~min, ~max}: "\{{min},{max}\}"

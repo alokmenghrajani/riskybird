@@ -2,32 +2,7 @@
  * RiskyBird
  * Regular expression authors best friend
  *
- * Todo:
- * - the parser is currently incomplete. It does not handle:
- *   - does not handle the ungreedy operator "x*?"
- *   - non capturing groups "(:?...)"
- *
- * - the parser also incorrectly parses the following cases:
- *   - empty group "()"
- *   - incorrect ranges [z-a]
- *   - unbalanced stuff "((((" or "))))"
- *   - eol inside a conditional "^a|bc$"
- *
- * - lint rules
- *   - clean up character sets:
- *     - overlapping ranges "[a-mb-n]", "[a-zb-y]"
- *     - detect [A-z] suggested by ben
- *     - duplicate entires "[aa]"
- *     - reduce ranges "[ab-cc-d]" to "[a-d]"
- * - support various regexp flavors (js, php, etc.)
- *
- * - Bugs:
- *   - empty true positives/true negatives get saved
- *   - lint rule gets rendered more than once
- *
- * Running:
- * opa-plugin-builder -o riskybird_binding riskybird_binding.js
- * opa --parser js-like riskybird_binding.opp *.opa --
+ * Running: make run
  */
 
 import stdlib.themes.bootstrap
@@ -91,7 +66,7 @@ function save_data(int id) {
   Client.goto("/{id2}")
 }
 
-function resource display(regexp_result data, int id) {
+function resource display(regexp_result data, /*int id*/ _) {
   Resource.styled_page(
     "RiskyBird | compose",
     ["/resources/riskybird.css"],
@@ -252,7 +227,7 @@ client js_test = %%riskybird_binding.js_test%%
 
 client function xhtml get_result_div(string str, bool expected) {
   string regexp = Dom.get_value(#regexp)
-  result = js_test(regexp, str)
+  result = test(regexp, str)
   id = Dom.fresh_id()
   str2 = if (str == "") { <i>empty string</i> } else { <>{str}</> }
 
