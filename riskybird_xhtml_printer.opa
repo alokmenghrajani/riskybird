@@ -30,9 +30,9 @@ module RegexpXhtmlPrinter {
     t = List.map(
       print_basic_list,
       regexp)
-    r = join(t, <br/>)
+    r = join(t, <hr/>)
 
-    <span class="print_simple_list">{r}</span>
+    <div class="print_simple_list">{r}</div>
   }
 
   function xhtml print_basic_list(simple simple) {
@@ -46,7 +46,7 @@ module RegexpXhtmlPrinter {
       simple,
       <></>
     )
-    <span class="noborder print_basic_list">{t}</span>
+    <div class="noborder print_basic_list">{t}</div>
   }
 
   function xhtml print_basic(basic basic) {

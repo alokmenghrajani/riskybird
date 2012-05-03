@@ -9,6 +9,10 @@
   border: 0px;
 }
 
+hr {
+  clear: both;
+}
+
 .pp span .mylabel {
     border: 0px;
     margin: 0px;
