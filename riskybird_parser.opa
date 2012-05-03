@@ -39,24 +39,12 @@ module RegexpParser {
 
   function regexp coerce(regexp x) { x }
 
-/* Ok this is ugly as hell!!!
- * I am forced into this nightmare because of erling, first thing he tried was
- * "((((((((((((((", except that with the original parser (the one with nice code),
- * it stalls (too much CPU is burnt). I suspect it's the backtracking mechanism of
- * of the parser costing too much ... eventhough, I didn't look, so don't really know.
- * However, I can avoid backtracking with this ugly piece of code ... and solve the
- * problem. Damn you erling!
- */
   regexp = parser
-  | ")" -> [[]]
-  | Rule.eos -> [[]]
-  | "|" ~regexp -> List.cons([], regexp)
-  | ~basic ~regexp ->
-    match(regexp) {
-      case {nil}: nil /* never triggered */
-      case { ~hd, ~tl }:
-         { hd: List.cons(basic, hd), tl: tl }
-    }
+  l = {Rule.parse_list_sep(false, simple,
+    (parser | "|" -> Rule.succeed))} -> l
+
+  simple = parser
+  l = {Rule.parse_list_sep(false, basic, Rule.succeed)} -> l
 
   basic = parser
   | ~elementary ~postfix -> { belt: elementary, bpost: postfix }
@@ -76,7 +64,7 @@ module RegexpParser {
 
   elementary = parser
   | "." -> { edot }
-  | "(" ~regexp -> { egroup: coerce(regexp) }
+  | "(" ~regexp ")" -> { egroup: coerce(regexp) }
   | "[^" ~items "]" -> { eset: { neg: true, ~items } }
   | "[" ~items "]" -> { eset: { neg:false, ~items } }
   | "\\" x = { any_char } -> { escaped_char: x}
@@ -107,8 +95,8 @@ module RegexpParser {
   | x = ":" -> x
   | x = "{" -> x
   | x = "}" -> x
-  | x = "(" -> x
-  | x = ")" -> x
+//  | x = "(" -> x
+//  | x = ")" -> x
   | x = "\\" -> x
   | x = "\"" -> x
   | x = "'" -> x
