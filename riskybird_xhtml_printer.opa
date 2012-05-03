@@ -63,7 +63,7 @@ module RegexpXhtmlPrinter {
       case {escaped_char:x}: <>{"\\{x}"}</>
       case {~egroup}:
         <span class="print_elementary">
-          <span class="mylabel"><span>group N</span></span>{print_simple_list(egroup)}
+          <span class="mylabel"><span>group ?</span></span>{print_simple_list(egroup)}
         </span>
       case {~eset}: <>{print_set(eset)}</>
       case {start_anchor}: <>^</>
@@ -97,12 +97,12 @@ module RegexpXhtmlPrinter {
   function xhtml print_postfix(postfix) {
     match (postfix) {
       case {noop}: <></>
-      case {star}: <span class="mylabel"><span>many</span></span>
-      case {plus}: <span class="mylabel"><span>one or more</span></span>
-      case {qmark}: <span class="mylabel"><span>one or none</span></span>
-      case {exact: x}: <span class="mylabel"><span>exactly {x}</span></span>
-      case {at_least: x}: <span class="mylabel"><span>at least {x}</span></span>
-      case {~min, ~max}: <span class="mylabel"><span>between {min} and {max}</span></span>
+      case {star}: <span class="mylabel"><span>N</span></span>
+      case {plus}: <span class="mylabel"><span>1-N</span></span>
+      case {qmark}: <span class="mylabel"><span>0-1</span></span>
+      case {exact: x}: <span class="mylabel"><span>{x}</span></span>
+      case {at_least: x}: <span class="mylabel"><span>{x}-N</span></span>
+      case {~min, ~max}: <span class="mylabel"><span>{min}-{max}</span></span>
     }
   }
 }
