@@ -64,3 +64,14 @@ Here are some tips to help you write better regular expressions:
     Proof:
     - in JavaScript: new RegExp(/^[\\\\abc]+$/).test('abc\\\\'); → true
     - in PHP: preg_match("/^[\\\\abc]+$/", "abc\\\\"); → false
+
+
+Code Layout
+-----------
+* riskybird.opa: web code
+* riskybird_parser.opa: regular expression parser
+* riskybird_string_printer.opa: pretty printer
+* riskybird_xhtml_printer.opa: pretty printer
+* riskybird_lint.opa: lint engine
+* riskybird_eval.opa: evaluation engine
+* riskybird_unittest.opa: unittests

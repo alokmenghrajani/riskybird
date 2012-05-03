@@ -223,7 +223,7 @@ function void append(list, item, expected) {
   Dom.set_value(item, "")
 }
 
-client js_test = %%riskybird_binding.js_test%%
+//client js_test = %%riskybird_binding.js_test%%
 
 client function xhtml get_result_div(string str, bool expected) {
   string regexp = Dom.get_value(#regexp)
