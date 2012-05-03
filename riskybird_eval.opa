@@ -64,6 +64,7 @@ function option(candidate) consume_group(int n, candidate cand) {
 }
 
 
+/*
 function candidates core_regexp(core_regexp re, candidates cands) {
   match(re) {
     case {nil}:
@@ -72,6 +73,7 @@ function candidates core_regexp(core_regexp re, candidates cands) {
       List.append(simple(hd, cands), core_regexp(tl, cands))
   }
 }
+*/
 
 function candidates simple(simple re, candidates cands) {
   match(re) {
@@ -135,7 +137,7 @@ function candidate pop_matched(candidate cand) {
            matched: tl,
            groups: IntMap.add(cand.grp, List.rev(hd), cand.groups)
        }
-   } 
+   }
 }
 
 function candidates elementary(elementary elt, candidates cands) {
@@ -150,7 +152,7 @@ function candidates elementary(elementary elt, candidates cands) {
       map_candidates(consume(escaped_char, _), cands)
     case { egroup: re }:
       cands = List.map(push_matched, cands)
-      cands = core_regexp(re, cands)
+//      cands = core_regexp(re, cands)
       cands = List.map(pop_matched, cands)
       cands
     case _ /* TODO */: []
@@ -167,12 +169,13 @@ function test(f2, f1) {
   match(re) {
     case {none}: false
     case {some: x}:
-      re = x.core
-      sl = String.fold(List.cons, s, [])
-      sl = List.rev(sl)
-      st = [{grp: 1, matched:[[]], rest:sl, groups:IntMap_empty}]
-      res = core_regexp(re, st)
-      List.exists(function(x){ x.rest == {nil}}, res)
+//      re = x.core
+//      sl = String.fold(List.cons, s, [])
+//      sl = List.rev(sl)
+//      st = [{grp: 1, matched:[[]], rest:sl, groups:IntMap_empty}]
+//      res = core_regexp(re, st)
+//      List.exists(function(x){ x.rest == {nil}}, res)
+      false
   }
 
 }

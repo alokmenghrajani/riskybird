@@ -4,8 +4,9 @@ RiskyBird
 ---------
 **Regular expression authors best friend**
 
-Introduction
-------------
+
+Overview
+--------
 Regular Expressions are notoriously hard to get right. When you are writing a new expression, it
 is hard for reviewers to read & assert with confidence that the expression is correct. Tweaking
 existing expressions can often lead to unintended consequences.
@@ -17,6 +18,9 @@ RiskyBird tries to mitigate this by offering a set of tools for software enginee
 3.  A lint engine: catches common mistakes.
 4.  A unittest engine: prevents future mishapes.
 5.  A collaboration platform: reviewers can add tests and provide feedback.
+
+
+This project also provides a reusable regular expression parser.
 
 
 Why RiskyBird
