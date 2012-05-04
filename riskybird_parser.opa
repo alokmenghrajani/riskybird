@@ -3,7 +3,8 @@ type regexp = list(simple)
 and simple = list(basic)
 
 and basic  =
-   { elementary belt,
+   { int id,
+     elementary belt,
      postfix bpost }
 
 and postfix =
@@ -19,10 +20,8 @@ and elementary =
   { edot } or
   { string echar } or
   { string escaped_char } or
-  { regexp egroup } or
-  { rset eset } or
-  { start_anchor } or
-  { end_anchor }
+  { int group_id, regexp egroup } or
+  { rset eset }
 
 and rset =
   { bool neg, list(item) items }
@@ -47,7 +46,7 @@ module RegexpParser {
   l = {Rule.parse_list_sep(false, basic, Rule.succeed)} -> l
 
   basic = parser
-  | ~elementary ~postfix -> { belt: elementary, bpost: postfix }
+  | ~elementary ~postfix -> { id: 0, belt: elementary, bpost: postfix }
 
   postfix = parser
   | "*" -> { star }
@@ -64,7 +63,7 @@ module RegexpParser {
 
   elementary = parser
   | "." -> { edot }
-  | "(" ~regexp ")" -> { egroup: coerce(regexp) }
+  | "(" ~regexp ")" -> { group_id: 0, egroup: coerce(regexp) }
   | "[^" ~items "]" -> { eset: { neg: true, ~items } }
   | "[" ~items "]" -> { eset: { neg:false, ~items } }
   | "\\" x = { any_char } -> { escaped_char: x}
@@ -122,8 +121,72 @@ module RegexpParser {
   | x = { char } -> { ichar: x }
 
   function option(regexp) parse(string s) {
-    Parser.try_parse(regexp, s)
+    RegexpSolveId.solve_id(Parser.try_parse(regexp, s))
   }
 
 }
 
+/**
+ * Finds the id of each basic and group elements
+ */
+type state = {
+  int basic_id,
+  int group_id,
+}
+
+type wrap('a) = {
+  state st,
+  'a v,
+}
+
+module RegexpSolveId {
+  function wrap('a) do_wrap(state st, 'a v) {{~st, ~v}}
+
+  function wrap(list('a)) map(state st, (state, 'a -> wrap('b)) f, list('a) l) {
+    match (l) {
+      case {nil}:
+        do_wrap(st, {nil})
+      case {~hd, ~tl}:
+        {~st, v: hd} = f(st, hd)
+        {~st, v: tl} = map(st, f, tl)
+        do_wrap(st, List.cons(hd, tl))
+    }
+  }
+
+  function option(regexp) solve_id(option(regexp) r) {
+    match (r) {
+      case {~some}:
+        st = {basic_id: 1, group_id: 1}
+        t = regexp(st, some)
+        {some: t.v}
+      case {none}:
+        {none}
+    }
+  }
+
+  function wrap(regexp) regexp(state st, regexp r) {
+    map(st, simple, r)
+  }
+
+  function wrap(simple) simple(state st, simple s) {
+    map(st, basic, s)
+  }
+
+  function wrap(basic) basic(state st, basic b) {
+    st2 = {basic_id: st.basic_id + 1, group_id: st.group_id}
+    t = elementary(st2, b.belt)
+    b2 = {id: st.basic_id, belt: t.v, bpost: b.bpost}
+    do_wrap(t.st, b2)
+  }
+
+  function wrap(elementary) elementary(state st, elementary e) {
+    match (e) {
+      case {~group_id, ~egroup}:
+        st2 = {basic_id: st.basic_id, group_id: st.group_id+1}
+        t = regexp(st, egroup)
+        do_wrap(t.st, {group_id: st.group_id, egroup: t.v})
+      case _:
+        do_wrap(st, e)
+   }
+  }
+}

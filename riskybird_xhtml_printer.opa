@@ -61,13 +61,11 @@ module RegexpXhtmlPrinter {
       case {edot}: <b>.</b>
       case {~echar}: <>{echar}</>
       case {escaped_char:x}: <>{"\\{x}"}</>
-      case {~egroup}:
+      case {~group_id, ~egroup}:
         <span class="print_elementary">
-          <span class="mylabel"><span>group ?</span></span>{print_simple_list(egroup)}
+          <span class="mylabel"><span>group {group_id}</span></span>{print_simple_list(egroup)}
         </span>
       case {~eset}: <>{print_set(eset)}</>
-      case {start_anchor}: <>^</>
-      case {end_anchor}: <>$</>
     }
   }
 

@@ -34,10 +34,8 @@ module RegexpStringPrinter {
       case {edot}: "."
       case {~echar}: "{echar}"
       case {escaped_char:x}: "\\{x}"
-      case {~egroup}: "({print_simple_list(egroup)})"
+      case {group_id:_, ~egroup}: "({print_simple_list(egroup)})"
       case {~eset}: "{print_set(eset)}"
-      case {start_anchor}: "^"
-      case {end_anchor}: "$"
     }
   }
 

@@ -92,20 +92,20 @@ function candidates basic(basic re, candidates cands) {
     case { star }:
       List.append(repeat_elt(elt, cands), cands)
     case { plus }:
-      simple([{belt:elt, bpost:{noop}}, {belt:elt, bpost:{star}}], cands)
+      simple([{id:0, belt:elt, bpost:{noop}}, {id:0, belt:elt, bpost:{star}}], cands)
     case { exact: n}:
       if(n <= 0)
         cands
       else {
-        cands = basic({belt:elt, bpost:{noop}}, cands)
-        basic({belt:elt, bpost: {exact: (n-1)}}, cands)
+        cands = basic({id:0, belt:elt, bpost:{noop}}, cands)
+        basic({id: 0, belt:elt, bpost: {exact: (n-1)}}, cands)
       }
     case { at_least: n}:
       if(n <= 0)
-        basic({belt:elt, bpost:{star}}, cands)
+        basic({id: 0, belt:elt, bpost:{star}}, cands)
       else {
-        cands = basic({belt:elt, bpost:{noop}}, cands)
-        basic({belt:elt, bpost: {exact: (n-1)}}, cands)
+        cands = basic({id: 0, belt:elt, bpost:{noop}}, cands)
+        basic({id: 0, belt:elt, bpost: {exact: (n-1)}}, cands)
       }
     case _: [] /* TODO */
 /*
@@ -150,7 +150,7 @@ function candidates elementary(elementary elt, candidates cands) {
       map_candidates(consume(echar, _), cands)
     case { ~escaped_char }:
       map_candidates(consume(escaped_char, _), cands)
-    case { egroup: re }:
+    case { group_id:_, egroup: re }:
       cands = List.map(push_matched, cands)
 //      cands = core_regexp(re, cands)
       cands = List.map(pop_matched, cands)
