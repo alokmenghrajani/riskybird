@@ -8,9 +8,11 @@ module RegexpXhtmlPrinter {
           </div>
         </>
       case {some: x}:
+        unanchored_starts = RegexpAnchor.findUnanchoredStarts(x)
+        unanchored_ends = RegexpAnchor.findUnanchoredEnds(x)
         <>
           <div class="pp">
-            {print_simple_list(x)}
+            {print_simple_list(x, unanchored_starts, unanchored_ends)}
           </div>
           <br style="clear: both"/>
           <div>{Debug.dump(parsed_regexp)}</div>
@@ -26,21 +28,21 @@ module RegexpXhtmlPrinter {
     }
   }
 
-  function xhtml print_simple_list(regexp regexp) {
+  function xhtml print_simple_list(regexp regexp, unanchored_starts, unanchored_ends) {
     t = List.map(
-      print_basic_list,
+      function(e){print_basic_list(e, unanchored_starts, unanchored_ends)},
       regexp)
     r = join(t, <hr/>)
 
     <div class="print_simple_list">{r}</div>
   }
 
-  function xhtml print_basic_list(simple simple) {
+  function xhtml print_basic_list(simple simple, unanchored_starts, unanchored_ends) {
     t = List.fold(
       function (basic, r) {
         <>
           {r}
-          {print_basic(basic)}
+          {print_basic(basic, unanchored_starts, unanchored_ends)}
         </>
       },
       simple,
@@ -49,14 +51,21 @@ module RegexpXhtmlPrinter {
     <div class="noborder print_basic_list">{t}</div>
   }
 
-  function xhtml print_basic(basic basic) {
+  function xhtml print_basic(basic basic, unanchored_starts, unanchored_ends) {
+    anchor_start = if (Option.is_some(IntSet.get(basic.id, unanchored_starts))) {
+      "..." } else { "" }
+    anchor_end = if (Option.is_some(IntSet.get(basic.id, unanchored_ends))) {
+      "..." } else { "" }
+
     <span class="print_basic">
+      {anchor_start}
       {print_postfix(basic.bpost)}
-      {print_elementary(basic.belt)}
+      {print_elementary(basic.belt, unanchored_starts, unanchored_ends)}
+      {anchor_end}
     </span>
   }
 
-  function xhtml print_elementary(elementary elementary) {
+  function xhtml print_elementary(elementary elementary, unanchored_starts, unanchored_ends) {
     match (elementary) {
       case {edot}: <b>.</b>
       case {~echar}: <>{echar}</>
@@ -64,7 +73,7 @@ module RegexpXhtmlPrinter {
       case {escaped_char:x}: <>{"\\{x}"}</>
       case {~group_id, ~egroup}:
         <span class="print_elementary">
-          <span class="mylabel"><span>group {group_id}</span></span>{print_simple_list(egroup)}
+          <span class="mylabel"><span>group {group_id}</span></span>{print_simple_list(egroup, unanchored_starts, unanchored_ends)}
         </span>
       case {~eset}: <>{print_set(eset)}</>
     }
@@ -104,4 +113,42 @@ module RegexpXhtmlPrinter {
       case {~min, ~max}: <span class="mylabel"><span>{min}-{max}</span></span>
     }
   }
+}
+
+/**
+ * Takes a regexp and finds all the first and last basics.
+ *
+ * This is useful to highlight start & end anchoring.
+ */
+module RegexpAnchor {
+  function intset findUnanchoredStarts(regexp) {
+    function intset do_basic(basic basic, intset set) {
+      match (basic.belt) {
+        case {echar:"^"}: set
+        case _: IntSet.add(basic.id, set)
+      }
+    }
+    function intset do_simple(simple simple, intset set) {
+      do_basic(List.head(simple), set)
+    }
+    List.fold(do_simple, regexp, IntSet.empty)
+  }
+
+  function intset findUnanchoredEnds(regexp) {
+    function intset do_basic(basic basic, intset set) {
+      match (basic.belt) {
+        case {echar:"$"}: set
+        case _: IntSet.add(basic.id, set)
+      }
+    }
+    recursive function intset do_simple(simple s, intset set) {
+      match (s) {
+        case {~hd, tl:[]}: do_basic(hd, set)
+        case {~hd, ~tl}: do_simple(tl, set)
+      }
+    }
+    List.fold(do_simple, regexp, IntSet.empty)
+  }
+
+
 }
