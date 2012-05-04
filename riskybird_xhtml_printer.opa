@@ -60,6 +60,7 @@ module RegexpXhtmlPrinter {
     match (elementary) {
       case {edot}: <b>.</b>
       case {~echar}: <>{echar}</>
+      case {group_ref:x}: <>{"\\{x}"}</>
       case {escaped_char:x}: <>{"\\{x}"}</>
       case {~group_id, ~egroup}:
         <span class="print_elementary">

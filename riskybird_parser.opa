@@ -19,6 +19,7 @@ and postfix =
 and elementary =
   { edot } or
   { string echar } or
+  { int group_ref } or
   { string escaped_char } or
   { int group_id, regexp egroup } or
   { rset eset }
@@ -66,6 +67,7 @@ module RegexpParser {
   | "(" ~regexp ")" -> { group_id: 0, egroup: coerce(regexp) }
   | "[^" ~items "]" -> { eset: { neg: true, ~items } }
   | "[" ~items "]" -> { eset: { neg:false, ~items } }
+  | "\\" x = { Rule.integer } -> { group_ref: x }
   | "\\" x = { any_char } -> { escaped_char: x}
   | x = { char } -> { echar: x}
 
@@ -181,7 +183,7 @@ module RegexpSolveId {
 
   function wrap(elementary) elementary(state st, elementary e) {
     match (e) {
-      case {~group_id, ~egroup}:
+      case {group_id:_, ~egroup}:
         st2 = {basic_id: st.basic_id, group_id: st.group_id+1}
         t = regexp(st2, egroup)
         do_wrap(t.st, {group_id: st.group_id, egroup: t.v})
