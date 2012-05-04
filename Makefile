@@ -22,7 +22,7 @@ run: riskybird.exe
 test: riskybird_unittest.exe
 	./riskybird_unittest.exe
 
-riskybird.exe: $(BINDINGS_OBJ) $(SRC)
+riskybird.exe: $(BINDINGS_OBJ) $(SRC) riskybird.opa
 	$(OPA) -o riskybird.exe $(SRC) riskybird.opa
 
 riskybird_unittest.exe: $(BINDINGS_OBJ) $(SRC) riskybird_unittest.opa
