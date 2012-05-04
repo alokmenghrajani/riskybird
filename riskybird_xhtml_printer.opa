@@ -52,17 +52,25 @@ module RegexpXhtmlPrinter {
   }
 
   function xhtml print_basic(basic basic, unanchored_starts, unanchored_ends) {
-    anchor_start = if (Option.is_some(IntSet.get(basic.id, unanchored_starts))) {
-      "..." } else { "" }
-    anchor_end = if (Option.is_some(IntSet.get(basic.id, unanchored_ends))) {
-      "..." } else { "" }
-
-    <span class="print_basic">
-      {anchor_start}
-      {print_postfix(basic.bpost)}
-      {print_elementary(basic.belt, unanchored_starts, unanchored_ends)}
-      {anchor_end}
-    </span>
+    match (basic) {
+      case {~id, ~belt, ~bpost}:
+        anchor_start = if (Option.is_some(IntSet.get(id, unanchored_starts))) {
+          "..." } else { "" }
+        anchor_end = if (Option.is_some(IntSet.get(id, unanchored_ends))) {
+          "..." } else { "" }
+        <span class="print_basic">
+          <span class="anchor">{anchor_start}</span>
+          <span class="anchor">
+            {print_postfix(bpost)}
+            {print_elementary(belt, unanchored_starts, unanchored_ends)}
+          </span>
+          <span class="anchor">{anchor_end}</span>
+        </span>
+      case { anchor_start }:
+        <>^</>
+      case { anchor_end }:
+        <>$</>
+    }
   }
 
   function xhtml print_elementary(elementary elementary, unanchored_starts, unanchored_ends) {
@@ -123,9 +131,9 @@ module RegexpXhtmlPrinter {
 module RegexpAnchor {
   function intset findUnanchoredStarts(regexp) {
     function intset do_basic(basic basic, intset set) {
-      match (basic.belt) {
-        case {echar:"^"}: set
-        case _: IntSet.add(basic.id, set)
+      match (basic) {
+        case { anchor_start }: set
+        case {~id, belt:_, bpost:_}: IntSet.add(id, set)
       }
     }
     function intset do_simple(simple simple, intset set) {
@@ -136,9 +144,9 @@ module RegexpAnchor {
 
   function intset findUnanchoredEnds(regexp) {
     function intset do_basic(basic basic, intset set) {
-      match (basic.belt) {
-        case {echar:"$"}: set
-        case _: IntSet.add(basic.id, set)
+      match (basic) {
+        case { anchor_end }: set
+        case {~id, belt:_, bpost:_}: IntSet.add(id, set)
       }
     }
     recursive function intset do_simple(simple s, intset set) {

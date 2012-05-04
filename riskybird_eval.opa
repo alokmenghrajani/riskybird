@@ -85,6 +85,8 @@ function candidates simple(simple re, candidates cands) {
 }
 
 function candidates basic(basic re, candidates cands) {
+  cands
+/*
   elt = re.belt
   match(re.bpost) {
     case { noop }:
@@ -108,10 +110,9 @@ function candidates basic(basic re, candidates cands) {
         basic({id: 0, belt:elt, bpost: {exact: (n-1)}}, cands)
       }
     case _: [] /* TODO */
-/*
-  { int min, int max }
-*/
+//  { int min, int max }
   }
+*/
 }
 
 function candidates repeat_elt(elementary elt, candidates cands) {

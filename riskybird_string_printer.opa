@@ -26,7 +26,14 @@ module RegexpStringPrinter {
   }
 
   function string print_basic(basic basic) {
-    "{print_elementary(basic.belt)}{print_postfix(basic.bpost)}"
+    match (basic) {
+      case {id:_, ~belt, ~bpost}:
+        "{print_elementary(belt)}{print_postfix(bpost)}"
+      case { anchor_start }:
+        "^"
+      case { anchor_end }:
+        "$"
+    }
   }
 
   function string print_elementary(elementary elementary) {

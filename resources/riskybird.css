@@ -25,6 +25,11 @@ hr {
     font-size: 10px;
 }
 
+.pp span .anchor {
+  padding: 0px;
+  border: 0;
+}
+
 .pp span .mylabel span {
     border: 0px;
     white-space: nowrap;

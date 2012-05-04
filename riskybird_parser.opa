@@ -5,7 +5,9 @@ and simple = list(basic)
 and basic  =
    { int id,
      elementary belt,
-     postfix bpost }
+     postfix bpost } or
+   { anchor_start } or
+   { anchor_end }
 
 and postfix =
   { noop } or
@@ -18,6 +20,8 @@ and postfix =
 
 and elementary =
   { edot } or
+  { anchor_start } or
+  { anchor_end } or
   { string echar } or
   { int group_ref } or
   { string escaped_char } or
@@ -47,6 +51,8 @@ module RegexpParser {
   l = {Rule.parse_list_sep(false, basic, Rule.succeed)} -> l
 
   basic = parser
+  | "^" -> { anchor_start }
+  | "$" -> { anchor_end }
   | ~elementary ~postfix -> { id: 0, belt: elementary, bpost: postfix }
 
   postfix = parser
@@ -175,10 +181,17 @@ module RegexpSolveId {
   }
 
   function wrap(basic) basic(state st, basic b) {
-    st2 = {basic_id: st.basic_id + 1, group_id: st.group_id}
-    t = elementary(st2, b.belt)
-    b2 = {id: st.basic_id, belt: t.v, bpost: b.bpost}
-    do_wrap(t.st, b2)
+    match (b) {
+      case {id:_, ~belt, ~bpost}:
+        st2 = {basic_id: st.basic_id + 1, group_id: st.group_id}
+        t = elementary(st2, belt)
+        b2 = {id: st.basic_id, belt: t.v, bpost: bpost}
+        do_wrap(t.st, b2)
+      case { anchor_start }:
+        do_wrap(st, b)
+      case { anchor_end }:
+        do_wrap(st, b)
+    }
   }
 
   function wrap(elementary) elementary(state st, elementary e) {

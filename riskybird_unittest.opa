@@ -20,3 +20,4 @@ function expect_fail(rule_str, s) {
 
 expect_parse("simple expression", "a|bc+")
 expect_fail("open parenthesis", "abc(")
+expect_fail("invalid quantifier", "^*ab")
