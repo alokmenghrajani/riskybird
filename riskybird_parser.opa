@@ -183,7 +183,7 @@ module RegexpSolveId {
     match (e) {
       case {~group_id, ~egroup}:
         st2 = {basic_id: st.basic_id, group_id: st.group_id+1}
-        t = regexp(st, egroup)
+        t = regexp(st2, egroup)
         do_wrap(t.st, {group_id: st.group_id, egroup: t.v})
       case _:
         do_wrap(st, e)
