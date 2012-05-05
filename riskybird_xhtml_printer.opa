@@ -15,9 +15,17 @@ module RegexpXhtmlPrinter {
       case {some: x}:
         unanchored_starts = RegexpAnchor.findUnanchoredStarts(x)
         unanchored_ends = RegexpAnchor.findUnanchoredEnds(x)
-        <div class="pp">
-          {print_simple_list(x, unanchored_starts, unanchored_ends)}
-        </div>
+        <>
+          <div class="pp">
+            {print_simple_list(x, unanchored_starts, unanchored_ends)}
+          </div>
+          <div>
+            {RegexpStringPrinter.pretty_print(parsed_regexp)}
+          </div>
+          <div>
+            {Debug.dump(parsed_regexp)}
+          </div>
+        </>
      }
   }
 

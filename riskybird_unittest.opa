@@ -51,11 +51,28 @@ expect_parse("non greedy range quantifier", "a\{4,4\}?")
 expect_parse("non greedy range quantifier", "a\{4,9\}?")
 
 // grouping
-expect_parse("group", "(a)\1")
+expect_parse("group", "(a)\\1")
 expect_parse("non capturing group", "(?:a)")
 
 // alternatives
 expect_parse("alternative", "a|bc+|d")
+
+// character sets and ranges
+expect_parse("a set of characters", "[abc]")
+expect_parse("a range of characters", "[a-m]")
+expect_parse("a negative set of characters", "[^abc]")
+expect_parse("a negative range of characters", "[^a-m]")
+expect_parse("a set and range", "[abcx-z]")
+expect_parse("a negative set and range", "[^abcx-z]")
+
+// sets matching -
+expect_parse("escaped -", "[a\\-c]")
+expect_parse("front -", "[-ac]")
+expect_parse("middle -", "[a-c-e]")
+expect_parse("end -", "[abc-]")
+
+
+
 
 // other tests
 
