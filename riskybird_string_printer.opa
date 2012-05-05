@@ -43,6 +43,7 @@ module RegexpStringPrinter {
       case {~echar}: "{echar}"
       case {group_ref:x}: "\\{x}"
       case {escaped_char:x}: "\\{x}"
+      case {~ncgroup}: "(?:{print_simple_list(ncgroup)})"
       case {group_id:_, ~egroup}: "({print_simple_list(egroup)})"
       case {~eset}: "{print_set(eset)}"
     }

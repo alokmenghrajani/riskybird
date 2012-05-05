@@ -74,6 +74,7 @@ module RegexpParser {
 
   elementary = parser
   | "." -> { edot }
+  | "(?:" ~regexp ")" -> { ncgroup: coerce(regexp) }
   | "(" ~regexp ")" -> { group_id: 0, egroup: coerce(regexp) }
   | "[^" ~items "]" -> { eset: { neg: true, ~items } }
   | "[" ~items "]" -> { eset: { neg:false, ~items } }

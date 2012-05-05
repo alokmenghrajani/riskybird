@@ -80,9 +80,14 @@ module RegexpXhtmlPrinter {
       case {~echar}: <>{echar}</>
       case {group_ref:x}: <>{"\\{x}"}</>
       case {escaped_char:x}: <>{"\\{x}"}</>
+      case {~ncgroup}:
+        <span class="print_elementary">
+          {print_simple_list(ncgroup, unanchored_starts, unanchored_ends)}
+        </span>
       case {~group_id, ~egroup}:
         <span class="print_elementary">
-          <span class="mylabel"><span>group {group_id}</span></span>{print_simple_list(egroup, unanchored_starts, unanchored_ends)}
+          <span class="mylabel"><span>group {group_id}</span></span>
+          {print_simple_list(egroup, unanchored_starts, unanchored_ends)}
         </span>
       case {~eset}: <>{print_set(eset)}</>
     }
