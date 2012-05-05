@@ -122,7 +122,7 @@ module RegexpLinter {
       case {ok}:
         match (bc) {
           case {~id, ~belt, ~bpost, ~greedy}:
-            postfix(st, bpost)
+            postfix(st, bpost, greedy)
           case _:
             {ok}
         }
@@ -131,7 +131,7 @@ module RegexpLinter {
     }
   }
 
-  function lstatus postfix(lstatus st, postfix bpost) {
+  function lstatus postfix(lstatus st, postfix bpost, bool greedy) {
     match (bpost) {
       case {~min, ~max}:
         if (min < max) {
@@ -142,6 +142,13 @@ module RegexpLinter {
         } else {
           { error: {lint_rule: 1, title: "Incorrect quantifier",
             body: "The incorrect quantifier will cause the regexp to fail to compile in some languages."}}
+        }
+      case {exact:_}:
+        if (greedy == false) {
+          { error: {lint_rule: 3, title: "Useless non greedy",
+            body: "When matching an exact amount, using non greedy makes no sense" }}
+        } else {
+          {ok}
         }
       case _:
         {ok}

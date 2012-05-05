@@ -102,25 +102,21 @@ module RegexpXhtmlPrinter {
   }
 
   function print_set(rset set) {
-    t = List.fold(
-      function(item, r) {
-        i = match (item) {
+    t1 = List.map(
+      function(item) {
+        match (item) {
           case {~iechar}: <>\\{iechar}</>
           case {~ichar}: <>{ichar}</>
           case {~irange}: <>{irange.rstart}-{irange.rend}</>
         }
-        <>
-          {r}
-          {i}
-        </>
       },
-      set.items,
-      <></>
-    )
+      set.items)
+    t2 = join(t1, <>,</>)
+
     if (set.neg) {
-      <>[^{t}]</>
+      <>[^{t2}]</>
     } else {
-      <>[{t}]</>
+      <>[{t2}]</>
     }
   }
 
