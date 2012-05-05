@@ -1,7 +1,10 @@
 /**
  * Lint engine for regular expressions.
  *
- * The goal is to detect common mistakes people make (and when possible suggest an auto fix).
+ * The purpose of the lint engine is to detect common mistakes people make when
+ * composing regular expressions.
+ *
+ * At some point, we might even suggest auto-fixes.
  */
 
 /* The status of the linter */
@@ -10,7 +13,8 @@ type lstatus =
   { lerror error }
 
 type lerror =
-  { range range_not_used }
+  { range range_not_used } or
+  { int lint_rule, string title, string body }
 
 /* The ranges seen so far (when analysing ranges) */
 type lranges = list(range)
@@ -21,7 +25,7 @@ type item_state = {
   lranges ranges,
 }
 
-module CheckerRender {
+module RegexpLinterRender {
 
   function xhtml render(int rnbr, string msg) {
     <div id="lint_rule{rnbr}" class="alert-message block-message warning span8">
@@ -29,9 +33,8 @@ module CheckerRender {
         <span class="icon32 icon-alert"></span>
         <strong>LINT RULE {rnbr} </strong><br/>
         {msg}
-     </p>
-     <div class="alert-actions">
-    </div>
+      </p>
+      <div class="alert-actions"/>
     </div>
   }
 
@@ -51,7 +54,7 @@ module CheckerRender {
   }
 }
 
-module CheckerHelper {
+module RegexpLinterHelper {
 
   function bool range_is_included(range r1, range r2) {
     r1.rstart >= r2.rstart && r1.rend <= r2.rend
@@ -71,7 +74,7 @@ module CheckerHelper {
   }
 }
 
-module Checker {
+module RegexpLinter {
 
   function lstatus lreturn(lstatus st, lstatus st2) {
     match(st) {
@@ -82,7 +85,8 @@ module Checker {
 
   function lstatus regexp(regexp re) {
     lstatus = {ok}
-    core_regexp(lstatus, re)
+//    core_regexp(lstatus, re)
+    {error: {range_not_used: {rstart: "a", rend: "c"}}}
   }
 
   function lstatus core_regexp(lstatus st, regexp re) {
@@ -112,7 +116,7 @@ module Checker {
   function item_state item(item_state state, item it) {
     match(it) {
       case {irange: r}:
-        if(CheckerHelper.range_exists(r, state.ranges)) {
+        if(RegexpLinterHelper.range_exists(r, state.ranges)) {
           status = {error: {range_not_used: r}}
           { ~status, ranges: state.ranges }
         }

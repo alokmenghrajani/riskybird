@@ -16,8 +16,6 @@ type regexp_result = {
   intmap(string) true_negatives
 }
 
-//database intmap(regexp_result) /regexps
-
 server exposed function my_log(obj) {
   Debug.warning(Debug.dump(obj))
 }
@@ -83,71 +81,31 @@ function resource display() {
   )
 }
 
-function void load_tests(regexp_result data) {
-  Map.iter(
-    function(int _, string s) {
-      #true_positives =+ get_result_div(s, true)
-    },
-    data.true_positives
-  )
-  Map.iter(
-    function(int _, string s) {
-      #true_negatives =+ get_result_div(s, false)
-    },
-    data.true_negatives
-  )
-  check_regexp()
-  linter_run()
-}
-
 function bool contains(string haystack, string needle) {
   Option.is_some(String.strpos(needle, haystack))
 }
 
-function void lint_fix_rule1() {
-  string regexp = Dom.get_value(#regexp)
-  string r2 = String.replace(".", "\\.", regexp)
-  Dom.set_value(#regexp, r2)
-
-  // rerun checks
-  check_regexp()
-  linter_run()
-}
-
 function void linter_run() {
-  // TODO: run a real lint engine
   string regexp = Dom.get_value(#regexp)
-/*
-    <a href="#" onclick={function(_){lint_fix_rule1()}} class="btn small">Fix regular expression</a>
-  l =
-    if (contains(regexp, ".com") && (contains(regexp, "\\.com") == false)) {
-      {some:
-      }
-    } else {
-      {none}
-    }
-*/
+
   option(regexp) tree_opt = RegexpParser.parse(regexp)
   l =
     match(tree_opt) {
     case {none}: {none}
     case {some: tree}:
-      lstatus status = Checker.regexp(tree)
-      CheckerRender.error(status)
+      lstatus status = RegexpLinter.regexp(tree)
+      my_log(Debug.dump(status))
+      RegexpLinterRender.error(status)
    }
   if (Option.is_some(l)) {
-    if (Dom.is_empty(Dom.select_id("lint_rule1"))) {
-      Dom.remove_class(#lint, "hide")
-      _ = Dom.put_replace(#lint_rules, Dom.of_xhtml(Option.get(l)))
-      void
-    }
+    Dom.remove_class(#lint, "hide")
+    _ = Dom.put_replace(#lint_rules, Dom.of_xhtml(Option.get(l)))
     void
   } else {
     Dom.add_class(#lint, "hide")
     Dom.remove_content(#lint_rules)
     void
   }
-  void
 }
 
 function void append(list, item, expected) {

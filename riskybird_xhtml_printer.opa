@@ -67,9 +67,9 @@ module RegexpXhtmlPrinter {
           <span class="anchor">{anchor_end}</span>
         </span>
       case { anchor_start }:
-        <>^</>
+        <span class="anchor">^</span>
       case { anchor_end }:
-        <>$</>
+        <span class="anchor">$</span>
     }
   }
 
