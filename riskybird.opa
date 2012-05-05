@@ -56,9 +56,9 @@ function resource display() {
             </div>
             <div class="row">
               <div class="span4">
-                <h3>Parser output</h3>
+                <h3>Pretty Printer</h3>
                 <p>
-                  Pretty printed output & some debugging info.
+                  This output helps you understand regular expressions.
                 </p>
               </div>
               <div class="span8">
@@ -174,7 +174,6 @@ client function void check_regexp() {
   string regexp = Dom.get_value(#regexp)
   parsed_regexp = RegexpParser.parse(regexp)
   #parser_output = RegexpXhtmlPrinter.pretty_print(parsed_regexp)
-  #parser_output =+ <>{RegexpStringPrinter.pretty_print(parsed_regexp)}</>
   void
 }
 
