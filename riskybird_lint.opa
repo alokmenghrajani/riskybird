@@ -5,6 +5,31 @@
  * composing regular expressions.
  *
  * At some point, we might even suggest auto-fixes.
+ *
+ * Note: for now, we will only return one lint error at a time.
+ *       it might be a little hard to generate all lint errors all
+ *       at once. We might also want to allow lint errors to point
+ *       to specific parts of the regexp (using some kind of dynamic
+ *       highlighting).
+ *
+ * Lint rules:
+ * 1. detect www., .com or .net and
+ *    suggest replacing "." with "\.".
+ *
+ * 2. detect \/\/ and suggest using % % as the regexp seperator
+ *
+ * 3. detect overlapping ranges
+ *
+ * 4. detect error prone priority rules (e.g. ^ab|c$)
+ *
+ * 5. detect incorrect ranges, e.g. a{3,1} or [z-a]
+ *
+ * 6. detect [A-z] (often used by laziness).
+ *
+ * 7. incorrect group reference
+ *    "(a)\2" or "(a)\2(b)"
+ *
+ * 8. non capturing groups?
  */
 
 /* The status of the linter */
@@ -27,12 +52,12 @@ type item_state = {
 
 module RegexpLinterRender {
 
-  function xhtml render(int rnbr, string msg) {
-    <div id="lint_rule{rnbr}" class="alert-message block-message warning span8">
+  function xhtml render(string title, string body) {
+    <div id="lint_rule" class="alert-message block-message warning span8">
       <p>
         <span class="icon32 icon-alert"></span>
-        <strong>LINT RULE {rnbr} </strong><br/>
-        {msg}
+        <strong>{title}</strong><br/>
+        {body}
       </p>
       <div class="alert-actions"/>
     </div>
@@ -41,8 +66,9 @@ module RegexpLinterRender {
   function xhtml xhtml_of_error(lerror err) {
     match(err) {
       case {range_not_used: {~rstart, ~rend}}:
-        render(2, "the range [{rstart}-{rend}] is redundant")
-      case _: <></>
+        render("blah", "the range [{rstart}-{rend}] is redundant")
+      case {lint_rule:_, ~title, ~body}:
+        render(title, body)
     }
   }
 
@@ -84,22 +110,39 @@ module RegexpLinter {
   }
 
   function lstatus regexp(regexp re) {
-    lstatus = {ok}
-//    core_regexp(lstatus, re)
-    {error: {range_not_used: {rstart: "a", rend: "c"}}}
+    List.fold(simple, re, {ok})
   }
 
-  function lstatus core_regexp(lstatus st, regexp re) {
-    List.fold_left(simple, st, re)
+  function lstatus simple(list(basic) l, lstatus st) {
+    List.fold(basic, l, st)
   }
 
-  function lstatus simple(lstatus st, list(basic) l) {
-    List.fold_left(basic, st, l)
+  function lstatus basic(basic bc, lstatus st) {
+    match (st) {
+      case {ok}:
+        match (bc) {
+          case {~id, ~belt, ~bpost, ~greedy}:
+            postfix(st, bpost)
+          case _:
+            {ok}
+        }
+      case _:
+        st
+    }
   }
 
-  function lstatus basic(lstatus st, basic bc) {
-    {ok}
-//    elementary(st, bc.belt)
+  function lstatus postfix(lstatus st, postfix bpost) {
+    match (bpost) {
+      case {~min, ~max}:
+        if (min <= max) {
+          {ok}
+        } else {
+          { error: {lint_rule: 1, title: "Incorrect quantifier",
+            body: "The incorrect quantifier will cause the regexp to fail to compile in some languages."}}
+        }
+      case _:
+        {ok}
+    }
   }
 
   function lstatus elementary(lstatus st, elementary elt) {

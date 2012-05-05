@@ -94,7 +94,6 @@ function void linter_run() {
     case {none}: {none}
     case {some: tree}:
       lstatus status = RegexpLinter.regexp(tree)
-      my_log(Debug.dump(status))
       RegexpLinterRender.error(status)
    }
   if (Option.is_some(l)) {

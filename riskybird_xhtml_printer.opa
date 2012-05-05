@@ -1,3 +1,8 @@
+/**
+ * Converts a parsed regexp into xhtml.
+ *
+ * This is the code used for pretty printing the regexp.
+ */
 module RegexpXhtmlPrinter {
   function xhtml pretty_print(option(regexp) parsed_regexp) {
     match (parsed_regexp) {

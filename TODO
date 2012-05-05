@@ -1,19 +1,11 @@
 Todo:
 - the parser is currently incomplete. It does not handle:
-  - does not handle the ungreedy operator "x*?"
   - non capturing groups "(:?...)"
  * - the parser also incorrectly parses the following cases:
-  - empty group "()"
   - incorrect ranges [z-a]
-  - unbalanced stuff "((((" or "))))"
-  - eol inside a conditional "^a|bc$"
  * - lint rules
   - clean up character sets:
     - overlapping ranges "[a-mb-n]", "[a-zb-y]"
-    - detect [A-z] suggested by ben
     - duplicate entires "[aa]"
     - reduce ranges "[ab-cc-d]" to "[a-d]"
 - support various regexp flavors (js, php, etc.)
- * - Bugs:
-  - empty true positives/true negatives get saved
-  - lint rule gets rendered more than once
