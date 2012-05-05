@@ -27,6 +27,7 @@ and elementary =
   { int group_ref } or
   { string escaped_char } or
   { int group_id, regexp egroup } or
+  { regexp ncgroup } or
   { rset eset }
 
 and rset =
@@ -54,20 +55,22 @@ module RegexpParser {
   basic = parser
   | "^" -> { anchor_start }
   | "$" -> { anchor_end }
-  | ~elementary ~postfix "?" -> { id: 0, belt: elementary, bpost: postfix, greedy: false }
-  | ~elementary ~postfix -> { id: 0, belt: elementary, bpost: postfix, greedy: true }
+  | ~elementary x=postfix_greedy -> { id: 0, belt: elementary, bpost: x.postfix, greedy: x.greedy }
 
-  postfix = parser
-  | "*" -> { star }
-  | "+" -> { plus }
-  | "?" -> { qmark }
-  | "\{" ~repetition -> repetition
-  | ""  -> { noop }
+  postfix_greedy = parser
+  | "*" "?" -> { postfix: { star }, greedy: false}
+  | "*" -> { postfix: { star }, greedy: true }
+  | "+" "?" -> { postfix: { plus }, greedy: false}
+  | "+" -> { postfix: { plus }, greedy: true }
+  | "?" -> { postfix: { qmark }, greedy: true }
+  | "\{" ~repetition "\}" "?" -> {postfix: repetition, greedy: false}
+  | "\{" ~repetition "\}" -> {postfix: repetition, greedy: true}
+  | ""  -> {postfix: { noop }, greedy: true}
 
   repetition = parser
-  | x = {Rule.integer} "\}" -> {exact: x}
-  | x = {Rule.integer} ",\}"  -> {at_least: x}
-  | x = {Rule.integer} "," y = {Rule.integer} "\}" -> {min:x, max:y}
+  | x = {Rule.integer} "," y = {Rule.integer} -> {min:x, max:y}
+  | x = {Rule.integer} ","  -> {at_least: x}
+  | x = {Rule.integer} -> {exact: x}
 
   elementary = parser
   | "." -> { edot }

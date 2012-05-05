@@ -40,6 +40,7 @@ expect_fail("invalid quantifier combination", "^*ab")
 expect_fail("invalid quantifier combination", "x+*")
 expect_fail("invalid quantifier combination", "x\{2,3\}+")
 expect_fail("invalid quantifier", "a\{-4,-2\}")
+expect_fail("invalid non greedy", "x??")
 
 expect_lint_error("invalid quantifier", "a\{4,2\}")
 expect_lint_error("possible improvement", "a\{4,4\}")
