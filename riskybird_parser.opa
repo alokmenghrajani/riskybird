@@ -5,7 +5,8 @@ and simple = list(basic)
 and basic  =
    { int id,
      elementary belt,
-     postfix bpost } or
+     postfix bpost,
+     bool greedy } or
    { anchor_start } or
    { anchor_end }
 
@@ -53,7 +54,8 @@ module RegexpParser {
   basic = parser
   | "^" -> { anchor_start }
   | "$" -> { anchor_end }
-  | ~elementary ~postfix -> { id: 0, belt: elementary, bpost: postfix }
+  | ~elementary ~postfix "?" -> { id: 0, belt: elementary, bpost: postfix, greedy: false }
+  | ~elementary ~postfix -> { id: 0, belt: elementary, bpost: postfix, greedy: true }
 
   postfix = parser
   | "*" -> { star }
@@ -66,7 +68,6 @@ module RegexpParser {
   | x = {Rule.integer} "\}" -> {exact: x}
   | x = {Rule.integer} ",\}"  -> {at_least: x}
   | x = {Rule.integer} "," y = {Rule.integer} "\}" -> {min:x, max:y}
-
 
   elementary = parser
   | "." -> { edot }
@@ -182,10 +183,10 @@ module RegexpSolveId {
 
   function wrap(basic) basic(state st, basic b) {
     match (b) {
-      case {id:_, ~belt, ~bpost}:
+      case {id:_, ~belt, ~bpost, ~greedy}:
         st2 = {basic_id: st.basic_id + 1, group_id: st.group_id}
         t = elementary(st2, belt)
-        b2 = {id: st.basic_id, belt: t.v, bpost: bpost}
+        b2 = {id: st.basic_id, belt: t.v, bpost: bpost, greedy: greedy}
         do_wrap(t.st, b2)
       case { anchor_start }:
         do_wrap(st, b)

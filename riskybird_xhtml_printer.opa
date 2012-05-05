@@ -53,11 +53,11 @@ module RegexpXhtmlPrinter {
 
   function xhtml print_basic(basic basic, unanchored_starts, unanchored_ends) {
     match (basic) {
-      case {~id, ~belt, ~bpost}:
+      case {~id, ~belt, ~bpost, ~greedy}:
         anchor_start = if (Option.is_some(IntSet.get(id, unanchored_starts))) {
-          "..." } else { "" }
+          <>&hellip;</> } else { <></> }
         anchor_end = if (Option.is_some(IntSet.get(id, unanchored_ends))) {
-          "..." } else { "" }
+          <>&hellip;</> } else { <></> }
         <span class="print_basic">
           <span class="anchor">{anchor_start}</span>
           <span class="anchor">
@@ -113,11 +113,11 @@ module RegexpXhtmlPrinter {
   function xhtml print_postfix(postfix) {
     match (postfix) {
       case {noop}: <></>
-      case {star}: <span class="mylabel"><span>N</span></span>
-      case {plus}: <span class="mylabel"><span>1-N</span></span>
+      case {star}: <span class="mylabel"><span>&infin;</span></span>
+      case {plus}: <span class="mylabel"><span>1-&infin;</span></span>
       case {qmark}: <span class="mylabel"><span>0-1</span></span>
       case {exact: x}: <span class="mylabel"><span>{x}</span></span>
-      case {at_least: x}: <span class="mylabel"><span>{x}-N</span></span>
+      case {at_least: x}: <span class="mylabel"><span>{x}-&infin;</span></span>
       case {~min, ~max}: <span class="mylabel"><span>{min}-{max}</span></span>
     }
   }
@@ -133,7 +133,7 @@ module RegexpAnchor {
     function intset do_basic(basic basic, intset set) {
       match (basic) {
         case { anchor_start }: set
-        case {~id, belt:_, bpost:_}: IntSet.add(id, set)
+        case {~id, belt:_, bpost:_, greedy:_}: IntSet.add(id, set)
       }
     }
     function intset do_simple(simple simple, intset set) {
@@ -146,7 +146,7 @@ module RegexpAnchor {
     function intset do_basic(basic basic, intset set) {
       match (basic) {
         case { anchor_end }: set
-        case {~id, belt:_, bpost:_}: IntSet.add(id, set)
+        case {~id, belt:_, bpost:_, greedy:_}: IntSet.add(id, set)
       }
     }
     recursive function intset do_simple(simple s, intset set) {

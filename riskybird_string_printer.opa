@@ -27,8 +27,9 @@ module RegexpStringPrinter {
 
   function string print_basic(basic basic) {
     match (basic) {
-      case {id:_, ~belt, ~bpost}:
-        "{print_elementary(belt)}{print_postfix(bpost)}"
+      case {id:_, ~belt, ~bpost, ~greedy}:
+        g = if(greedy) {""} else {"?"}
+        "{print_elementary(belt)}{print_postfix(bpost)}{g}"
       case { anchor_start }:
         "^"
       case { anchor_end }:
