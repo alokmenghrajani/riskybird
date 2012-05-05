@@ -16,57 +16,13 @@ type regexp_result = {
   intmap(string) true_negatives
 }
 
-database intmap(regexp_result) /regexps
+//database intmap(regexp_result) /regexps
 
 server exposed function my_log(obj) {
   Debug.warning(Debug.dump(obj))
 }
 
-function save_data(int id) {
-  // convert #true_positives into an intmap
-  (intmap(string) true_positives, _) = Dom.fold_deep(
-    function (intmap(string), int) (dom el, (r, n)) {
-      option(string) v = Dom.get_attribute(el, "str")
-      match (v) {
-        case {some:str}:
-          (Map.add(n, str, r), n+1)
-        case _ :
-          (r, n)
-      }
-    },
-    (Map.empty, 0),
-    #true_positives
-  )
-
-  // convert #true_negatives into an intmap
-  (intmap(string) true_negatives, _) = Dom.fold_deep(
-    function (intmap(string), int) (dom el, (r, n)) {
-      option(string) v = Dom.get_attribute(el, "str")
-      match (v) {
-        case {some:str}:
-          (Map.add(n, str, r), n+1)
-        case _ :
-          (r, n)
-      }
-    },
-    (Map.empty, 0),
-    #true_negatives
-  )
-
-  regexp_result r = {
-    regexp: Dom.get_value(#regexp),
-    comment: Dom.get_content(#comment),
-    true_positives: true_positives,
-    true_negatives: true_negatives,
-  }
-
-  int id2 = if (id == 0) { Db3.fresh_key(@/regexps); } else { id; }
-  /regexps[id2] <- r
-
-  Client.goto("/{id2}")
-}
-
-function resource display(regexp_result data, /*int id*/ _) {
+function resource display() {
   Resource.styled_page(
     "RiskyBird | compose",
     ["/resources/riskybird.css"],
@@ -74,19 +30,22 @@ function resource display(regexp_result data, /*int id*/ _) {
       <a href="https://github.com/alokmenghrajani/riskybird">
         <img style="position: absolute; top: 0; right: 0; border: 0;" src="https://a248.e.akamai.net/camo.github.com/e6bef7a091f5f3138b8cd40bc3e114258dd68ddf/687474703a2f2f73332e616d617a6f6e6177732e636f6d2f6769746875622f726962626f6e732f666f726b6d655f72696768745f7265645f6161303030302e706e67" alt="Fork me on GitHub"/>
       </a>
-      <div class="container" onready={function(_){load_tests(data)}}>
+      <div class="container">
         <div class="content">
           <section>
             <div class="page-header"><h1>Create a new Regular Expression</h1></div>
             <div class="row">
-              <div class="span8 offset4">
+              <div class="span4">
+                <h3>Regexp</h3>
+              </div>
+              <div class="span8">
                 <div class="input">
                   <input
                     class="xxlarge"
                     type="text"
                     id=#regexp
                     placeholder="Enter a regular expression"
-                    value={data.regexp}
+                    value=""
                     onkeyup={
                       function(_){
                         check_regexp()
@@ -96,16 +55,6 @@ function resource display(regexp_result data, /*int id*/ _) {
                 </div>
                 <br/>
               </div>
-            </div>
-            <div class="row">
-              <div class="span4">
-                <h3>Description</h3>
-                <p>
-                  Please explain what your regular expression is designed to match. This will help your reviewers suggest
-                  test inputs.
-                </p>
-              </div>
-              <div class="span8"><textarea rows="4" class="xxlarge" id=#comment>{data.comment}</textarea></div>
             </div>
             <div class="row">
               <div class="span4">
@@ -126,26 +75,6 @@ function resource display(regexp_result data, /*int id*/ _) {
                 </p>
               </div>
               <div class="span8" id=#lint_rules/>
-            </div>
-            <div class="row">
-              <div class="span4">
-                <h3>Test input</h3>
-              </div>
-              <div class="span5 alert-message block-message success">
-                <h3>True positives</h3>
-                <div id=#true_positives>
-                </div>
-                <input type="text" id=#true_positive placeholder="enter a string which should match" onnewline={function(_) {append(#true_positives, #true_positive, true)}}
-                  onblur={function(_) {append(#true_positives, #true_positive, true)}}/>
-              </div>
-
-              <div class="span5 alert-message block-message error">
-                <h3>True negatives</h3>
-                <div id=#true_negatives>
-                </div>
-                <input type="text" id=#true_negative placeholder="enter a string which should not match" onnewline={function(_) {append(#true_negatives, #true_negative, false)}}
-                  onblur={function(_) {append(#true_negatives, #true_negative, false)}}/>
-              </div>
             </div>
           </section>
         </div>
@@ -295,13 +224,13 @@ function resource start(Uri.relative uri) {
   match (uri) {
     case {path:{nil} ...}:
 //      regexp_result data = {regexp:"", comment:"", true_positives:Map.empty, true_negatives:Map.empty}
-      regexp_id = Db3.fresh_key(@/regexps)
-      r = Resource.raw_status({address_redirected})
-      Resource.add_header(r, {location:"/{regexp_id}"})
-    case {path:{~hd, tl:[]} ...}:
-      int id = Int.of_string(hd)
-      regexp_result data = /regexps[id]
-      display(data, id)
+//      regexp_id = Db3.fresh_key(@/regexps)
+//      r = Resource.raw_status({address_redirected})
+//      Resource.add_header(r, {location:"/{regexp_id}"})
+//    case {path:{~hd, tl:[]} ...}:
+//      int id = Int.of_string(hd)
+//      regexp_result data = /regexps[id]
+      display()
     case {~path ...}:
       my_log(path)
       Resource.styled_page("hmm", [], <>hi</>)
