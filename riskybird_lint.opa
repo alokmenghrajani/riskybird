@@ -134,8 +134,11 @@ module RegexpLinter {
   function lstatus postfix(lstatus st, postfix bpost) {
     match (bpost) {
       case {~min, ~max}:
-        if (min <= max) {
+        if (min < max) {
           {ok}
+        } else if (min == max) {
+          { error: {lint_rule: 2, title: "Improve the quantifier",
+             body: "\{{min},{max}\} can be written as \{{min}\}"}}
         } else {
           { error: {lint_rule: 1, title: "Incorrect quantifier",
             body: "The incorrect quantifier will cause the regexp to fail to compile in some languages."}}
