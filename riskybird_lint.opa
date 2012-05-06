@@ -66,7 +66,7 @@ module RegexpLinterRender {
   function xhtml xhtml_of_error(lerror err) {
     match(err) {
       case {range_not_used: {~rstart, ~rend}}:
-        render("blah", "the range [{rstart}-{rend}] is redundant")
+        render("Useless range", "the range [{rstart}-{rend}] is redundant and can be removed.")
       case {lint_rule:_, ~title, ~body}:
         render(title, body)
     }
@@ -122,7 +122,10 @@ module RegexpLinter {
       case {ok}:
         match (bc) {
           case {~id, ~belt, ~bpost, ~greedy}:
-            postfix(st, bpost, greedy)
+            t = postfix(st, bpost, greedy)
+            if (t == {ok}) {
+              elementary({ok}, belt)
+            } else t
           case _:
             {ok}
         }
@@ -169,7 +172,7 @@ module RegexpLinter {
   function item_state item(item_state state, item it) {
     match(it) {
       case {irange: r}:
-        if(RegexpLinterHelper.range_exists(r, state.ranges)) {
+        if (RegexpLinterHelper.range_exists(r, state.ranges)) {
           status = {error: {range_not_used: r}}
           { ~status, ranges: state.ranges }
         }

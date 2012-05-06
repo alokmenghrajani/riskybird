@@ -72,6 +72,13 @@ expect_parse("front -", "[-ac]")
 expect_parse("middle -", "[a-c-e]")
 expect_parse("end -", "[abc-]")
 
+// lint rule for ranges
+expect_lint_error("overlapping ranges", "[a-mb-z]")
+expect_lint_error("included ranges", "[a-md-g]")
+expect_lint_error("character from range", "[a-zx]")
+expect_lint_error("complex overlapping", "[fg-ia-ec-j]")
+expect_lint_error("complex inclusion", "[fg-ia-ec-h]")
+
 
 
 
