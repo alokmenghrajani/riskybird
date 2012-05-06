@@ -42,7 +42,7 @@ expect_parse("range quantifier", "a\{4,4\}")
 expect_parse("range quantifier", "a\{4,9\}")
 
 // non greedy matches
-expect_fail("invalid non greedy", "x??")
+expect_parse("zero or more non greedy", "x??")
 expect_parse("non greedy one or more quantifier", "a+?")
 expect_parse("non greedy zero or more quantifier", "a*?")
 expect_parse("non greedy exactly 4 quantifier", "a\{4\}?")

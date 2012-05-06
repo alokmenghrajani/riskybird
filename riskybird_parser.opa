@@ -55,17 +55,15 @@ module RegexpParser {
   basic = parser
   | "^" -> { anchor_start }
   | "$" -> { anchor_end }
-  | ~elementary x=postfix_greedy -> { id: 0, belt: elementary, bpost: x.postfix, greedy: x.greedy }
+  | ~elementary ~postfix "?" -> { id: 0, belt: elementary, bpost: postfix, greedy: false }
+  | ~elementary ~postfix -> { id: 0, belt: elementary, bpost: postfix, greedy: true }
 
-  postfix_greedy = parser
-  | "*" "?" -> { postfix: { star }, greedy: false}
-  | "*" -> { postfix: { star }, greedy: true }
-  | "+" "?" -> { postfix: { plus }, greedy: false}
-  | "+" -> { postfix: { plus }, greedy: true }
-  | "?" -> { postfix: { qmark }, greedy: true }
-  | "\{" ~repetition "\}" "?" -> {postfix: repetition, greedy: false}
-  | "\{" ~repetition "\}" -> {postfix: repetition, greedy: true}
-  | ""  -> {postfix: { noop }, greedy: true}
+  postfix = parser
+  | "*" -> { star }
+  | "+" -> { plus }
+  | "?" -> { qmark }
+  | "\{" ~repetition "\}" -> repetition
+  | ""  -> { noop }
 
   repetition = parser
   | x = {Rule.integer} "," y = {Rule.integer} -> {min:x, max:y}
