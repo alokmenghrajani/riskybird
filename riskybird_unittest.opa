@@ -78,9 +78,7 @@ expect_lint_error("included ranges", "[a-md-g]")
 expect_lint_error("character from range", "[a-zx]")
 expect_lint_error("complex overlapping", "[fg-ia-ec-j]")
 expect_lint_error("complex inclusion", "[fg-ia-ec-h]")
-
-
-
+expect_lint_error("invalid range", "[z-a]")
 
 // other tests
 

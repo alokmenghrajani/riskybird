@@ -13,23 +13,21 @@
  *       highlighting).
  *
  * Lint rules:
- * 1. detect www., .com or .net and
+ * - detect www., .com or .net and
  *    suggest replacing "." with "\.".
  *
- * 2. detect \/\/ and suggest using % % as the regexp seperator
+ * - detect \/\/ and suggest using % % as the regexp seperator
  *
- * 3. detect overlapping ranges
+ * - detect error prone priority rules (e.g. ^ab|c$)
  *
- * 4. detect error prone priority rules (e.g. ^ab|c$)
+ * - detect incorrect ranges, e.g. a{3,1} or [z-a]
  *
- * 5. detect incorrect ranges, e.g. a{3,1} or [z-a]
+ * - detect [A-z] (often used by laziness).
  *
- * 6. detect [A-z] (often used by laziness).
- *
- * 7. incorrect group reference
+ * - incorrect group reference
  *    "(a)\2" or "(a)\2(b)"
  *
- * 8. non capturing groups?
+ * - unused groups => non capturing groups?
  */
 
 /* The status of the linter */
@@ -172,7 +170,12 @@ module RegexpLinter {
   function item_state item(item_state state, item it) {
     match(it) {
       case {irange: r}:
-        if (RegexpLinterHelper.range_exists(r, state.ranges)) {
+        if (r.rstart > r.rend) {
+          e = {error: {lint_rule: 4, title: "Invalid range in character class",
+          body: "The character class contains an invalid range."}}
+          {status: e, ranges: state.ranges}
+
+        } else if (RegexpLinterHelper.range_exists(r, state.ranges)) {
           status = {error: {range_not_used: r}}
           { ~status, ranges: state.ranges }
         }
