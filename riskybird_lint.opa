@@ -174,7 +174,10 @@ module RegexpLinter {
           e = {error: {lint_rule: 4, title: "Invalid range in character class",
           body: "The character class contains an invalid range."}}
           {status: e, ranges: state.ranges}
-
+        } else if (r.rstart == r.rend) {
+          e = {error: {lint_rule: 5, title: "Useless range in character class",
+          body: "The character class contains a useless range."}}
+          {status: e, ranges: state.ranges}
         } else if (RegexpLinterHelper.range_exists(r, state.ranges)) {
           status = {error: {range_not_used: r}}
           { ~status, ranges: state.ranges }
