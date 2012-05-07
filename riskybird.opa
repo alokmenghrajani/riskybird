@@ -45,10 +45,7 @@ function resource display() {
                     placeholder="Enter a regular expression"
                     value=""
                     onkeyup={
-                      function(_){
-                        check_regexp()
-                        linter_run()
-                      }
+                      function(_){ do_work() }
                     }/>
                 </div>
                 <br/>
@@ -85,17 +82,18 @@ function bool contains(string haystack, string needle) {
   Option.is_some(String.strpos(needle, haystack))
 }
 
-function void linter_run() {
-  string regexp = Dom.get_value(#regexp)
+@async function do_work() {
+  check_regexp()
+}
 
-  option(regexp) tree_opt = RegexpParser.parse(regexp)
+function void linter_run(option(regexp) tree_opt) {
   l =
     match(tree_opt) {
-    case {none}: {none}
-    case {some: tree}:
-      lstatus status = RegexpLinter.regexp(tree)
-      RegexpLinterRender.error(status)
-   }
+      case {none}: {none}
+      case {some: tree}:
+        lint_result status = RegexpLinter.regexp(tree)
+        RegexpLinterRender.render(status)
+     }
   if (Option.is_some(l)) {
     Dom.remove_class(#lint, "hide")
     _ = Dom.put_replace(#lint_rules, Dom.of_xhtml(Option.get(l)))
@@ -132,6 +130,7 @@ client function xhtml get_result_div(string str, bool expected) {
 }
 
 client function void check_regexp() {
+/*
   // run regexp on true_positives and true_negatives and colorize the output
   x = Dom.fold_deep(
     function xhtml (dom el, xhtml r) {
@@ -168,11 +167,13 @@ client function void check_regexp() {
     #true_negatives
   )
   _ = Dom.put_inside(#true_negatives, Dom.of_xhtml(x))
-
+*/
   // Run the parser
   string regexp = Dom.get_value(#regexp)
   parsed_regexp = RegexpParser.parse(regexp)
   #parser_output = RegexpXhtmlPrinter.pretty_print(parsed_regexp)
+  linter_run(parsed_regexp)
+
   void
 }
 

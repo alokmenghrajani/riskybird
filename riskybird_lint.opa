@@ -6,214 +6,191 @@
  *
  * At some point, we might even suggest auto-fixes.
  *
- * Note: for now, we will only return one lint error at a time.
- *       it might be a little hard to generate all lint errors all
- *       at once. We might also want to allow lint errors to point
- *       to specific parts of the regexp (using some kind of dynamic
- *       highlighting).
- *
- * Lint rules:
+ * TODO list:
  * - detect www., .com or .net and
  *    suggest replacing "." with "\.".
  *
  * - detect \/\/ and suggest using % % as the regexp seperator
  *
  * - detect error prone priority rules (e.g. ^ab|c$)
- *
- * - incorrect group reference
- *    "(a)\2" or "(a)\2(b)"
- *
- * - unused groups => non capturing groups?
  */
 
 /* The status of the linter */
-type lstatus =
-  { ok } or
-  { lerror error }
+type lint_result = {
+  intset matched_rules,
+  list(lint_error) errors,
+  intset groups,
+  intset groups_referenced,
+}
 
-type lerror =
-  { range range_not_used } or
-  { int lint_rule, string title, string body }
+type lint_error = {
+  int lint_rule,
+//  int element_id,
+  string title,
+  string body
+}
 
 /* The ranges seen so far (when analysing ranges) */
-type lranges = list(range)
+//type lranges = list(range)
 
 /* The state when checking items */
-type item_state = {
-  lstatus status,
-  lranges ranges,
-}
-
-/* used in regexp2 and related functions */
-type error_state = {
-  option(lerror) r,
-  intset groups_seen,
-  intset groups_used,
-}
+//type item_state = {
+//  lstatus status,
+//  lranges ranges,
+//}
 
 module RegexpLinterRender {
-
-  function xhtml render(string title, string body) {
-    <div id="lint_rule" class="alert-message block-message warning span8">
-      <p>
-        <span class="icon32 icon-alert"></span>
-        <strong>{title}</strong><br/>
-        {body}
-      </p>
-      <div class="alert-actions"/>
-    </div>
-  }
-
-  function xhtml xhtml_of_error(lerror err) {
-    match(err) {
-      case {range_not_used: {~rstart, ~rend}}:
-        render("Useless range", "the range [{rstart}-{rend}] is redundant and can be removed.")
-      case {lint_rule:_, ~title, ~body}:
-        render(title, body)
-    }
-  }
-
-  function option(xhtml) error(lstatus st) {
-    match(st) {
-      case {ok}: {none}
-      case {~error}: {some: xhtml_of_error(error)}
+  function option(xhtml) render(lint_result result) {
+    match (result.errors) {
+      case {nil}: {none}
+      case _:
+        t = List.fold(
+          function(error, r) {
+            <>
+              <div class="alert-message block-message warning">
+                <p>
+                  <span class="icon32 icon-alert"/>
+                  <strong>{error.title}</strong><br/>
+                  {error.body}
+                </p>
+                <div class="alert-actions"/>
+              </div>
+              {r}
+            </>
+          },
+          result.errors,
+          <></>
+        )
+        {some: <div id="lint_rules" class="span8">{t}</div>}
     }
   }
 }
 
 module RegexpLinterHelper {
+  /**
+   * Checks all the groups have been referenced.
+   */
+   function lint_result check_groups(lint_result res) {
+     recursive function bool f(int x, intset s) {
+       if (x == 0) {
+         id(true)
+       } else if (IntSet.mem(x, s)) {
+         f(x-1, s)
+       } else {
+         id(false)
+       }
+     }
+     if (f(IntSet.height(res.groups), res.groups_referenced)) {
+       id(res)
+     } else {
+       err = {
+         lint_rule: 8,
+         title: "unused group",
+         body: "some groups are not referenced, consider using (?:...)"
+       }
+       RegexpLinter.add(res, err)
+     }
+   }
 
-  function bool range_is_included(range r1, range r2) {
-    r1.rstart >= r2.rstart && r1.rend <= r2.rend
-  }
+//  function bool range_is_included(range r1, range r2) {
+//    r1.rstart >= r2.rstart && r1.rend <= r2.rend
+//  }
 
   /* Checks whether the range r is already covered by the list of
    * ranges l. So r = [a-b], lr = [[a-d]] ==> true
    * using fold is an overkill since we need to handle the case
    * where the list is empty anyway
    */
-  function bool range_exists(range r, lranges lr) {
-    match(lr) {
-      case {nil}: false
-      case {~hd, ~tl}:
-        range_is_included(r, hd) || range_exists(r, tl)
-    }
-  }
+//  function bool range_exists(range r, lranges lr) {
+//    match(lr) {
+//      case {nil}: false
+//      case {~hd, ~tl}:
+//       range_is_included(r, hd) || range_exists(r, tl)
+//    }
+//  }
 }
 
 module RegexpLinter {
 
-  function lstatus lreturn(lstatus st, lstatus st2) {
-    match(st) {
-      case {error: _}: st
-      case {ok}: st2
+  function lint_result add(lint_result current, lint_error error) {
+    if (IntSet.mem(error.lint_rule, current.matched_rules)) {
+      id(current)
+    } else {
+      matched_rules = IntSet.add(error.lint_rule, current.matched_rules)
+      errors = List.cons(error, current.errors)
+      {current with ~matched_rules, ~errors}
     }
   }
 
-  function lstatus regexp(regexp re) {
-    s = List.fold(simple, re, {ok})
-    if (s == {ok}) {
-      t = regexp2(re)
-      match (t) {
-        case {~some}: {error:some}
-        case {none}: {ok}
-      }
-    } else s
-  }
-
-  function option(lerror) regexp2(regexp re) {
-    // go through regexp and keep track of state:
-    // - which groups have been seen
-    // - which groups have been references
-    // - result
-    error_state s = {r: {none}, groups_seen: IntSet.empty, groups_used: IntSet.empty}
-    error_state t = do_regexp2(re, s)
-    t.r
-  }
-
-  function error_state do_regexp2(regexp re, error_state s) {
-    List.fold(do_simple2, re, s)
-  }
-
-  function lstatus simple(list(basic) l, lstatus st) {
-    List.fold(basic, l, st)
-  }
-
-  function error_state do_simple2(simple l, error_state s) {
-    List.fold(do_basic2, l, s)
-  }
-
-  function lstatus basic(basic bc, lstatus st) {
-    match (st) {
-      case {ok}:
-        match (bc) {
-          case {~id, ~belt, ~bpost, ~greedy}:
-            t = postfix(st, bpost, greedy)
-            if (t == {ok}) {
-              elementary({ok}, belt)
-            } else t
-          case _:
-            {ok}
-        }
-      case _:
-        st
+  function lint_result regexp(regexp re) {
+    lint_result res = {
+      matched_rules: IntSet.empty,
+      errors: [],
+      groups: IntSet.empty,
+      groups_referenced: IntSet.empty
     }
+    res = do_regexp(re, res)
+
+    RegexpLinterHelper.check_groups(res)
   }
 
-  function error_state do_basic2(basic b, error_state s) {
+  function lint_result do_regexp(regexp re, lint_result res) {
+    List.fold(do_simple, re, res)
+  }
+
+  function lint_result do_simple(simple s, lint_result res) {
+    List.fold(do_basic, s, res)
+  }
+
+  function lint_result do_basic(basic b, lint_result res) {
     match (b) {
-      case {id:_, ~belt, bpost:_, greedy:_}:
-        do_elementary2(belt, s)
+      case {~id, ~belt, ~bpost, ~greedy}:
+        // process postfix
+        res = do_postfix(bpost, greedy, res)
+        // process elementary
+        do_elementary(belt, res)
       case _:
-        s
+        res
     }
   }
 
-  function bool intset_contains(int elem, intset s) {
-    t = IntSet.get(elem, s)
-    Option.is_some(t)
-  }
-
-  function error_state do_elementary2(elementary e, error_state s) {
-    match (e) {
-      case {~group_id, ~egroup}:
-        s2 = {r: s.r, groups_seen: IntSet.add(group_id, s.groups_seen),
-              groups_used: s.groups_used}
-        do_regexp2(egroup, s2)
-      case {~group_ref}:
-        t = if (intset_contains(group_ref, s.groups_seen)) s.r else
-        {some: {lint_rule: 7, title: "incorrect reference", body:"group_ref too high"}}
-
-        {r: t, groups_seen: s.groups_seen, groups_used: IntSet.add(group_ref, s.groups_used)}
-      case _:
-        s
-    }
-  }
-
-  function lstatus postfix(lstatus st, postfix bpost, bool greedy) {
+  function lint_result do_postfix(postfix bpost, bool greedy, lint_result res) {
     match (bpost) {
       case {~min, ~max}:
-        if (min < max) {
-          {ok}
+        if (min > max) {
+          err = {
+            lint_rule: 1,
+            title: "incorrect quantifier",
+            body: "min is greater than max"
+          }
+          add(res, err)
         } else if (min == max) {
-          { error: {lint_rule: 2, title: "Improve the quantifier",
-             body: "\{{min},{max}\} can be written as \{{min}\}"}}
+          err = {
+            lint_rule: 2,
+            title: "improve the quantifier",
+            body: "\{{min},{max}\} can be written as \{{min}\}"
+          }
+          add(res, err)
         } else {
-          { error: {lint_rule: 1, title: "Incorrect quantifier",
-            body: "max > min."}}
+          id(res)
         }
       case {exact:_}:
         if (greedy == false) {
-          { error: {lint_rule: 3, title: "Useless non greedy",
-            body: "When matching an exact amount, using non greedy makes no sense" }}
+          err = {
+            lint_rule: 3,
+            title: "useless non greedy",
+            body: "when matching an exact amount, using non greddy makes no sense"
+          }
+          add(res, err)
         } else {
-          {ok}
+          id(res)
         }
       case _:
-        {ok}
+        res
     }
   }
 
+/*
   function lstatus elementary(lstatus st, elementary elt) {
     match(elt) {
       case {eset:{items:l, ...}}:
@@ -248,6 +225,63 @@ module RegexpLinter {
           { status: state.status, ~ranges }
         }
       case _: state
+    }
+  }
+*/
+
+  function lint_result do_elementary(elementary e, lint_result res) {
+    match (e) {
+      case {~group_id, ~egroup}:
+        res = do_regexp(egroup, res)
+        {res with groups: IntSet.add(group_id, res.groups)}
+      case {~group_ref}:
+        res = if (IntSet.mem(group_ref, res.groups)) {
+          id(res)
+        } else {
+          err = {
+            lint_rule: 4,
+            title: "incorrect reference",
+            body: "\\{group_ref} refers to an invalid capture group"
+          }
+          add(res, err)
+        }
+        {res with groups_referenced: IntSet.add(group_ref, res.groups_referenced)}
+      case {eset:{items:l, ...}}:
+        List.fold(do_item, l, res)
+      case _:
+        res
+    }
+  }
+
+  function lint_result do_item(item i, lint_result res) {
+    match (i) {
+      case {irange: r}:
+        if (r.rstart > r.rend) {
+          err = {
+            lint_rule: 5,
+            title: "invalid range in character class",
+            body: "[{r.rstart}-{r.rend}] is invalid."
+          }
+          add(res, err)
+        } else if (r.rstart == r.rend) {
+          err = {
+            lint_rule: 6,
+            title: "useless range in character class",
+            body: "[{r.rstart}-{r.rend}] is useless."
+          }
+          add(res, err)
+        } else if (r.rstart == "A" && r.rend == "z") {
+          err = {
+            lint_rule: 7,
+            title: "programmer laziness",
+            body: "When you write A-z instead of A-Za-z, you are including 6 extra characters!"
+          }
+          add(res, err)
+        } else {
+          id(res)
+        }
+      case _:
+        res
     }
   }
 }

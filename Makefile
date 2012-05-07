@@ -7,7 +7,8 @@ SRC= \
   riskybird_lint.opa \
   riskybird_parser.opa \
   riskybird_string_printer.opa \
-  riskybird_xhtml_printer.opa
+  riskybird_xhtml_printer.opa \
+	riskybird_utils.opa
 
 BINDINGS= \
   riskybird_binding.js
