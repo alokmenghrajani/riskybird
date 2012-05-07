@@ -22,8 +22,6 @@
  *
  * - detect incorrect ranges, e.g. a{3,1} or [z-a]
  *
- * - detect [A-z] (often used by laziness).
- *
  * - incorrect group reference
  *    "(a)\2" or "(a)\2(b)"
  *
@@ -181,6 +179,10 @@ module RegexpLinter {
         } else if (RegexpLinterHelper.range_exists(r, state.ranges)) {
           status = {error: {range_not_used: r}}
           { ~status, ranges: state.ranges }
+        } else if (r.rstart == "A" && r.rend == "z") {
+          e = {error: {lint_rule: 6, title: "Progammer laziness",
+          body: "When you write A-z instead of A-Za-z, you are including 6 extra characters!"}}
+          {status: e, ranges: state.ranges}
         }
         else {
           ranges = List.cons(r, state.ranges)

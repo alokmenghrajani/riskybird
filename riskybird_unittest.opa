@@ -80,6 +80,7 @@ expect_lint_error("complex overlapping", "[fg-ia-ec-j]")
 expect_lint_error("complex inclusion", "[fg-ia-ec-h]")
 expect_lint_error("invalid range", "[z-a]")
 expect_lint_error("useless range", "[x-x]")
+expect_lint_error("typical lazyness", "[0-9A-z]")
 
 // other tests
 
