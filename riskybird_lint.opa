@@ -20,8 +20,6 @@
  *
  * - detect error prone priority rules (e.g. ^ab|c$)
  *
- * - detect incorrect ranges, e.g. a{3,1} or [z-a]
- *
  * - incorrect group reference
  *    "(a)\2" or "(a)\2(b)"
  *
@@ -44,6 +42,13 @@ type lranges = list(range)
 type item_state = {
   lstatus status,
   lranges ranges,
+}
+
+/* used in regexp2 and related functions */
+type error_state = {
+  option(lerror) r,
+  intset groups_seen,
+  intset groups_used,
 }
 
 module RegexpLinterRender {
@@ -106,11 +111,36 @@ module RegexpLinter {
   }
 
   function lstatus regexp(regexp re) {
-    List.fold(simple, re, {ok})
+    s = List.fold(simple, re, {ok})
+    if (s == {ok}) {
+      t = regexp2(re)
+      match (t) {
+        case {~some}: {error:some}
+        case {none}: {ok}
+      }
+    } else s
+  }
+
+  function option(lerror) regexp2(regexp re) {
+    // go through regexp and keep track of state:
+    // - which groups have been seen
+    // - which groups have been references
+    // - result
+    error_state s = {r: {none}, groups_seen: IntSet.empty, groups_used: IntSet.empty}
+    error_state t = do_regexp2(re, s)
+    t.r
+  }
+
+  function error_state do_regexp2(regexp re, error_state s) {
+    List.fold(do_simple2, re, s)
   }
 
   function lstatus simple(list(basic) l, lstatus st) {
     List.fold(basic, l, st)
+  }
+
+  function error_state do_simple2(simple l, error_state s) {
+    List.fold(do_basic2, l, s)
   }
 
   function lstatus basic(basic bc, lstatus st) {
@@ -130,6 +160,36 @@ module RegexpLinter {
     }
   }
 
+  function error_state do_basic2(basic b, error_state s) {
+    match (b) {
+      case {id:_, ~belt, bpost:_, greedy:_}:
+        do_elementary2(belt, s)
+      case _:
+        s
+    }
+  }
+
+  function bool intset_contains(int elem, intset s) {
+    t = IntSet.get(elem, s)
+    Option.is_some(t)
+  }
+
+  function error_state do_elementary2(elementary e, error_state s) {
+    match (e) {
+      case {~group_id, ~egroup}:
+        s2 = {r: s.r, groups_seen: IntSet.add(group_id, s.groups_seen),
+              groups_used: s.groups_used}
+        do_regexp2(egroup, s2)
+      case {~group_ref}:
+        t = if (intset_contains(group_ref, s.groups_seen)) s.r else
+        {some: {lint_rule: 7, title: "incorrect reference", body:"group_ref too high"}}
+
+        {r: t, groups_seen: s.groups_seen, groups_used: IntSet.add(group_ref, s.groups_used)}
+      case _:
+        s
+    }
+  }
+
   function lstatus postfix(lstatus st, postfix bpost, bool greedy) {
     match (bpost) {
       case {~min, ~max}:
@@ -140,7 +200,7 @@ module RegexpLinter {
              body: "\{{min},{max}\} can be written as \{{min}\}"}}
         } else {
           { error: {lint_rule: 1, title: "Incorrect quantifier",
-            body: "The incorrect quantifier will cause the regexp to fail to compile in some languages."}}
+            body: "max > min."}}
         }
       case {exact:_}:
         if (greedy == false) {
@@ -183,8 +243,7 @@ module RegexpLinter {
           e = {error: {lint_rule: 6, title: "Progammer laziness",
           body: "When you write A-z instead of A-Za-z, you are including 6 extra characters!"}}
           {status: e, ranges: state.ranges}
-        }
-        else {
+        } else {
           ranges = List.cons(r, state.ranges)
           { status: state.status, ~ranges }
         }

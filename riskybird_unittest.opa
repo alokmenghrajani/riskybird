@@ -54,6 +54,8 @@ expect_parse("non greedy range quantifier", "a\{4,9\}?")
 // grouping
 expect_parse("group", "(a)\\1")
 expect_parse("non capturing group", "(?:a)")
+expect_lint_error("group which doesn't exist", "(a)\\2")
+expect_lint_error("group which doesn't yet exist", "\\1(a)")
 
 // alternatives
 expect_parse("alternative", "a|bc+|d")
