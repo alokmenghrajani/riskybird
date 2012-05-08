@@ -66,9 +66,9 @@ module RegexpParser {
   | ""  -> { noop }
 
   repetition = parser
-  | x = {Rule.integer} "," y = {Rule.integer} -> {min:x, max:y}
-  | x = {Rule.integer} ","  -> {at_least: x}
-  | x = {Rule.integer} -> {exact: x}
+  | x = {Rule.digit} "," y = {Rule.digit} -> {min:x, max:y}
+  | x = {Rule.digit} ","  -> {at_least: x}
+  | x = {Rule.digit} -> {exact: x}
 
   elementary = parser
   | "." -> { edot }

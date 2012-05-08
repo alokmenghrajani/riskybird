@@ -96,4 +96,6 @@ expect_fail("invalid quantifier combination", "x+*")
 expect_fail("invalid quantifier combination", "x\{2,3\}+")
 expect_fail("invalid quantifier", "a\{-4,-2\}")
 expect_fail("invalid quantifier", "a\{-4,\}")
+expect_fail("invalid quantifier", "a\{-4}")
+
 
