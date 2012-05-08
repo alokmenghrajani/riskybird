@@ -30,15 +30,6 @@ type lint_error = {
   string body
 }
 
-/* The ranges seen so far (when analysing ranges) */
-//type lranges = list(range)
-
-/* The state when checking items */
-//type item_state = {
-//  lstatus status,
-//  lranges ranges,
-//}
-
 module RegexpLinterRender {
   function option(xhtml) render(lint_result result) {
     match (result.errors) {
@@ -70,44 +61,94 @@ module RegexpLinterHelper {
   /**
    * Checks all the groups have been referenced.
    */
-   function lint_result check_groups(lint_result res) {
-     recursive function bool f(int x, intset s) {
-       if (x == 0) {
-         id(true)
-       } else if (IntSet.mem(x, s)) {
-         f(x-1, s)
-       } else {
-         id(false)
-       }
-     }
-     if (f(IntSet.height(res.groups), res.groups_referenced)) {
-       id(res)
-     } else {
-       err = {
-         lint_rule: 8,
-         title: "unused group",
-         body: "some groups are not referenced, consider using (?:...)"
-       }
-       RegexpLinter.add(res, err)
-     }
-   }
+  function lint_result check_groups(lint_result res) {
+    recursive function bool f(int x, intset s) {
+      if (x == 0) {
+        id(true)
+      } else if (IntSet.mem(x, s)) {
+        f(x-1, s)
+      } else {
+        id(false)
+      }
+    }
+    if (f(IntSet.height(res.groups), res.groups_referenced)) {
+      id(res)
+    } else {
+      err = {
+        lint_rule: 8,
+        title: "unused group",
+        body: "some groups are not referenced, consider using (?:...)"
+      }
+      RegexpLinter.add(res, err)
+    }
+  }
 
-//  function bool range_is_included(range r1, range r2) {
-//    r1.rstart >= r2.rstart && r1.rend <= r2.rend
-//  }
-
-  /* Checks whether the range r is already covered by the list of
-   * ranges l. So r = [a-b], lr = [[a-d]] ==> true
-   * using fold is an overkill since we need to handle the case
-   * where the list is empty anyway
+  /**
+   * The easiest way to lint a character set is to rewrite
+   * the set and then compare the results.
    */
-//  function bool range_exists(range r, lranges lr) {
-//    match(lr) {
-//      case {nil}: false
-//      case {~hd, ~tl}:
-//       range_is_included(r, hd) || range_exists(r, tl)
-//    }
-//  }
+  function lint_result check_set(rset set, lint_result res) {
+    recursive function intset range_to_charmap(int start, int end, intset map) {
+      map = IntSet.add(start, map)
+      if (start == end) {
+        id(map)
+      } else {
+        range_to_charmap(start+1, end, map)
+      }
+    }
+
+    function intset set_to_charmap(item i, intset map) {
+      match (i) {
+        case {~ichar}:
+          IntSet.add(int_of_first_char(ichar), map)
+        case {irange: {~rstart, ~rend}}:
+          range_to_charmap(int_of_first_char(rstart), int_of_first_char(rend), map)
+      }
+    }
+
+    recursive function (item, map) charmap_to_range(int min, int max, intset map) {
+      map = IntSet.remove(max, map)
+      if (IntSet.mem(max+1, map)) {
+        charmap_to_range(min, max+1, map)
+      } else if (min == max) {
+        ({ichar: textToString(Text.from_character(min))}, map)
+      } else {
+        ({irange: {rstart: textToString(Text.from_character(min)), rend: textToString(Text.from_character(max))}}, map)
+      }
+    }
+
+    recursive function charmap_to_set(intset map, list(item) items) {
+      if (IntSet.is_empty(map)) {
+        id(items)
+      } else {
+        (int min, _) = IntMap.min_binding(map)
+        (item, map) = charmap_to_range(min, min, map)
+        charmap_to_set(map, List.cons(item, items))
+      }
+    }
+
+    if (IntSet.mem(5, res.matched_rules) ||
+        IntSet.mem(6, res.matched_rules) ||
+        IntSet.mem(7, res.matched_rules)) {
+      // if rules 5, 6 or 7 matched, we'll skip this one.
+      id(res)
+    } else {
+      map = List.fold(set_to_charmap, set.items, IntMap.empty)
+      new_set = {set with items: charmap_to_set(map, [])}
+
+      if (List.length(new_set.items) < List.length(set.items)) {
+        s = RegexpStringPrinter.print_set(new_set)
+        err = {
+          lint_rule: 9,
+          title: "non optimal character range",
+          body: "better(?) way to write this: {s}"
+        }
+        RegexpLinter.add(res, err)
+      } else {
+        id(res)
+      }
+    }
+  }
 }
 
 module RegexpLinter {
@@ -190,45 +231,6 @@ module RegexpLinter {
     }
   }
 
-/*
-  function lstatus elementary(lstatus st, elementary elt) {
-    match(elt) {
-      case {eset:{items:l, ...}}:
-        lranges ranges = []
-        state = { status: st, ~ranges }
-        range_status = List.fold_left(item, state, l)
-        lreturn(st, range_status.status)
-      case _: st
-     }
-   }
-
-  function item_state item(item_state state, item it) {
-    match(it) {
-      case {irange: r}:
-        if (r.rstart > r.rend) {
-          e = {error: {lint_rule: 4, title: "Invalid range in character class",
-          body: "The character class contains an invalid range."}}
-          {status: e, ranges: state.ranges}
-        } else if (r.rstart == r.rend) {
-          e = {error: {lint_rule: 5, title: "Useless range in character class",
-          body: "The character class contains a useless range."}}
-          {status: e, ranges: state.ranges}
-        } else if (RegexpLinterHelper.range_exists(r, state.ranges)) {
-          status = {error: {range_not_used: r}}
-          { ~status, ranges: state.ranges }
-        } else if (r.rstart == "A" && r.rend == "z") {
-          e = {error: {lint_rule: 6, title: "Progammer laziness",
-          body: "When you write A-z instead of A-Za-z, you are including 6 extra characters!"}}
-          {status: e, ranges: state.ranges}
-        } else {
-          ranges = List.cons(r, state.ranges)
-          { status: state.status, ~ranges }
-        }
-      case _: state
-    }
-  }
-*/
-
   function lint_result do_elementary(elementary e, lint_result res) {
     match (e) {
       case {~group_id, ~egroup}:
@@ -246,8 +248,9 @@ module RegexpLinter {
           add(res, err)
         }
         {res with groups_referenced: IntSet.add(group_ref, res.groups_referenced)}
-      case {eset:{items:l, ...}}:
-        List.fold(do_item, l, res)
+      case {~eset}:
+        res = List.fold(do_item, eset.items, res)
+        RegexpLinterHelper.check_set(eset, res)
       case _:
         res
     }

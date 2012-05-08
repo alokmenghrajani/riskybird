@@ -1,11 +1,6 @@
 Todo:
-- the parser is currently incomplete. It does not handle:
-  - non capturing groups "(:?...)"
- * - the parser also incorrectly parses the following cases:
-  - incorrect ranges [z-a]
- * - lint rules
-  - clean up character sets:
-    - overlapping ranges "[a-mb-n]", "[a-zb-y]"
-    - duplicate entires "[aa]"
-    - reduce ranges "[ab-cc-d]" to "[a-d]"
+- clean up character sets:
+  - overlapping ranges "[a-mb-n]", "[a-zb-y]"
+  - duplicate entires "[aa]"
+  - reduce ranges "[ab-cc-d]" to "[a-d]"
 - support various regexp flavors (js, php, etc.)
