@@ -82,6 +82,7 @@ expect_lint_error("included ranges", "[a-md-g]", 9)
 expect_lint_error("character from range", "[a-zx]", 9)
 expect_lint_error("duplicate character", "[xabcx]", 9)
 expect_lint_error("contiguous ranges", "[a-cde-f]", 9)
+expect_lint_error("repeated ranges", "[a-ca-c]", 9)
 
 expect_lint_error("complex overlapping", "[fg-ia-ec-j]", 9)
 expect_lint_error("complex inclusion", "[fg-ia-ec-h]", 9)

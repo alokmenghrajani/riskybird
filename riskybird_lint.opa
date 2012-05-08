@@ -146,12 +146,13 @@ module RegexpLinterHelper {
       map = List.fold(set_to_charmap, set.items, IntMap.empty)
       new_set = {set with items: List.rev(charmap_to_set(map, []))}
 
-      if (List.length(new_set.items) < List.length(set.items)) {
-        s = RegexpStringPrinter.print_set(new_set)
+      s1 = RegexpStringPrinter.print_set(new_set)
+      s2 = RegexpStringPrinter.print_set(set)
+      if (String.length(s1) < String.length(s2)) {
         err = {
           lint_rule: 9,
           title: "non optimal character range",
-          body: "better(?) way to write this: {s}"
+          body: "shorter way to write {s2}: {s1}"
         }
         RegexpLinter.add(res, err)
       } else {

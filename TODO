@@ -1,6 +1,14 @@
-Todo:
-- clean up character sets:
-  - overlapping ranges "[a-mb-n]", "[a-zb-y]"
-  - duplicate entires "[aa]"
-  - reduce ranges "[ab-cc-d]" to "[a-d]"
-- support various regexp flavors (js, php, etc.)
+Improve UI
+
+Explain what we are doing
+
+Handle differences between various regexp implementations (e.g. php vs javascript)
+
+Make sure parser is complete
+
+More lint rules:
+
+- x*x => x+
+- x*x* => x*
+- xx* => x+
+- crazy things like \c vs \i
