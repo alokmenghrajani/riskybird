@@ -106,14 +106,24 @@ module RegexpLinterHelper {
       }
     }
 
-    recursive function (item, map) charmap_to_range(int min, int max, intset map) {
+    recursive function (list(item), map) charmap_to_range(int min, int max, intset map, list(item) items) {
       map = IntSet.remove(max, map)
       if (IntSet.mem(max+1, map)) {
-        charmap_to_range(min, max+1, map)
+        charmap_to_range(min, max+1, map, items)
       } else if (min == max) {
-        ({ichar: textToString(Text.from_character(min))}, map)
+        item = {ichar: textToString(Text.from_character(min))}
+        items = List.cons(item, items)
+        (items, map)
+      } else if (min+1 == max) {
+        item = {ichar: textToString(Text.from_character(min))}
+        items = List.cons(item, items)
+        item = {ichar: textToString(Text.from_character(max))}
+        items = List.cons(item, items)
+        (items, map)
       } else {
-        ({irange: {rstart: textToString(Text.from_character(min)), rend: textToString(Text.from_character(max))}}, map)
+        item = {irange: {rstart: textToString(Text.from_character(min)), rend: textToString(Text.from_character(max))}}
+        items = List.cons(item, items)
+        (items, map)
       }
     }
 
@@ -122,8 +132,8 @@ module RegexpLinterHelper {
         id(items)
       } else {
         (int min, _) = IntMap.min_binding(map)
-        (item, map) = charmap_to_range(min, min, map)
-        charmap_to_set(map, List.cons(item, items))
+        (items, map) = charmap_to_range(min, min, map, items)
+        charmap_to_set(map, items)
       }
     }
 
@@ -134,7 +144,7 @@ module RegexpLinterHelper {
       id(res)
     } else {
       map = List.fold(set_to_charmap, set.items, IntMap.empty)
-      new_set = {set with items: charmap_to_set(map, [])}
+      new_set = {set with items: List.rev(charmap_to_set(map, []))}
 
       if (List.length(new_set.items) < List.length(set.items)) {
         s = RegexpStringPrinter.print_set(new_set)
