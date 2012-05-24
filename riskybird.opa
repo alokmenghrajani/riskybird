@@ -186,7 +186,10 @@ client function void check_regexp() {
   string regexp = Dom.get_value(#regexp)
   parsed_regexp = RegexpParser.parse(regexp)
   #parser_output = RegexpXhtmlPrinter.pretty_print(parsed_regexp)
-  #parser_debug = Debug.dump(parsed_regexp)
+  #parser_debug = <>
+    <div>{Debug.dump(parsed_regexp)}</div>
+    <div>{RegexpStringPrinter.pretty_print(parsed_regexp)}</div>
+  </>
   linter_run(parsed_regexp)
 
   void

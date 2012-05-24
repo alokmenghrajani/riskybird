@@ -19,9 +19,6 @@ module RegexpXhtmlPrinter {
           <div class="pp">
             {print_simple_list(x, unanchored_starts, unanchored_ends)}
           </div>
-          <div>
-            {RegexpStringPrinter.pretty_print(parsed_regexp)}
-          </div>
         </>
      }
   }
