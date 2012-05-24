@@ -28,6 +28,9 @@ function expect_lint_error(string rule_str, string s, int expected_lint_error) {
   }
 }
 
+// empty regexp
+expect_parse("empty regexp", "")
+
 // quantifiers
 expect_parse("zero or one quantifier", "a?")
 expect_parse("one or more quantifier", "a+")

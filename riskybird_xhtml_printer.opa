@@ -147,7 +147,10 @@ module RegexpAnchor {
       }
     }
     function intset do_simple(simple simple, intset set) {
-      do_basic(List.head(simple), set)
+      match (simple) {
+        case {~hd, ~tl}: do_basic(hd, set)
+        case []: set
+      }
     }
     List.fold(do_simple, regexp, IntSet.empty)
   }
@@ -163,6 +166,7 @@ module RegexpAnchor {
       match (s) {
         case {~hd, tl:[]}: do_basic(hd, set)
         case {~hd, ~tl}: do_simple(tl, set)
+        case []: set
       }
     }
     List.fold(do_simple, regexp, IntSet.empty)
