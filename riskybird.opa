@@ -26,11 +26,17 @@ function resource display(stringmap(string) query) {
         </p>
       </div>
       <div class="span8">
-        <div id=#parser_debug/>
+        <h3>Serialized tree</h3>
+        <div id=#parser_debug1/>
+        <h3>Tree -&gt; string</h3>
+        <div id=#parser_debug2/>
       </div>
     </div>
   } else {
-    <div id=#parser_debug class="hide"/>;
+    <>
+      <div id=#parser_debug1 class="hide"/>
+      <div id=#parser_debug2 class="hide"/>
+    </>
   }
 
   Resource.styled_page(
@@ -186,10 +192,8 @@ client function void check_regexp() {
   string regexp = Dom.get_value(#regexp)
   parsed_regexp = RegexpParser.parse(regexp)
   #parser_output = RegexpXhtmlPrinter.pretty_print(parsed_regexp)
-  #parser_debug = <>
-    <div>{Debug.dump(parsed_regexp)}</div>
-    <div>{RegexpStringPrinter.pretty_print(parsed_regexp)}</div>
-  </>
+  #parser_debug1 = Debug.dump(parsed_regexp)
+  #parser_debug2 = RegexpStringPrinter.pretty_print(parsed_regexp)
   linter_run(parsed_regexp)
 
   void
