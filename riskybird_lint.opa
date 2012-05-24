@@ -102,7 +102,7 @@ module RegexpLinterAnchor {
       }
       RegexpLinter.add(res, err)
     } else {
-      id(res)
+      res;
     }
   }
 
@@ -169,15 +169,15 @@ module RegexpLinterHelper {
   function lint_result check_groups(lint_result res) {
     recursive function bool f(int x, intset s) {
       if (x == 0) {
-        id(true)
+        true;
       } else if (IntSet.mem(x, s)) {
         f(x-1, s)
       } else {
-        id(false)
+        false;
       }
     }
     if (f(IntSet.height(res.groups), res.groups_referenced)) {
-      id(res)
+      res;
     } else {
       err = {
         lint_rule: 8,
@@ -200,7 +200,7 @@ module RegexpLinterHelper {
     recursive function intset range_to_charmap(int start, int end, intset map) {
       map = IntSet.add(start, map)
       if (start == end) {
-        id(map)
+        map;
       } else {
         range_to_charmap(start+1, end, map)
       }
@@ -238,7 +238,7 @@ module RegexpLinterHelper {
 
     recursive function charmap_to_set(intset map, list(item) items) {
       if (IntSet.is_empty(map)) {
-        id(items)
+        items;
       } else {
         (int min, _) = IntMap.min_binding(map)
         (items, map) = charmap_to_range(min, min, map, items)
@@ -250,7 +250,7 @@ module RegexpLinterHelper {
         IntSet.mem(6, res.matched_rules) ||
         IntSet.mem(7, res.matched_rules)) {
       // if rules 5, 6 or 7 matched, we'll skip this one.
-      id(res)
+      res;
     } else {
       map = List.fold(set_to_charmap, set.items, IntMap.empty)
       new_set = {set with items: List.rev(charmap_to_set(map, []))}
@@ -265,7 +265,7 @@ module RegexpLinterHelper {
         }
         RegexpLinter.add(res, err)
       } else {
-        id(res)
+        res;
       }
     }
   }
@@ -275,7 +275,7 @@ module RegexpLinter {
 
   function lint_result add(lint_result current, lint_error error) {
     if (IntSet.mem(error.lint_rule, current.matched_rules)) {
-      id(current)
+      current;
     } else {
       matched_rules = IntSet.add(error.lint_rule, current.matched_rules)
       errors = List.cons(error, current.errors)
@@ -335,7 +335,7 @@ module RegexpLinter {
           }
           add(res, err)
         } else {
-          id(res)
+          res;
         }
       case {exact:_}:
         if (greedy == false) {
@@ -346,7 +346,7 @@ module RegexpLinter {
           }
           add(res, err)
         } else {
-          id(res)
+          res;
         }
       case _:
         res
@@ -360,7 +360,7 @@ module RegexpLinter {
         {res with groups: IntSet.add(group_id, res.groups)}
       case {~group_ref}:
         res = if (IntSet.mem(group_ref, res.groups)) {
-          id(res)
+          res;
         } else {
           err = {
             lint_rule: 4,
@@ -403,7 +403,7 @@ module RegexpLinter {
           }
           add(res, err)
         } else {
-          id(res)
+          res;
         }
       case _:
         res
