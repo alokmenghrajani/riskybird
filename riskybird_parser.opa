@@ -1,3 +1,14 @@
+/**
+ * RiskyBird
+ * Regular expression authors best friend
+ *
+ * This parser is based on the EMCAScript-262 reference documentation.
+ *
+ * This works fine for parsing expressions when the target language is javascript.
+ * We'll have to figure out a way to handle the differences between various programming
+ * languages.
+ */
+
 type regexp = list(simple)
 
 and simple = list(basic)
@@ -21,8 +32,6 @@ and postfix =
 
 and elementary =
   { edot } or
-  { anchor_start } or
-  { anchor_end } or
   { string echar } or
   { int group_ref } or
   { string escaped_char } or
