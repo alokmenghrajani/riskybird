@@ -57,9 +57,114 @@ module RegexpLinterRender {
   }
 }
 
+/**
+ * Provides lint rules to detect inconsistent anchors.
+ *
+ * We first find all the first and last basic elements in the
+ * regexp by diving inside the groups. We then check that these
+ * elements all have the same anchor_start or anchor_end.
+ */
+type check_anchors = {
+  bool at_start,
+  list(bool) result
+}
+
+type check_anchors_result = {
+  option(bool) first,
+  bool result
+}
+
+module RegexpLinterAnchor {
+  function lint_result check_anchors(regexp re, lint_result res) {
+    res = check_anchors2(true, re, res)
+    res = check_anchors2(false, re, res)
+    res
+  }
+
+  function lint_result check_anchors2(bool at_start, regexp re, lint_result res) {
+    r = get_anchor_regexp(re, {at_start:at_start, result:[]})
+
+    // check if starts is all of the same type
+    t = List.fold(check_list, r.result, {first: {none}, result:true})
+    if (t.result == false) {
+      err = if (at_start) {
+        {
+          lint_rule: 10,
+          title: "inconsistent anchors",
+          body: "start anchor is only applied in some cases"
+        }
+      } else {
+        {
+          lint_rule: 11,
+          title: "inconsistent anchors",
+          body: "end anchor is only applied in some cases"
+        }
+      }
+      RegexpLinter.add(res, err)
+    } else {
+      id(res)
+    }
+  }
+
+  function check_anchors_result check_list(bool e, check_anchors_result r) {
+    if (r.result == false) {
+      {first: {none}, result: false}
+    } else if (r.first == {none}) {
+      {first: {some: e}, result: true}
+    } else if (Option.get(r.first) == e) {
+      {first: {some: e}, result: true}
+    } else {
+      {first: {none}, result: false}
+    }
+  }
+
+  function check_anchors get_anchor_regexp(regexp re, check_anchors r) {
+    List.fold(get_anchor_simple, re, r)
+  }
+
+  function check_anchors get_anchor_simple(simple s, check_anchors r) {
+    if (r.at_start == true) {
+      match (s) {
+        case {~hd, ~tl}: get_anchor_basic(hd, r)
+        case []: {at_start:true, result:[false]}        // WTF!!
+      }
+    } else {
+      match (s) {
+        case [hd]: get_anchor_basic(hd, r)
+        case {~hd, ~tl}: get_anchor_simple(tl, r)
+        case []: {at_start:false, result:[false]}  // WTF!
+      }
+    }
+  }
+
+  function check_anchors get_anchor_basic(basic b, check_anchors r) {
+    if (r.at_start == true) {
+      match (b) {
+        case {anchor_start}: {at_start:true, result:List.cons(true, r.result)}
+        case {anchor_end}: {at_start:true, result:List.cons(false, r.result)}
+        case {~belt, ...}: get_anchor_elementary(belt, r)
+      }
+    } else {
+      match (b) {
+        case {anchor_start}: {at_start:false, result:List.cons(false, r.result)}
+        case {anchor_end}: {at_start:false, result:List.cons(true, r.result)}
+        case {~belt, ...}: get_anchor_elementary(belt, r)
+      }
+    }
+  }
+
+  function check_anchors get_anchor_elementary(elementary belt, check_anchors r) {
+    match (belt) {
+      case {~egroup, ...}: get_anchor_regexp(egroup, r)
+      case {~ncgroup, ...}: get_anchor_regexp(ncgroup, r)
+      case _: {at_start: r.at_start, result: List.cons(false, r.result)}
+    }
+  }
+}
+
 module RegexpLinterHelper {
   /**
-   * Checks all the groups have been referenced.
+   * Checks if all the groups have been referenced.
    */
   function lint_result check_groups(lint_result res) {
     recursive function bool f(int x, intset s) {
@@ -85,7 +190,11 @@ module RegexpLinterHelper {
 
   /**
    * The easiest way to lint a character set is to rewrite
-   * the set and then compare the results.
+   * the set and then compare the results. If the length
+   * of the resulting set is shorter than the length
+   * of the initial set, we will suggest a fix.
+   *
+   * TODO: consider suggesting a fix if the strings don't match?
    */
   function lint_result check_set(rset set, lint_result res) {
     recursive function intset range_to_charmap(int start, int end, intset map) {
@@ -183,7 +292,9 @@ module RegexpLinter {
     }
     res = do_regexp(re, res)
 
-    RegexpLinterHelper.check_groups(res)
+    res = RegexpLinterHelper.check_groups(res)
+
+    RegexpLinterAnchor.check_anchors(re, res)
   }
 
   function lint_result do_regexp(regexp re, lint_result res) {

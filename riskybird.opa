@@ -16,10 +16,6 @@ type regexp_result = {
   intmap(string) true_negatives
 }
 
-server exposed function my_log(obj) {
-  Debug.warning(Debug.dump(obj))
-}
-
 function resource display() {
   Resource.styled_page(
     "RiskyBird | compose",

@@ -90,6 +90,16 @@ expect_lint_error("invalid range", "[z-a]", 5)
 expect_lint_error("useless range", "[x-x]", 6)
 expect_lint_error("lazyness", "[0-9A-z]", 7)
 
+// anchors
+expect_parse("anchored at beginning", "^abc")
+expect_parse("anchored at end", "abc$")
+expect_parse("anchored in an alternative", "a|^b")
+expect_parse("anchored in an alternative", "^a|^b")
+expect_parse("anchored in an alternative", "a$|b")
+expect_parse("anchored in an alternative", "a$|b$")
+expect_lint_error("not always anchored", "^ab|c", 10);
+expect_lint_error("not always anchored", "ab|c$", 11);
+
 // other tests
 expect_fail("open parenthesis", "abc(")
 expect_fail("invalid quantifier combination", "^*ab")
@@ -98,5 +108,4 @@ expect_fail("invalid quantifier combination", "x\{2,3\}+")
 expect_fail("invalid quantifier", "a\{-4,-2\}")
 expect_fail("invalid quantifier", "a\{-4,\}")
 expect_fail("invalid quantifier", "a\{-4}")
-
 
