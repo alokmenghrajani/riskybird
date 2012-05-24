@@ -16,7 +16,23 @@ type regexp_result = {
   intmap(string) true_negatives
 }
 
-function resource display() {
+function resource display(stringmap(string) query) {
+  debug = if (Option.is_some(StringMap.get("debug", query))) {
+    <div class="row">
+      <div class="span4">
+        <h3>Debug output</h3>
+        <p>
+          For hackers
+        </p>
+      </div>
+      <div class="span8">
+        <div id=#parser_debug/>
+      </div>
+    </div>
+  } else {
+    <div id=#parser_debug class="hide"/>;
+  }
+
   Resource.styled_page(
     "RiskyBird | compose",
     ["/resources/riskybird.css"],
@@ -58,6 +74,8 @@ function resource display() {
                 <div id=#parser_output/>
               </div>
             </div>
+            <div class="row"><div class="span12"><br/></div></div>
+            {debug}
             <div class="row hide" id=#lint>
               <div class="span4">
                 <h3>Lint errors & warnings</h3>
@@ -168,6 +186,7 @@ client function void check_regexp() {
   string regexp = Dom.get_value(#regexp)
   parsed_regexp = RegexpParser.parse(regexp)
   #parser_output = RegexpXhtmlPrinter.pretty_print(parsed_regexp)
+  #parser_debug = Debug.dump(parsed_regexp)
   linter_run(parsed_regexp)
 
   void
@@ -183,11 +202,26 @@ function resource start(Uri.relative uri) {
 //    case {path:{~hd, tl:[]} ...}:
 //      int id = Int.of_string(hd)
 //      regexp_result data = /regexps[id]
-      display()
+      stringmap(string) query = query_list_to_map(uri.query)
+      display(query)
     case {~path ...}:
       my_log(path)
-      Resource.styled_page("hmm", [], <>hi</>)
+      Resource.styled_page("Lost?", [], <>* &lt;------- you are here</>)
   }
+}
+
+/**
+ * Converts a list(string, string) into a map(string, string), making it
+ * easier to handle query strings.
+ */
+function stringmap(string) query_list_to_map(query) {
+  List.fold(
+    function(e, stringmap(string) r) {
+      StringMap.add(e.f1, e.f2, r)
+    },
+    query,
+    StringMap_empty
+  )
 }
 
 Server.start(

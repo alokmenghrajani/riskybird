@@ -12,3 +12,5 @@ More lint rules:
 - x*x* => x*
 - xx* => x+
 - crazy things like \c vs \i
+
+Render empty stuff (e.g. "a|" is not the same as "a")

@@ -22,9 +22,6 @@ module RegexpXhtmlPrinter {
           <div>
             {RegexpStringPrinter.pretty_print(parsed_regexp)}
           </div>
-          <div>
-            {Debug.dump(parsed_regexp)}
-          </div>
         </>
      }
   }
