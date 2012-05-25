@@ -84,9 +84,13 @@ module RegexpLinterAnchor {
   function lint_result check_anchors2(bool at_start, regexp re, lint_result res) {
     r = get_anchor_regexp(re, {at_start:at_start, result:[]})
 
-    // check if starts is all of the same type
-    t = List.fold(check_list, r.result, {first: {none}, result:true})
-    if (t.result == false) {
+    // check if r contains all true or all false
+    bool ok = match (r.result) {
+      case []: true
+      case {~hd, ~tl}: List.fold(`==`, tl, hd)
+    }
+
+    if (ok == false) {
       err = if (at_start) {
         {
           lint_rule: 10,
@@ -103,18 +107,6 @@ module RegexpLinterAnchor {
       RegexpLinter.add(res, err)
     } else {
       res;
-    }
-  }
-
-  function check_anchors_result check_list(bool e, check_anchors_result r) {
-    if (r.result == false) {
-      {first: {none}, result: false}
-    } else if (r.first == {none}) {
-      {first: {some: e}, result: true}
-    } else if (Option.get(r.first) == e) {
-      {first: {some: e}, result: true}
-    } else {
-      {first: {none}, result: false}
     }
   }
 
