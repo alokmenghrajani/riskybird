@@ -86,7 +86,7 @@ module RegexpXhtmlPrinter {
         <span class="print_elementary">
           {print_simple_list(ncgroup, unanchored_starts, unanchored_ends)}
         </span>
-      case {~group_id, ~egroup}:
+      case {id:_, ~group_id, ~egroup}:
         <span class="print_elementary">
           <span class="mylabel"><span>group {group_id}</span></span>
           {print_simple_list(egroup, unanchored_starts, unanchored_ends)}

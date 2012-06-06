@@ -16,3 +16,8 @@ More lint rules:
 Render empty stuff (e.g. "a|" is not the same as "a")
 
 lint rule fixer
+
+- detect www., .com or .net and
+  suggest replacing "." with "\.".
+- detect \/\/ and suggest using % % as the regexp seperator
+- detect error prone priority rules (e.g. ^ab|c$)

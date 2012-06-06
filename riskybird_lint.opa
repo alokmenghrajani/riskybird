@@ -3,16 +3,6 @@
  *
  * The purpose of the lint engine is to detect common mistakes people make when
  * composing regular expressions.
- *
- * At some point, we might even suggest auto-fixes.
- *
- * TODO list:
- * - detect www., .com or .net and
- *    suggest replacing "." with "\.".
- *
- * - detect \/\/ and suggest using % % as the regexp seperator
- *
- * - detect error prone priority rules (e.g. ^ab|c$)
  */
 
 /* The status of the linter */
@@ -25,9 +15,9 @@ type lint_result = {
 
 type lint_error = {
   int lint_rule,
-//  int element_id,
   string title,
-  string body
+  string body,
+  option(string) patch,
 }
 
 module RegexpLinterRender {
@@ -37,12 +27,18 @@ module RegexpLinterRender {
       case _:
         t = List.fold(
           function(error, r) {
+            patch = match (error.patch) {
+              case {none}: <></>
+              case {~some}:
+              <>i.e. {some}</>
+            }
             <>
               <div class="alert-message block-message warning">
                 <p>
                   <span class="icon32 icon-alert"/>
                   <strong>{error.title}</strong><br/>
-                  {error.body}
+                  {error.body}<br/>
+                  {patch}
                 </p>
                 <div class="alert-actions"/>
               </div>
@@ -92,13 +88,15 @@ module RegexpLinterAnchor {
         {
           lint_rule: 10,
           title: "inconsistent anchors",
-          body: "start anchor is only applied in some cases"
+          body: "start anchor is only applied in some cases",
+          patch: {none}
         }
       } else {
         {
           lint_rule: 11,
           title: "inconsistent anchors",
-          body: "end anchor is only applied in some cases"
+          body: "end anchor is only applied in some cases",
+          patch: {none}
         }
       }
       RegexpLinter.add(res, err)
@@ -155,25 +153,28 @@ module RegexpLinterHelper {
   /**
    * Checks if all the groups have been referenced.
    */
-  function lint_result check_groups(lint_result res) {
-    recursive function bool f(int x, intset s) {
+  function lint_result check_groups(regexp re, lint_result res) {
+    recursive function option(int) f(int x, intset s) {
       if (x == 0) {
-        true;
+        {none}
       } else if (IntSet.mem(x, s)) {
         f(x-1, s)
       } else {
-        false;
+        {some: x}
       }
     }
-    if (f(IntSet.height(res.groups), res.groups_referenced)) {
-      res;
-    } else {
-      err = {
-        lint_rule: 8,
-        title: "unused group",
-        body: "some groups are not referenced, consider using (?:...)"
-      }
-      RegexpLinter.add(res, err)
+    t = f(IntSet.height(res.groups), res.groups_referenced)
+    match (t) {
+      case {none}: res
+      case {some: unused_group}:
+        regexp new_regexp = RegexpFixUnreferencedGroup.regexp(re, unused_group)
+        err = {
+          lint_rule: 8,
+          title: "unused group",
+          body: "some groups are not referenced, consider using (?:...)",
+          patch: {some:RegexpStringPrinter.print_simple_list(new_regexp)}
+        }
+        RegexpLinter.add(res, err)
     }
   }
 
@@ -250,7 +251,8 @@ module RegexpLinterHelper {
         err = {
           lint_rule: 9,
           title: "non optimal character range",
-          body: "shorter way to write {s2}: {s1}"
+          body: "shorter way to write {s2}: {s1}",
+          patch: {none}
         }
         RegexpLinter.add(res, err)
       } else {
@@ -281,7 +283,7 @@ module RegexpLinter {
     }
     res = do_regexp(re, res)
 
-    res = RegexpLinterHelper.check_groups(res)
+    res = RegexpLinterHelper.check_groups(re, res)
 
     RegexpLinterAnchor.check_anchors(re, res)
   }
@@ -313,14 +315,16 @@ module RegexpLinter {
           err = {
             lint_rule: 1,
             title: "incorrect quantifier",
-            body: "min is greater than max"
+            body: "min is greater than max",
+            patch: {none}
           }
           add(res, err)
         } else if (min == max) {
           err = {
             lint_rule: 2,
             title: "improve the quantifier",
-            body: "\{{min},{max}\} can be written as \{{min}\}"
+            body: "\{{min},{max}\} can be written as \{{min}\}",
+            patch: {none}
           }
           add(res, err)
         } else {
@@ -331,7 +335,8 @@ module RegexpLinter {
           err = {
             lint_rule: 3,
             title: "useless non greedy",
-            body: "when matching an exact amount, using non greddy makes no sense"
+            body: "when matching an exact amount, using non greddy makes no sense",
+            patch: {none}
           }
           add(res, err)
         } else {
@@ -344,7 +349,7 @@ module RegexpLinter {
 
   function lint_result do_elementary(elementary e, lint_result res) {
     match (e) {
-      case {~group_id, ~egroup}:
+      case {id:_, ~group_id, ~egroup}:
         res = do_regexp(egroup, res)
         {res with groups: IntSet.add(group_id, res.groups)}
       case {~group_ref}:
@@ -354,7 +359,8 @@ module RegexpLinter {
           err = {
             lint_rule: 4,
             title: "incorrect reference",
-            body: "\\{group_ref} refers to an invalid capture group"
+            body: "\\{group_ref} refers to an invalid capture group",
+            patch: {none}
           }
           add(res, err)
         }
@@ -374,21 +380,24 @@ module RegexpLinter {
           err = {
             lint_rule: 5,
             title: "invalid range in character class",
-            body: "[{r.rstart}-{r.rend}] is invalid."
+            body: "[{r.rstart}-{r.rend}] is invalid.",
+            patch: {none}
           }
           add(res, err)
         } else if (r.rstart == r.rend) {
           err = {
             lint_rule: 6,
             title: "useless range in character class",
-            body: "[{r.rstart}-{r.rend}] is useless."
+            body: "[{r.rstart}-{r.rend}] is useless.",
+            patch: {none}
           }
           add(res, err)
         } else if (r.rstart == "A" && r.rend == "z") {
           err = {
             lint_rule: 7,
             title: "programmer laziness",
-            body: "When you write A-z instead of A-Za-z, you are including 6 extra characters!"
+            body: "When you write A-z instead of A-Za-z, you are including 6 extra characters!",
+            patch: {none}
           }
           add(res, err)
         } else {

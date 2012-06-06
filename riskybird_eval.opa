@@ -151,7 +151,7 @@ function candidates elementary(elementary elt, candidates cands) {
       map_candidates(consume(echar, _), cands)
     case { ~escaped_char }:
       map_candidates(consume(escaped_char, _), cands)
-    case { group_id:_, egroup: re }:
+    case { id:_, group_id:_, egroup: re }:
       cands = List.map(push_matched, cands)
 //      cands = core_regexp(re, cands)
       cands = List.map(pop_matched, cands)

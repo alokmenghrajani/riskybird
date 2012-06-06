@@ -3,11 +3,13 @@ OPA=opa --parser js-like
 OPAPLUGIN=opa-plugin-builder
 
 SRC= \
-  riskybird_eval.opa \
-  riskybird_lint.opa \
   riskybird_parser.opa \
+	riskybird_assign_id.opa \
   riskybird_string_printer.opa \
   riskybird_xhtml_printer.opa \
+  riskybird_eval.opa \
+  riskybird_lint.opa \
+	riskybird_fix.opa \
 	riskybird_utils.opa
 
 BINDINGS= \

@@ -110,7 +110,9 @@ function bool contains(string haystack, string needle) {
 
 function ready() {
 //  _ = Client.Anchor.add_handler(function(s){Dom.set_value(#regexp, s); do_work();})
-  Dom.set_value(#regexp, Client.Anchor.get_anchor())
+  s = Client.Anchor.get_anchor()
+  s = String.drop_left(1, s)
+  Dom.set_value(#regexp, s)
   do_work()
   void
 }
