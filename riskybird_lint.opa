@@ -85,10 +85,7 @@ module RegexpLinterAnchor {
     r = get_anchor_regexp(re, {at_start:at_start, result:[]})
 
     // check if r contains all true or all false
-    bool ok = match (r.result) {
-      case []: true
-      case {~hd, ~tl}: List.fold(`==`, tl, hd)
-    }
+    bool ok = list_check_all_same(r.result)
 
     if (ok == false) {
       err = if (at_start) {

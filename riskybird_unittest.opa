@@ -28,8 +28,19 @@ function expect_lint_error(string rule_str, string s, int expected_lint_error) {
   }
 }
 
+function expect_clean_lint(string rule_str, string s) {
+  p = RegexpParser.parse(s)
+  match(p) {
+    case {none}: OK.fail("test [{rule_str}]: {s} FAILED TO PARSE!")
+    case {some: tree}:
+      lint_result r = RegexpLinter.regexp(tree)
+      OK.ok_ko("test [{rule_str}]: {s}", IntSet.is_empty(r.matched_rules))
+  }
+}
+
 // empty regexp
 expect_parse("empty regexp", "")
+expect_clean_lint("empty regexp", "")
 
 // quantifiers
 expect_parse("zero or one quantifier", "a?")
@@ -102,6 +113,8 @@ expect_parse("anchored in an alternative", "a$|b")
 expect_parse("anchored in an alternative", "a$|b$")
 expect_lint_error("not always anchored", "^ab|c", 10);
 expect_lint_error("not always anchored", "ab|c$", 11);
+expect_lint_error("not always anchored", "^a$|b|c", 10);
+expect_lint_error("not always anchored", "^a$|b|c", 11);
 
 // other tests
 expect_fail("open parenthesis", "abc(")
@@ -111,4 +124,5 @@ expect_fail("invalid quantifier combination", "x\{2,3\}+")
 expect_fail("invalid quantifier", "a\{-4,-2\}")
 expect_fail("invalid quantifier", "a\{-4,\}")
 expect_fail("invalid quantifier", "a\{-4}")
+
 

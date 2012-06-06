@@ -14,3 +14,5 @@ More lint rules:
 - crazy things like \c vs \i
 
 Render empty stuff (e.g. "a|" is not the same as "a")
+
+lint rule fixer
