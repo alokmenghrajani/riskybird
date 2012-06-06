@@ -51,7 +51,7 @@ module RegexpXhtmlPrinter {
       simple,
       <></>
     )
-    <div class="noborder print_basic_list">{t}</div>
+    <div class="print_basic_list">{t}</div>
   }
 
   function xhtml print_basic(basic basic, unanchored_starts, unanchored_ends) {

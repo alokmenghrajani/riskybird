@@ -53,7 +53,7 @@ function resource display(stringmap(string) query) {
         <img style="position: absolute; top: 0; right: 0; border: 0;" src="https://a248.e.akamai.net/camo.github.com/e6bef7a091f5f3138b8cd40bc3e114258dd68ddf/687474703a2f2f73332e616d617a6f6e6177732e636f6d2f6769746875622f726962626f6e732f666f726b6d655f72696768745f7265645f6161303030302e706e67" alt="Fork me on GitHub"/>
       </a>
       <div class="container">
-        <div class="content" onready={function(_){do_work()}}>
+        <div class="content" onready={function(_){ready()}}>
           <section>
             <div class="page-header"><h1>Enter a regular expression</h1></div>
             <div class="row">
@@ -67,9 +67,9 @@ function resource display(stringmap(string) query) {
                     type="text"
                     id=#regexp
                     placeholder="Enter a regular expression"
-                    value={regexp}
+                    value=""
                     onkeyup={
-                      function(_){ do_work() }
+                      function(_){ do_work(); update_anchor(); }
                     }/>
                 </div>
                 <br/>
@@ -106,6 +106,17 @@ function resource display(stringmap(string) query) {
 
 function bool contains(string haystack, string needle) {
   Option.is_some(String.strpos(needle, haystack))
+}
+
+function ready() {
+//  _ = Client.Anchor.add_handler(function(s){Dom.set_value(#regexp, s); do_work();})
+  Dom.set_value(#regexp, Client.Anchor.get_anchor())
+  do_work()
+  void
+}
+
+@async function update_anchor() {
+  Client.Anchor.set_anchor(Dom.get_value(#regexp));
 }
 
 @async function do_work() {
