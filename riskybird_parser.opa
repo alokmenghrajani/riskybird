@@ -37,7 +37,7 @@ and elementary =
   { string escaped_char } or
   { int id, int group_id, regexp egroup } or
   { regexp ncgroup } or
-  { rset eset }
+  { int id, rset eset }
 
 and rset =
   { bool neg, list(item) items }
@@ -87,8 +87,8 @@ module RegexpParser {
   | "." -> { edot }
   | "(?:" ~regexp ")" -> { ncgroup: coerce(regexp) }
   | "(" ~regexp ")" -> { id: 0, group_id: 0, egroup: coerce(regexp) }
-  | "[^" ~items "]" -> { eset: { neg: true, ~items } }
-  | "[" ~items "]" -> { eset: { neg:false, ~items } }
+  | "[^" ~items "]" -> { id: 0, eset: { neg: true, ~items } }
+  | "[" ~items "]" -> { id: 0, eset: { neg:false, ~items } }
   | "\\" x = { Rule.integer } -> { group_ref: x }
   | "\\" x = { any_char } -> { escaped_char: x}
   | x = { char } -> { echar: x}

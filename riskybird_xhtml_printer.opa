@@ -91,7 +91,7 @@ module RegexpXhtmlPrinter {
           <span class="mylabel"><span>group {group_id}</span></span>
           {print_simple_list(egroup, unanchored_starts, unanchored_ends)}
         </span>
-      case {~eset}: <>{print_set(eset)}</>
+      case {id:_, ~eset}: <>{print_set(eset)}</>
     }
   }
 

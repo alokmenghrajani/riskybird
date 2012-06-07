@@ -172,7 +172,7 @@ module RegexpLinterHelper {
           lint_rule: 8,
           title: "unused group",
           body: "some groups are not referenced, consider using (?:...)",
-          patch: {some:RegexpStringPrinter.print_simple_list(new_regexp)}
+          patch: {some: RegexpStringPrinter.print_simple_list(new_regexp)}
         }
         RegexpLinter.add(res, err)
     }
@@ -183,10 +183,8 @@ module RegexpLinterHelper {
    * the set and then compare the results. If the length
    * of the resulting set is shorter than the length
    * of the initial set, we will suggest a fix.
-   *
-   * TODO: consider suggesting a fix if the strings don't match?
    */
-  function lint_result check_set(rset set, lint_result res) {
+  function lint_result check_set(regexp re, int rset_id, rset set, lint_result res) {
     recursive function intset range_to_charmap(int start, int end, intset map) {
       map = IntSet.add(start, map)
       if (start == end) {
@@ -247,12 +245,13 @@ module RegexpLinterHelper {
 
       s1 = RegexpStringPrinter.print_set(new_set)
       s2 = RegexpStringPrinter.print_set(set)
-      if (String.length(s1) < String.length(s2)) {
+      if (s1 != s2) {
+        regexp new_regexp = RegexpFixNonOptimalCharacterRange.regexp(re, rset_id, new_set)
         err = {
           lint_rule: 9,
           title: "non optimal character range",
           body: "shorter way to write {s2}: {s1}",
-          patch: {none}
+          patch: {some: RegexpStringPrinter.print_simple_list(new_regexp)}
         }
         RegexpLinter.add(res, err)
       } else {
@@ -289,20 +288,20 @@ module RegexpLinter {
   }
 
   function lint_result do_regexp(regexp re, lint_result res) {
-    List.fold(do_simple, re, res)
+    List.fold(function(e, r){do_simple(re, e, r)}, re, res)
   }
 
-  function lint_result do_simple(simple s, lint_result res) {
-    List.fold(do_basic, s, res)
+  function lint_result do_simple(regexp re, simple s, lint_result res) {
+    List.fold(function(e,r){do_basic(re, e, r)}, s, res)
   }
 
-  function lint_result do_basic(basic b, lint_result res) {
+  function lint_result do_basic(regexp re, basic b, lint_result res) {
     match (b) {
       case {~id, ~belt, ~bpost, ~greedy}:
         // process postfix
         res = do_postfix(bpost, greedy, res)
         // process elementary
-        do_elementary(belt, res)
+        do_elementary(re, belt, res)
       case _:
         res
     }
@@ -347,7 +346,7 @@ module RegexpLinter {
     }
   }
 
-  function lint_result do_elementary(elementary e, lint_result res) {
+  function lint_result do_elementary(regexp re, elementary e, lint_result res) {
     match (e) {
       case {id:_, ~group_id, ~egroup}:
         res = do_regexp(egroup, res)
@@ -365,9 +364,9 @@ module RegexpLinter {
           add(res, err)
         }
         {res with groups_referenced: IntSet.add(group_ref, res.groups_referenced)}
-      case {~eset}:
+      case {~id, ~eset}:
         res = List.fold(do_item, eset.items, res)
-        RegexpLinterHelper.check_set(eset, res)
+        RegexpLinterHelper.check_set(re, id, eset, res)
       case _:
         res
     }
@@ -396,7 +395,7 @@ module RegexpLinter {
           err = {
             lint_rule: 7,
             title: "programmer laziness",
-            body: "When you write A-z instead of A-Za-z, you are including 6 extra characters!",
+            body: "When you write A-z instead of A-Za-z, you are matching on 6 extra characters!",
             patch: {none}
           }
           add(res, err)

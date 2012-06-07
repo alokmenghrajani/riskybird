@@ -67,6 +67,10 @@ module RegexpAssignId {
         st2 = {basic_id: st.basic_id+1, group_id: st.group_id+1}
         t = regexp(st2, egroup)
         do_wrap(t.st, {id: st.basic_id, group_id: st.group_id, egroup: t.v})
+      case {id:_, ~eset}:
+        e = {id: st.basic_id, ~eset}
+        st = {basic_id: st.basic_id+1, group_id:st.group_id}
+        do_wrap(st, e)
       case _:
         do_wrap(st, e)
    }

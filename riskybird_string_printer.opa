@@ -45,7 +45,7 @@ module RegexpStringPrinter {
       case {escaped_char:x}: "\\{x}"
       case {~ncgroup}: "(?:{print_simple_list(ncgroup)})"
       case {id:_, group_id:_, ~egroup}: "({print_simple_list(egroup)})"
-      case {~eset}: "{print_set(eset)}"
+      case {id:_, ~eset}: "{print_set(eset)}"
     }
   }
 

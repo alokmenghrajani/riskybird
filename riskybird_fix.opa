@@ -31,3 +31,33 @@ module RegexpFixUnreferencedGroup {
     }
   }
 }
+
+module RegexpFixNonOptimalCharacterRange {
+  function regexp regexp(regexp re, int rset_id, rset new_range) {
+    List.map(function(e){simple(e, rset_id, new_range)}, re)
+  }
+
+  function simple simple(simple s, int rset_id, rset new_range) {
+    List.map(function(e){basic(e, rset_id, new_range)}, s)
+  }
+
+  function basic basic(basic b, int rset_id, rset new_range) {
+    match (b) {
+      case {~id, ~belt, ~bpost, ~greedy}:
+        {~id, belt: elementary(belt, rset_id, new_range), ~bpost, ~greedy}
+      case _: b
+    }
+  }
+
+  function elementary elementary(elementary belt, int rset_id, rset new_range) {
+    match (belt) {
+      case {~id, eset:_}:
+        if (id == rset_id) {
+          {~id, eset:new_range}
+        } else {
+          belt;
+        }
+      case _: belt
+    }
+  }
+}
