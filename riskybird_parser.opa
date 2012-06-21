@@ -58,91 +58,99 @@ module RegexpParser {
 
   function regexp coerce(regexp x) { x }
 
-  regexp = parser
-  l = {Rule.parse_list_sep(false, simple,
-    (parser | "|" -> Rule.succeed))} -> l
+  regexp = parser {
+    case l = {Rule.parse_list_sep(false, simple, (parser { case "|": Rule.succeed}))}: l
+  }
 
-  simple = parser
-  l = {Rule.parse_list_sep(false, basic, Rule.succeed)} -> l
+  simple = parser {
+    case l = {Rule.parse_list_sep(false, basic, Rule.succeed)}: l
+  }
 
-  basic = parser
-  | "^" -> { anchor_start }
-  | "$" -> { anchor_end }
-  | ~elementary ~postfix "?" -> { id: 0, belt: elementary, bpost: postfix, greedy: false }
-  | ~elementary ~postfix -> { id: 0, belt: elementary, bpost: postfix, greedy: true }
+  basic = parser {
+    case "^": { anchor_start }
+    case "$": { anchor_end }
+    case ~elementary ~postfix "?": { id: 0, belt: elementary, bpost: postfix, greedy: false }
+    case ~elementary ~postfix: { id: 0, belt: elementary, bpost: postfix, greedy: true }
+  }
 
-  postfix = parser
-  | "*" -> { star }
-  | "+" -> { plus }
-  | "?" -> { qmark }
-  | "\{" ~repetition "\}" -> repetition
-  | ""  -> { noop }
+  postfix = parser {
+    case "*": { star }
+    case "+": { plus }
+    case "?": { qmark }
+    case "\{" ~repetition "\}": repetition
+    case "":  { noop }
+  }
 
-  repetition = parser
-  | x = {Rule.digit} "," y = {Rule.digit} -> {min:x, max:y}
-  | x = {Rule.digit} ","  -> {at_least: x}
-  | x = {Rule.digit} -> {exact: x}
+  repetition = parser {
+    case x = {Rule.digit} "," y = {Rule.digit}: {min:x, max:y}
+    case x = {Rule.digit} "," : {at_least: x}
+    case x = {Rule.digit}: {exact: x}
+  }
 
-  elementary = parser
-  | "." -> { edot }
-  | "(?:" ~regexp ")" -> { ncgroup: coerce(regexp) }
-  | "(" ~regexp ")" -> { id: 0, group_id: 0, egroup: coerce(regexp) }
-  | "[^" ~items "]" -> { id: 0, eset: { neg: true, ~items } }
-  | "[" ~items "]" -> { id: 0, eset: { neg:false, ~items } }
-  | "\\" x = { Rule.integer } -> { group_ref: x }
-  | "\\" x = { any_char } -> { escaped_char: x}
-  | x = { char } -> { echar: x}
+  elementary = parser {
+    case ".": { edot }
+    case "(?:" ~regexp ")": { ncgroup: coerce(regexp) }
+    case "(" ~regexp ")": { id: 0, group_id: 0, egroup: coerce(regexp) }
+    case "[^" ~items "]": { id: 0, eset: { neg: true, ~items } }
+    case "[" ~items "]": { id: 0, eset: { neg:false, ~items } }
+    case "\\" x = { Rule.integer }: { group_ref: x }
+    case "\\" x = { any_char }: { escaped_char: x}
+    case x = { char }: { echar: x}
+  }
 
-  any_char = parser
-  | ~char -> char
-  | x = "[" -> x
-  | x = "]" -> x
-  | x = "+" -> x
-  | x = "*" -> x
-  | x = "." -> x
-  | x = "?" -> x
-  | x = "|" -> x
+  any_char = parser {
+    case ~char: char
+    case x = "[": x
+    case x = "]": x
+    case x = "+": x
+    case x = "*": x
+    case x = ".": x
+    case x = "?": x
+    case x = "case": x
+  }
 
-  char = parser
-  | x = { Rule.alphanum_char } -> x
-  | x = " " -> x
-  | x = "~" -> x
-  | x = "!" -> x
-  | x = "@" -> x
-  | x = "#" -> x
-  | x = "$" -> x
-  | x = "%" -> x
-  | x = "^" -> x
-  | x = "&" -> x
-  | x = "-" -> x
-  | x = ":" -> x
-  | x = "{" -> x
-  | x = "}" -> x
-//  | x = "(" -> x
-//  | x = ")" -> x
-  | x = "\\" -> x
-  | x = "\"" -> x
-  | x = "'" -> x
-  | x = ";" -> x
-  | x = "<" -> x
-  | x = ">" -> x
-  | x = "," -> x
-  | x = "/" -> x
-  | x = "`" -> x
-  | x = "_" -> x
-  | x = "=" -> x
+  char = parser {
+    case x = { Rule.alphanum_char }: x
+    case x = " ": x
+    case x = "~": x
+    case x = "!": x
+    case x = "@": x
+    case x = "#": x
+    case x = "$": x
+    case x = "%": x
+    case x = "^": x
+    case x = "&": x
+    case x = "-": x
+    case x = ":": x
+    case x = "{": x
+    case x = "}": x
+//    case x = "(": x
+//    case x = ")": x
+    case x = "\\": x
+    case x = "\"": x
+    case x = "'": x
+    case x = ";": x
+    case x = "<": x
+    case x = ">": x
+    case x = ",": x
+    case x = "/": x
+    case x = "`": x
+    case x = "_": x
+    case x = "=": x
+  }
 
-  items = parser
-  | ~item ~items -> List.cons(item, items)
-  | ~item -> [item]
+  items = parser {
+    case ~item ~items: List.cons(item, items)
+    case ~item: [item]
+  }
 
-  item = parser
-  | "-" -> { ichar: "-" }
-  | "\\" x = { any_char } -> { iechar: x}
-  | " " -> { ichar: " " }
-  | x = { char } "-" y = { char } ->
-    { irange: { rstart: x, rend: y } }
-  | x = { char } -> { ichar: x }
+  item = parser {
+    case "-": { ichar: "-" }
+    case "\\" x = { any_char }: { iechar: x}
+    case " ": { ichar: " " }
+    case x = { char } "-" y = { char }: { irange: { rstart: x, rend: y } }
+    case x = { char }: { ichar: x }
+  }
 
   function option(regexp) parse(string s) {
     RegexpAssignId.assign_id(Parser.try_parse(regexp, s))
