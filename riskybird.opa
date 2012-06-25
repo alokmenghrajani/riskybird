@@ -31,8 +31,7 @@ function resource display(stringmap(string) query) {
         <h3>Tree -&gt; string</h3>
         <div id=#parser_debug2/>
         <h3>SVG</h3>
-        <svg:svg id=#parser_debug3 xmlns:svg="http://www.w3.org/2000/svg" version="1.1"
-          style="position: absolute; border: 1px solid red; height: 400px; width: 400px"/>
+        <div id=#parser_debug3/>
       </div>
     </div>
   } else {
@@ -216,10 +215,14 @@ client function void check_regexp() {
   #parser_output = RegexpXhtmlPrinter.pretty_print(parsed_regexp)
   #parser_debug1 = Debug.dump(parsed_regexp)
   #parser_debug2 = RegexpStringPrinter.pretty_print(parsed_regexp)
-  #parser_debug3 = RegexpSvgPrinter.pretty_print(parsed_regexp)
+  do_svg(parsed_regexp)
   linter_run(parsed_regexp)
 
   void
+}
+
+server function do_svg(r) {
+  #parser_debug3 = RegexpSvgPrinter.pretty_print(r)
 }
 
 function resource start(Uri.relative uri) {
