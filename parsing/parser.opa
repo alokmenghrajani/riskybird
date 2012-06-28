@@ -1,5 +1,5 @@
 /**
- * RiskyBird Parser
+ * Regular Expression Parser
  *
  * This code takes a regular expression as a string and returns a tree
  * representation. The tree representation makes it easier to inspect and
@@ -227,6 +227,5 @@ module RegexpParser {
 
   function option(regexp) parse(string s) {
     RegexpAssignId.assign_id(Parser.try_parse(regexp, s))
-    Parser.try_parse(regexp, s)
   }
 }

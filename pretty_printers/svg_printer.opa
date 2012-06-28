@@ -1,19 +1,39 @@
 /**
- * Converts a parsed regexp into svg.
+ * RiskyBird SVG printer.
  *
- * We initially thought we could get away with pretty printing the regexp
- * using xhtml. Using SVG however is much nicer and gives us more
- * flexibility.
+ * Converts a parsed regexp into svg (scalable vector graphics).
  *
- * Generating the pretty printed SVG requires the following steps:
+ * We initially tried to pretty print the regexp using xhtml. SVG however
+ * looks much nicer and gives us a ton of flexibility.
+ *
+ * Doing things in SVG land is however a little more complicated. We need to:
  * 1. convert the regexp into SVG nodes.
- * 2. compute the position of every SVG node:
- *    2.1: compute each node's dimensions
- *    2.2: recompute each node's dimensions to take all available space
+ * 2. compute the position of every SVG node by:
+ *    2.1: computing each node's dimensions
+ *    2.2: recomputing each node's dimensions to take all available space
  *    2.3: find the x/y position for each node
  * 3. generate the pair of arrows
- * 3. generate the xml
+ * 4. generate the xml
+ *
+ *   This file is part of RiskyBird
+ *
+ *   RiskyBird is free software: you can redistribute it and/or modify
+ *   it under the terms of the GNU Affero General Public License as published by
+ *   the Free Software Foundation, either version 3 of the License, or
+ *   (at your option) any later version.
+ *
+ *   RiskyBird is distributed in the hope that it will be useful,
+ *   but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *   GNU Affero General Public License for more details.
+ *
+ *   You should have received a copy of the GNU Affero General Public License
+ *   along with RiskyBird.  If not, see <http://www.gnu.org/licenses/>.
+ *
+ * @author Julien Verlaguet
+ * @author Alok Menghrajani
  */
+
 module RegexpSvgPrinter {
   function getDimensions(SvgElement node) {
     match (node) {
@@ -32,8 +52,8 @@ module RegexpSvgPrinter {
           </div>
         </>
       case {some: regexp}:
-        unanchored_starts = RegexpAnchor.findUnanchoredStarts(regexp)
-        unanchored_ends = RegexpAnchor.findUnanchoredEnds(regexp)
+        //unanchored_starts = RegexpAnchor.findUnanchoredStarts(regexp)
+        //unanchored_ends = RegexpAnchor.findUnanchoredEnds(regexp)
 
         nodes = RegexpToSvg.regexp(regexp)
 
@@ -281,20 +301,22 @@ module RegexpToSvg {
 
   function SvgElement term(term b) {
     match (b) {
-      case {anchor_start}: {node: {label: "^", width: 0, height: 0, x: 0, y: 0}}
-      case {anchor_end}: {node: {label: "$", width: 0, height: 0, x: 0, y: 0}}
-      case {~belt, ...}: atom(belt)
+      case {assertion: {anchor_start}}: {node: {label: "^", width: 0, height: 0, x: 0, y: 0}}
+      case {assertion: {anchor_end}}: {node: {label: "$", width: 0, height: 0, x: 0, y: 0}}
+      case {~atom, ...}: do_atom(atom)
+      case _: {node: {label: "?1", width: 0, height: 0, x: 0, y: 0}}
     }
   }
 
-  function SvgElement atom(atom belt) {
-    match (belt) {
-      case {edot}: {node: {label: ".", width: 0, height: 0, x:0, y: 0}}
-      case {~echar}: {node: {label: echar, width: 0, height: 0, x:0, y: 0}}
+  function SvgElement do_atom(atom atom) {
+    match (atom) {
+      case {dot}: {node: {label: ".", width: 0, height: 0, x:0, y: 0}}
+      case {~char}: {node: {label: char, width: 0, height: 0, x:0, y: 0}}
       case {~group_ref}: {node: {label: "\\{group_ref}", width: 0, height: 0, x:0, y: 0}}
-      case {~egroup, ...}: regexp(egroup)
+      case {~group, ...}: regexp(group)
       case {~ncgroup, ...}: regexp(ncgroup)
-      case {~eset, ...}: {node: {label: "[...]", width: 0, height: 0, x:0, y: 0}}
+      case {char_class:_, ...}: {node: {label: "[...]", width: 0, height: 0, x:0, y: 0}}
+      case _: {node: {label: "?2", width: 0, height: 0, x: 0, y: 0}}
     }
 
   }
