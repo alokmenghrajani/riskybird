@@ -28,7 +28,7 @@ riskybird_unittest.exe: $(BINDINGS_OBJ) $(SRC) unittest.opa
 	$(OPA) -o riskybird_unittest.exe $(SRC) unittest.opa
 
 clean:
-	rm -Rf *~ *.exe *.log _build/ *.opp
+	rm -Rf *~ *.exe *.log _build/ *.opp *.js parsing/*.js pretty_printers/*.js _tracks/
 
 $(SRC):
 
