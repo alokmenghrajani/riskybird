@@ -75,3 +75,7 @@ Code Layout
 * riskybird_lint.opa: lint engine
 * riskybird_eval.opa: evaluation engine
 * riskybird_unittest.opa: unittests
+
+License
+-------
+RiskyBird is distribtued under the AGPL license.

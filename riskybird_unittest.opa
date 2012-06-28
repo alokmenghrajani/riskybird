@@ -10,7 +10,7 @@ import stdlib.tests
 function expect_parse(rule_str, s) {
   p = RegexpParser.parse(s)
   r = RegexpStringPrinter.pretty_print(p)
-  OK.check_equal("test [{rule_str}]: {s}", s, r)
+  OK.check_equal("test [{rule_str}]: {s}", r, s)
 }
 
 function expect_fail(rule_str, s) {
@@ -89,6 +89,8 @@ expect_parse("escaped -", "[a\\-c]")
 expect_parse("front -", "[-ac]")
 expect_parse("middle -", "[a-c-e]")
 expect_parse("end -", "[abc-]")
+expect_parse("special characters", "[?.]")
+expect_parse("special characters", "[.-?]")
 
 // lint rule for ranges
 expect_lint_error("overlapping ranges", "[a-mb-z]", 9)
@@ -124,5 +126,4 @@ expect_fail("invalid quantifier combination", "x\{2,3\}+")
 expect_fail("invalid quantifier", "a\{-4,-2\}")
 expect_fail("invalid quantifier", "a\{-4,\}")
 expect_fail("invalid quantifier", "a\{-4}")
-
 

@@ -12,6 +12,24 @@ More lint rules:
 - x*x* => x*
 - xx* => x+
 - crazy things like \c vs \i
+- escape sequences:
+  \cj ==> \n
+  \x0a ==> \n
+  \u000a ==> \n
+  etc.
+  [0-9] => \d
+  etc.
+- empty class ranges don't match anything: []
+
+
+  /\b/ matches word boundary
+  /[\b]/ matches back space (\x08)
+  so the identity escapes are useful in the following cases:
+  - outside ranges: ^$\.*+?()[]{}|
+  - inside ranges: \]-
+  - haven't understood how decimal escape work:
+    /[\92]/ matches '2'
+    /[\12]/ doesn't match '2'
 
 Render empty stuff (e.g. "a|" is not the same as "a")
 
@@ -21,3 +39,7 @@ lint rule fixer
   suggest replacing "." with "\.".
 - detect \/\/ and suggest using % % as the regexp seperator
 - detect error prone priority rules (e.g. ^ab|c$)
+
+make sure when the lint rule fixer removes a group, it renumbers things:
+i.e.
+fix for (a)b(c)\2 should be: (?:a)b(c)\1

@@ -56,7 +56,7 @@ module RegexpLinterRender {
 /**
  * Provides lint rules to detect inconsistent anchors.
  *
- * We first find all the first and last basic elements in the
+ * We first find all the first and last term elements in the
  * regexp by diving inside the groups. We then check that these
  * elements all have the same anchor_start or anchor_end.
  */
@@ -106,41 +106,41 @@ module RegexpLinterAnchor {
   }
 
   function check_anchors get_anchor_regexp(regexp re, check_anchors r) {
-    List.fold(get_anchor_simple, re, r)
+    List.fold(get_anchor_alternative, re, r)
   }
 
-  function check_anchors get_anchor_simple(simple s, check_anchors r) {
+  function check_anchors get_anchor_alternative(alternative s, check_anchors r) {
     if (r.at_start == true) {
       match (s) {
-        case {~hd, ~tl}: get_anchor_basic(hd, r)
+        case {~hd, ~tl}: get_anchor_term(hd, r)
         case []: {at_start:true, result:[false]}        // WTF!!
       }
     } else {
       match (s) {
-        case [hd]: get_anchor_basic(hd, r)
-        case {~hd, ~tl}: get_anchor_simple(tl, r)
+        case [hd]: get_anchor_term(hd, r)
+        case {~hd, ~tl}: get_anchor_alternative(tl, r)
         case []: {at_start:false, result:[false]}  // WTF!
       }
     }
   }
 
-  function check_anchors get_anchor_basic(basic b, check_anchors r) {
+  function check_anchors get_anchor_term(term b, check_anchors r) {
     if (r.at_start == true) {
       match (b) {
         case {anchor_start}: {at_start:true, result:List.cons(true, r.result)}
         case {anchor_end}: {at_start:true, result:List.cons(false, r.result)}
-        case {~belt, ...}: get_anchor_elementary(belt, r)
+        case {~belt, ...}: get_anchor_atom(belt, r)
       }
     } else {
       match (b) {
         case {anchor_start}: {at_start:false, result:List.cons(false, r.result)}
         case {anchor_end}: {at_start:false, result:List.cons(true, r.result)}
-        case {~belt, ...}: get_anchor_elementary(belt, r)
+        case {~belt, ...}: get_anchor_atom(belt, r)
       }
     }
   }
 
-  function check_anchors get_anchor_elementary(elementary belt, check_anchors r) {
+  function check_anchors get_anchor_atom(atom belt, check_anchors r) {
     match (belt) {
       case {~egroup, ...}: get_anchor_regexp(egroup, r)
       case {~ncgroup, ...}: get_anchor_regexp(ncgroup, r)
@@ -172,7 +172,7 @@ module RegexpLinterHelper {
           lint_rule: 8,
           title: "unused group",
           body: "some groups are not referenced, consider using (?:...)",
-          patch: {some: RegexpStringPrinter.print_simple_list(new_regexp)}
+          patch: {some: RegexpStringPrinter.print_alternative_list(new_regexp)}
         }
         RegexpLinter.add(res, err)
     }
@@ -184,7 +184,7 @@ module RegexpLinterHelper {
    * of the resulting set is shorter than the length
    * of the initial set, we will suggest a fix.
    */
-  function lint_result check_set(regexp re, int rset_id, rset set, lint_result res) {
+  function lint_result check_set(regexp re, int character_class_id, character_class set, lint_result res) {
     recursive function intset range_to_charmap(int start, int end, intset map) {
       map = IntSet.add(start, map)
       if (start == end) {
@@ -246,12 +246,12 @@ module RegexpLinterHelper {
       s1 = RegexpStringPrinter.print_set(new_set)
       s2 = RegexpStringPrinter.print_set(set)
       if (s1 != s2) {
-        regexp new_regexp = RegexpFixNonOptimalCharacterRange.regexp(re, rset_id, new_set)
+        regexp new_regexp = RegexpFixNonOptimalCharacterRange.regexp(re, character_class_id, new_set)
         err = {
           lint_rule: 9,
           title: "non optimal character range",
           body: "shorter way to write {s2}: {s1}",
-          patch: {some: RegexpStringPrinter.print_simple_list(new_regexp)}
+          patch: {some: RegexpStringPrinter.print_alternative_list(new_regexp)}
         }
         RegexpLinter.add(res, err)
       } else {
@@ -288,26 +288,26 @@ module RegexpLinter {
   }
 
   function lint_result do_regexp(regexp re, lint_result res) {
-    List.fold(function(e, r){do_simple(re, e, r)}, re, res)
+    List.fold(function(e, r){do_alternative(re, e, r)}, re, res)
   }
 
-  function lint_result do_simple(regexp re, simple s, lint_result res) {
-    List.fold(function(e,r){do_basic(re, e, r)}, s, res)
+  function lint_result do_alternative(regexp re, alternative s, lint_result res) {
+    List.fold(function(e,r){do_term(re, e, r)}, s, res)
   }
 
-  function lint_result do_basic(regexp re, basic b, lint_result res) {
+  function lint_result do_term(regexp re, term b, lint_result res) {
     match (b) {
       case {~id, ~belt, ~bpost, ~greedy}:
-        // process postfix
-        res = do_postfix(bpost, greedy, res)
-        // process elementary
-        do_elementary(re, belt, res)
+        // process quantifier
+        res = do_quantifier(bpost, greedy, res)
+        // process atom
+        do_atom(re, belt, res)
       case _:
         res
     }
   }
 
-  function lint_result do_postfix(postfix bpost, bool greedy, lint_result res) {
+  function lint_result do_quantifier(quantifier bpost, bool greedy, lint_result res) {
     match (bpost) {
       case {~min, ~max}:
         if (min > max) {
@@ -346,7 +346,7 @@ module RegexpLinter {
     }
   }
 
-  function lint_result do_elementary(regexp re, elementary e, lint_result res) {
+  function lint_result do_atom(regexp re, atom e, lint_result res) {
     match (e) {
       case {id:_, ~group_id, ~egroup}:
         res = do_regexp(egroup, res)

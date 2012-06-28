@@ -7,7 +7,6 @@
 
 import stdlib.themes.bootstrap
 import stdlib.web.client
-import stdlib.database.db3
 
 type regexp_result = {
   string regexp,
@@ -31,7 +30,7 @@ function resource display(stringmap(string) query) {
         <h3>Tree -&gt; string</h3>
         <div id=#parser_debug2/>
         <h3>SVG</h3>
-        <div id=#parser_debug3/>
+        <div id=#parser_debug3 style="width: 1000px; height: 1000px"/>
       </div>
     </div>
   } else {
@@ -71,7 +70,7 @@ function resource display(stringmap(string) query) {
                     placeholder="Enter a regular expression"
                     value=""
                     onkeyup={
-                      function(_){ do_work(); update_anchor(); }
+                      function(_){ do_work(); }
                     }/>
                 </div>
                 <br/>
@@ -111,16 +110,8 @@ function bool contains(string haystack, string needle) {
 }
 
 function ready() {
-//  _ = Client.Anchor.add_handler(function(s){Dom.set_value(#regexp, s); do_work();})
-  s = Client.Anchor.get_anchor()
-  s = String.drop_left(1, s)
-  Dom.set_value(#regexp, s)
   do_work()
   void
-}
-
-@async function update_anchor() {
-  Client.Anchor.set_anchor(Dom.get_value(#regexp));
 }
 
 @async function do_work() {
@@ -222,7 +213,8 @@ client function void check_regexp() {
 }
 
 server function do_svg(r) {
-  #parser_debug3 = RegexpSvgPrinter.pretty_print(r)
+//  #parser_debug3 = RegexpSvgPrinter.pretty_print(r)
+  void;
 }
 
 function resource start(Uri.relative uri) {

@@ -70,44 +70,44 @@ function candidates core_regexp(core_regexp re, candidates cands) {
     case {nil}:
       []
     case {~hd, ~tl}:
-      List.append(simple(hd, cands), core_regexp(tl, cands))
+      List.append(alternative(hd, cands), core_regexp(tl, cands))
   }
 }
 */
 
-function candidates simple(simple re, candidates cands) {
+function candidates alternative(alternative re, candidates cands) {
   match(re) {
     case {nil}:
       cands
     case {~hd, ~tl}:
-      simple(tl, basic(hd, cands))
+      alternative(tl, term(hd, cands))
   }
 }
 
-function candidates basic(basic re, candidates cands) {
+function candidates term(term re, candidates cands) {
   cands
 /*
   elt = re.belt
   match(re.bpost) {
     case { noop }:
-      elementary(elt, cands)
+      atom(elt, cands)
     case { star }:
       List.append(repeat_elt(elt, cands), cands)
     case { plus }:
-      simple([{id:0, belt:elt, bpost:{noop}}, {id:0, belt:elt, bpost:{star}}], cands)
+      alternative([{id:0, belt:elt, bpost:{noop}}, {id:0, belt:elt, bpost:{star}}], cands)
     case { exact: n}:
       if(n <= 0)
         cands
       else {
-        cands = basic({id:0, belt:elt, bpost:{noop}}, cands)
-        basic({id: 0, belt:elt, bpost: {exact: (n-1)}}, cands)
+        cands = term({id:0, belt:elt, bpost:{noop}}, cands)
+        term({id: 0, belt:elt, bpost: {exact: (n-1)}}, cands)
       }
     case { at_least: n}:
       if(n <= 0)
-        basic({id: 0, belt:elt, bpost:{star}}, cands)
+        term({id: 0, belt:elt, bpost:{star}}, cands)
       else {
-        cands = basic({id: 0, belt:elt, bpost:{noop}}, cands)
-        basic({id: 0, belt:elt, bpost: {exact: (n-1)}}, cands)
+        cands = term({id: 0, belt:elt, bpost:{noop}}, cands)
+        term({id: 0, belt:elt, bpost: {exact: (n-1)}}, cands)
       }
     case _: [] /* TODO */
 //  { int min, int max }
@@ -115,8 +115,8 @@ function candidates basic(basic re, candidates cands) {
 */
 }
 
-function candidates repeat_elt(elementary elt, candidates cands) {
-  match(elementary(elt, cands)) {
+function candidates repeat_elt(atom elt, candidates cands) {
+  match(atom(elt, cands)) {
     case {nil}:
       cands
     case l:
@@ -141,7 +141,7 @@ function candidate pop_matched(candidate cand) {
    }
 }
 
-function candidates elementary(elementary elt, candidates cands) {
+function candidates atom(atom elt, candidates cands) {
   match(elt) {
     case { edot }:
       map_candidates(consume_any, cands)
@@ -158,7 +158,7 @@ function candidates elementary(elementary elt, candidates cands) {
       cands
     case _ /* TODO */: []
 /*
-    { rset eset }
+    { character_class eset }
 */
   }
 
