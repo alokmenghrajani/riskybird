@@ -226,7 +226,7 @@ module RegexpParser {
   }
 
   function option(regexp) parse(string s) {
-//    RegexpAssignId.assign_id(Parser.try_parse(regexp, s))
+    RegexpAssignId.assign_id(Parser.try_parse(regexp, s))
     Parser.try_parse(regexp, s)
   }
 }

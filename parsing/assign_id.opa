@@ -50,27 +50,27 @@ module RegexpAssignId {
   function wrap(term) term(state st, term b) {
     match (b) {
       case {id:_, ~atom, ~quantifier, ~greedy}:
-        st2 = {term_id: st.term_id + 1, group_id: st.group_id}
-        t = atom(st2, atom)
+        st2 = {st with term_id: st.term_id + 1}
+        t = do_atom(st2, atom)
         b2 = {id: st.term_id, atom: t.v, ~quantifier, ~greedy}
         do_wrap(t.st, b2)
-      case { assertion }:
+      case { assertion:_ }:
         do_wrap(st, b)
     }
   }
 
-  function wrap(atom) atom(state st, atom e) {
-    match (e) {
-      case {id:_, group_id:_, ~egroup}:
+  function wrap(atom) do_atom(state st, atom a) {
+    match (a) {
+      case {id:_, group_id:_, ~group}:
         st2 = {term_id: st.term_id+1, group_id: st.group_id+1}
-        t = regexp(st2, egroup)
-        do_wrap(t.st, {id: st.term_id, group_id: st.group_id, egroup: t.v})
-      case {id:_, ~eset}:
-        e = {id: st.term_id, ~eset}
+        t = regexp(st2, group)
+        do_wrap(t.st, {id: st.term_id, group_id: st.group_id, group: t.v})
+      case {id:_, ~char_class}:
+        a = {id: st.term_id, ~char_class}
         st = {term_id: st.term_id+1, group_id:st.group_id}
-        do_wrap(st, e)
+        do_wrap(st, a)
       case _:
-        do_wrap(st, e)
-   }
+        do_wrap(st, a)
+    }
   }
 }

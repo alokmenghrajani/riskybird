@@ -1,16 +1,11 @@
 
-OPA=opa --parser js-like
+OPA=opa
 OPAPLUGIN=opa-plugin-builder
 
 SRC= \
-  riskybird_parser.opa \
-	riskybird_assign_id.opa \
-  riskybird_string_printer.opa \
-  riskybird_xhtml_printer.opa \
-  riskybird_svg_printer.opa \
-  riskybird_eval.opa \
-  riskybird_lint.opa \
-	riskybird_fix.opa \
+  parsing/parser.opa \
+	parsing/assign_id.opa \
+  pretty_printers/string_printer.opa \
 	riskybird_utils.opa
 
 BINDINGS= \
@@ -29,12 +24,13 @@ test: riskybird_unittest.exe
 riskybird.exe: $(BINDINGS_OBJ) $(SRC) riskybird.opa
 	$(OPA) -o riskybird.exe $(SRC) riskybird.opa
 
-riskybird_unittest.exe: $(BINDINGS_OBJ) $(SRC) riskybird_unittest.opa
-	$(OPA) -o riskybird_unittest.exe $(SRC) riskybird_unittest.opa
+riskybird_unittest.exe: $(BINDINGS_OBJ) $(SRC) unittest.opa
+	$(OPA) -o riskybird_unittest.exe $(SRC) unittest.opa
 
 clean:
 	rm -Rf *~ *.exe *.log _build/ *.opp
 
+$(SRC):
 
 %.opp: %.js
 	$(OPAPLUGIN) -o $(@:.opp=) $<
