@@ -196,12 +196,22 @@ module RegexpSvgPrinter {
       case {~node}: toXmlNode(node)
       case {~choice}: toXmlNodes(choice.items)
       case {~seq}:
-        r = toXmlNodes(seq.items)
-        <>
+        items = toXmlNodes(seq.items)
+        rect = if (seq.border > 0) {
           <svg:rect x={seq.x} y={seq.y} width={seq.width} height={seq.height}
             style="fill: none; stroke: blue; stroke-width: 1;"/>
+        } else {
+          <></>
+        }
+        text = if (seq.group_id > 0) {
           <svg:text x={seq.x+2} y={seq.y+10} height="8">{seq.group_id}</svg:text>
-          {r}
+        } else {
+          <></>
+        }
+        <>
+          {rect}
+          {text}
+          {items}
         </>
     }
   }
@@ -307,7 +317,7 @@ module RegexpToSvg {
 
   function SvgElement alternative(alternative s) {
     items = List.map(term, s)
-    {seq: {group_id: 0, width: 0, height: 0, x: 0, y: 0, border: 20, ~items}}
+    {seq: {group_id: 0, width: 0, height: 0, x: 0, y: 0, border: 0, ~items}}
   }
 
   function SvgElement term(term b) {
@@ -324,8 +334,10 @@ module RegexpToSvg {
       case {dot}: {node: {label: ".", width: 0, height: 0, x:0, y: 0}}
       case {~char}: {node: {label: char, width: 0, height: 0, x:0, y: 0}}
       case {~group_ref}: {node: {label: "\\{group_ref}", width: 0, height: 0, x:0, y: 0}}
-      case {~group, ...}: regexp(group)
-      case {~ncgroup, ...}: regexp(ncgroup)
+      case {~group, ~group_id, ...}:
+        {seq: {~group_id, width: 0, height: 0, x: 0, y: 0, border: 20, items: [regexp(group)]}}
+      case {~ncgroup, ...}:
+        {seq: {group_id: 0, width: 0, height: 0, x: 0, y: 0, border: 20, items: [regexp(ncgroup)]}}
       case {char_class:_, ...}: {node: {label: "[...]", width: 0, height: 0, x:0, y: 0}}
       case _: {node: {label: "?2", width: 0, height: 0, x: 0, y: 0}}
     }
