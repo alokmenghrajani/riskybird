@@ -264,19 +264,19 @@ module RegexpSvgPrinter {
     List.fold(
       function((a1, a2), r) {
         // starting point
-        x1 = a2.x + a2.width - 20
+        x1 = a2.x + a2.width - 18
         y1 = a2.y + a2.height / 2
 
         // arrow tip
-        x4 = a1.x + 20
+        x4 = a1.x + 18
         y4 = a1.y + a1.height / 2
 
         // bezier curve
-        x2 = x1 + (x4 - x1) / 4
+        x2 = x1 + (x4 - x1) * 2 / 3
         y2 = y1
 
         // bezier curve
-        x3 = x4 - (x4 - x1) / 4
+        x3 = x4 - (x4 - x1) * 2 / 3
         y3 = y4
 
         d1 = "M{x4},{y4} L{x4-7},{y4-4} L{x4-5},{y4} L{x4-7},{y4+4} L{x4},{y4}"
