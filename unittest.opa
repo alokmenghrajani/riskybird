@@ -122,3 +122,4 @@ expect_fail("invalid quantifier", "a\{-4,-2\}")
 expect_fail("invalid quantifier", "a\{-4,\}")
 expect_fail("invalid quantifier", "a\{-4\}")
 
+expect_fail("invalid character", "a//")

@@ -158,6 +158,7 @@ module RegexpParser {
     case x = "^": x
     case x = "$": x
     case x = "\\": x
+    case x = "/": x
     case x = ".": x
     case x = "*": x
     case x = "+": x

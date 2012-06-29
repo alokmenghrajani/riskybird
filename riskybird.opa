@@ -26,13 +26,6 @@ import stdlib.themes.bootstrap
 import stdlib.web.client
 
 function resource display() {
-  debug = <div class="row">
-    <div class="span12">
-      <h3>re-stringify</h3>
-      <div id=#parser_debug/>
-    </div>
-  </div>
-
   Resource.styled_page(
     "RegexpLint",
     ["/resources/riskybird.css"],
@@ -48,8 +41,8 @@ function resource display() {
       <div class="container" style="margin-top: 80px;" onready={function(_){ready()}}>
         <section id="info">
           <p class="lead">
-            RegexpLint helps you understand and analyze regular expressions. We graphically render regular expressions and
-            point out common pitfalls.
+            RegexpLint helps you understand and analyze regular expressions.<br/>
+            We graphically render regular expressions and point out common pitfalls.
           </p>
         </section>
 
@@ -77,7 +70,6 @@ function resource display() {
               </div>
             </div>
             <div class="row"><div class="span12"><br/></div></div>
-            {debug}
             <div class="row hide" id=#lint>
               <div class="span4">
                 <h3>Lint errors & warnings</h3>
@@ -91,15 +83,14 @@ function resource display() {
 
         <footer class="footer">
           <p>
-          <a href="/about/">About us</a> ·
-          <a href="/press/">Written in Opa</a> ·
-          <a href="/privacy/">Fork on github.com</a>
+          <a href="#">About us</a> ·
+          <a href="http://www.opalang.org/">Written in Opa</a> ·
+          <a href="http://github.com/alokmenghrajani/riskybird/">Fork on github.com</a>
           </p>
-
           <div class="social-buttons">
-            twitter - facebook
           </div>
         </footer>
+
       </div>
     </>
   )
@@ -142,7 +133,6 @@ function void linter_run(option(regexp) tree_opt) {
 client function void check_regexp() {
   string regexp = Dom.get_value(#regexp)
   parsed_regexp = RegexpParser.parse(regexp)
-  #parser_debug = RegexpStringPrinter.pretty_print(parsed_regexp)
   do_svg(parsed_regexp)
 //  linter_run(parsed_regexp)
   void

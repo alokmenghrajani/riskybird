@@ -174,11 +174,16 @@ module RegexpSvgPrinter {
 
   function xhtml toXml(SvgElement nodes) {
     function xhtml toXmlNode(SvgNode node) {
-      x = node.x + node.width / 2;
-      y = node.y + node.height / 2;
+      x = node.x + node.width / 2
+      y = node.y + node.height / 2
+      width = 20
+      height = 20
+      c = Color.color_to_string(node.color)
+      s2 = "fill:{c}"
       <>
-        <svg:circle xmlns:svg="http://www.w3.org/2000/svg" cx={x} cy={y} r="10" style="fill:none; stroke:rgb(255,0,0);stroke-width:2"/>
-        <svg:text x={x-5} y={y+5}>{node.label}</svg:text>
+        <svg:rect x={x - width/2} y={y - height/2} rx="20" ry="20" width={width} height={height}
+          style="fill:none; stroke:{c};stroke-width:1"/>
+        <svg:text x={x-5} y={y+5} style="{s2}">{node.label}</svg:text>
       </>
     }
 
@@ -203,10 +208,11 @@ module RegexpSvgPrinter {
         } else {
           <></>
         }
-        text = if (seq.group_id > 0) {
-          <svg:text x={seq.x+2} y={seq.y+10} height="8">{seq.group_id}</svg:text>
-        } else {
-          <></>
+        text = match (seq.group_id) {
+          case {~some}:
+            <svg:text x={seq.x+2} y={seq.y+10} height="8">{some}</svg:text>
+          case {none}:
+            <></>
         }
         <>
           {rect}
@@ -287,7 +293,8 @@ and SvgNode =
     int width,
     int height,
     int x,
-    int y }
+    int y,
+    Color.color color }
 
 and SvgChoice =
   { int width,
@@ -295,7 +302,7 @@ and SvgChoice =
     list(SvgElement) items }
 
 and SvgSeq =
-  { int group_id,
+  { option(string) group_id,
     int width,
     int height,
     int x,
@@ -317,54 +324,87 @@ module RegexpToSvg {
 
   function SvgElement alternative(alternative s) {
     items = List.map(term, s)
-    {seq: {group_id: 0, width: 0, height: 0, x: 0, y: 0, border: 0, ~items}}
+    {seq: {group_id: {none}, width: 0, height: 0, x: 0, y: 0, border: 0, ~items}}
   }
 
   function SvgElement term(term b) {
     match (b) {
-      case {assertion: {anchor_start}}: {node: {label: "^", width: 0, height: 0, x: 0, y: 0}}
-      case {assertion: {anchor_end}}: {node: {label: "$", width: 0, height: 0, x: 0, y: 0}}
+      // todo: we are currently dropping the quantifier
       case {~atom, ...}: do_atom(atom)
-      case _: {node: {label: "?1", width: 0, height: 0, x: 0, y: 0}}
+      case {assertion: {anchor_start}}: {node: {label: "^", width: 0, height: 0, x: 0, y: 0, color: Color.cadetblue}}
+      case {assertion: {anchor_end}}: {node: {label: "$", width: 0, height: 0, x: 0, y: 0, color: Color.cadetblue}}
+      case {assertion: {match_word_boundary}}: {node: {label: "\\b", width: 0, height: 0, x: 0, y: 0, color: Color.cadetblue}}
+      case {assertion: {dont_match_word_boundary}}: {node: {label: "\\B", width: 0, height: 0, x: 0, y: 0, color: Color.cadetblue}}
+      case {assertion: {~match_ahead}}:
+        {seq: {group_id: {some: "?="}, width: 0, height: 0, x: 0, y: 0, border: 20, items: [regexp(match_ahead)]}}
+      case {assertion: {~dont_match_ahead}}:
+        {seq: {group_id: {some: "?!"}, width: 0, height: 0, x: 0, y: 0, border: 20, items: [regexp(dont_match_ahead)]}}
     }
   }
 
   function SvgElement do_atom(atom atom) {
     match (atom) {
-      case {dot}: {node: {label: ".", width: 0, height: 0, x:0, y: 0}}
-      case {~char}: {node: {label: char, width: 0, height: 0, x:0, y: 0}}
-      case {~group_ref}: {node: {label: "\\{group_ref}", width: 0, height: 0, x:0, y: 0}}
+      case {~char}:
+        {node: {label: char, width: 0, height: 0, x:0, y: 0, color: Color.black}}
+      case {dot}:
+        {node: {label: ".", width: 0, height: 0, x:0, y: 0, color: Color.cadetblue}}
+      case {~character_class_escape}:
+        {node: {label: "\\{character_class_escape}", width:0, height:0, x:0, y:0, color: Color.cadetblue}}
+      case {~escaped_char}:
+        do_escaped_char(escaped_char)
+      case {~group_ref}: {node: {label: "\\{group_ref}", width: 0, height: 0, x:0, y: 0, color: Color.cadetblue}}
       case {~group, ~group_id, ...}:
-        {seq: {~group_id, width: 0, height: 0, x: 0, y: 0, border: 20, items: [regexp(group)]}}
+        {seq: {group_id: {some: "{group_id}"}, width: 0, height: 0, x: 0, y: 0, border: 20, items: [regexp(group)]}}
       case {~ncgroup, ...}:
-        {seq: {group_id: 0, width: 0, height: 0, x: 0, y: 0, border: 20, items: [regexp(ncgroup)]}}
-      case {char_class:_, ...}: {node: {label: "[...]", width: 0, height: 0, x:0, y: 0}}
-      case _: {node: {label: "?2", width: 0, height: 0, x: 0, y: 0}}
+        {seq: {group_id: {none}, width: 0, height: 0, x: 0, y: 0, border: 20, items: [regexp(ncgroup)]}}
+      case {~char_class, ...}:
+        do_character_class(char_class)
     }
+  }
 
+  function do_character_class(character_class char_class) {
+    t1 = List.map(
+      function(item) {
+        match (item) {
+          case {~char}: char
+          case {~escaped_char}: print_escaped_char(escaped_char)
+          case {~start_char, ~end_char}: "{start_char}-{end_char}"
+        }
+      },
+      char_class.class_ranges)
+    t2 = join(t1, ",")
+
+    s = if (char_class.neg) {
+      "[^{t2}]"
+    } else {
+      "[{t2}]"
+    }
+    {node: {label: s, width: 0, height: 0, x:0, y: 0, color: Color.black}}
+  }
+
+  function string join(list(string) l, string glue) {
+    match (l) {
+      case []: ""
+      case [x]: x
+      case {~hd, ~tl}: "{hd}{glue}{join(tl, glue)}"
+    }
+  }
+
+  function string print_escaped_char(escaped_char escaped_char) {
+    match (escaped_char) {
+      case {~control_escape}: "\\{control_escape}"
+      case {~control_letter}: "\\c{control_letter}"
+      case {~hex_escape_sequence}: "\\x{hex_escape_sequence}"
+      case {~unicode_escape_sequence}: "\\u{unicode_escape_sequence}"
+      case {~identity_escape}: "\\{identity_escape}"
+      case {~character_class_escape}: "\\{character_class_escape}"
+    }
+  }
+
+  function SvgElement do_escaped_char(escaped_char escaped_char) {
+    c = print_escaped_char(escaped_char)
+    {node: {label: c, width:0, height:0, x:0, y:0, color: Color.cadetblue}}
   }
 }
 
-
-/*
-    {seq: {width: 0, height: 0, items: [
-      {node: {label: "A", width: 0, height: 0, x: 0, y: 0}},
-      {choice: {width: 0, height: 0, items: [
-        {seq: {width: 0, height: 0, items: [
-          {node: {label: "B", width: 0, height: 0, x: 0, y: 0}},
-          {node: {label: "C", width: 0, height: 0, x: 0, y: 0}},
-          {node: {label: "D", width: 0, height: 0, x: 0, y: 0}},
-        ]}},
-        {node: {label: "E", width: 0, height: 0, x: 0, y: 0}},
-        {seq: {width: 0, height: 0, items: [
-          {node: {label: "F", width: 0, height: 0, x: 0, y: 0}},
-          {choice: {width: 0, height: 0, items: [
-            {node: {label: "G", width: 0, height: 0, x: 0, y: 0}},
-            {node: {label: "H", width: 0, height: 0, x: 0, y: 0}},
-          ]}}
-        ]}}
-      ]}},
-      {node: {label: "Z", width: 0, height: 0, x: 0, y: 0}},
-    ]}}
-*/
 

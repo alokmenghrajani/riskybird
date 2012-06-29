@@ -103,7 +103,7 @@ module RegexpStringPrinter {
     t = List.fold(
       function(class_range, r) {
         i = match (class_range) {
-          case {~char}: "{char}"
+          case {~char}: char
           case {~escaped_char}: print_escaped_char(escaped_char)
           case {~start_char, ~end_char}: "{start_char}-{end_char}"
         }
