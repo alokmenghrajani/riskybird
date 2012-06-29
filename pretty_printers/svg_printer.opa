@@ -90,11 +90,11 @@ module RegexpSvgPrinter {
     recursive function SvgElement computeDimensions(SvgElement node) {
       match (node) {
         case {~node}:
-          // to compute the layout of a node, we simply
-          // set the width and height to 80.
-          {node: {node with width: 80, height: 80}}
+          // to compute the dimensions of a node we look at its content
+          width = 70 + String.length(node.label)*10
+          {node: {node with ~width, height: 80}}
         case {~choice}:
-          // to compute the layout of a sequence of nodes:
+          // to compute the dimensions of a sequence of nodes:
           // 1. compute the layout of every inner element
           // 2. set this element's width to max(all inner elements)
           // 3. set this element's height to sum(all inner heights)
@@ -102,7 +102,7 @@ module RegexpSvgPrinter {
           SvgMaxSum max_sum = computeMaxSum(items)
           {choice: {choice with width:max_sum.max_width, height: max_sum.sum_height, ~items}}
         case {~seq}:
-          // to compute the layout of a sequence of nodes:
+          // to compute the dimensions of a sequence of nodes:
           // 1. compute the layout of every inner element
           // 2. set this element's width to sum(all inner elements)
           // 3. set this element's height to max(all inner heights)
@@ -176,14 +176,14 @@ module RegexpSvgPrinter {
     function xhtml toXmlNode(SvgNode node) {
       x = node.x + node.width / 2
       y = node.y + node.height / 2
-      width = 20
+      width = 10 + String.length(node.label)*7
       height = 20
       c = Color.color_to_string(node.color)
-      s2 = "fill:{c}"
+      s2 = "fill:{c};font-size: 15px;text-anchor:middle;"
       <>
-        <svg:rect x={x - width/2} y={y - height/2} rx="20" ry="20" width={width} height={height}
+        <svg:rect x={x-width/2} y={y-height/2} rx="20" ry="20" width={width} height={height}
           style="fill:none; stroke:{c};stroke-width:1"/>
-        <svg:text x={x-5} y={y+5} style="{s2}">{node.label}</svg:text>
+        <svg:text x={x} y={y+5} style="{s2}">{node.label}</svg:text>
       </>
     }
 
@@ -270,7 +270,7 @@ module RegexpSvgPrinter {
         y2 = a2.y + a2.height / 2
 
         d1 = "M{x1-15},{y1} L{x1-22},{y1-4} L{x1-20},{y1} L{x1-22},{y1+4} L{x1-15},{y1}"
-        d2 = "M{x1-14},{y1} C{x1-80},{y1} {x2+80},{y2} {x2+14},{y2}"
+        d2 = "M{x1-14},{y1} C{x1-a1.width/2-10},{y1} {x2+a2.width/2+10},{y2} {x2+14},{y2}"
         <>
           {r}
           <svg:path d={d1} style="fill:rgb(0,0,0); stroke:rgb(0,0,0);stroke-width:2"/>
