@@ -27,44 +27,42 @@ import stdlib.web.client
 
 function resource display() {
   debug = <div class="row">
-    <div class="span4">
-      <h3>Debug output</h3>
-      <p>
-        For hackers
-      </p>
-    </div>
-    <div class="span8">
-      <h3>Serialized tree</h3>
-      <div id=#parser_debug1/>
-      <h3>Tree -&gt; string</h3>
-      <div id=#parser_debug2/>
-      <h3>SVG</h3>
-      <div id=#parser_debug3 style="width: 1000px; height: 1000px"/>
+    <div class="span12">
+      <h3>re-stringify</h3>
+      <div id=#parser_debug/>
     </div>
   </div>
 
   Resource.styled_page(
-    "RiskyBird | compose",
+    "RegexpLint",
     ["/resources/riskybird.css"],
     <>
-      <a href="https://github.com/alokmenghrajani/riskybird">
-        <img style="position: absolute; top: 0; right: 0; border: 0;" src="https://a248.e.akamai.net/camo.github.com/e6bef7a091f5f3138b8cd40bc3e114258dd68ddf/687474703a2f2f73332e616d617a6f6e6177732e636f6d2f6769746875622f726962626f6e732f666f726b6d655f72696768745f7265645f6161303030302e706e67" alt="Fork me on GitHub"/>
-      </a>
-      <div class="container">
-        <div class="content" onready={function(_){ready()}}>
-          <section>
-            <div class="page-header"><h1>Enter a regular expression</h1></div>
+      <div class="navbar navbar-fixed-top">
+        <div class="navbar-inner">
+          <div class="container">
+            <a href="/" class="brand">RegexpLint</a>
+          </div>
+        </div>
+      </div>
+
+      <div class="container" style="margin-top: 80px;" onready={function(_){ready()}}>
+        <section id="info">
+          <p class="lead">
+            RegexpLint helps you understand and analyze regular expressions. We graphically render regular expressions and
+            point out common pitfalls.
+          </p>
+        </section>
+
+        <section id="go">
             <div class="row">
-              <div class="span4">
-                <h3>Regexp</h3>
-              </div>
-              <div class="span8">
+              <div class="span12">
                 <div class="input">
                   <input
                     class="xxlarge"
                     type="text"
                     id=#regexp
                     placeholder="Enter a regular expression"
+                    style="width: 80%"
                     value=""
                     onkeyup={
                       function(_){ do_work(); }
@@ -74,13 +72,7 @@ function resource display() {
               </div>
             </div>
             <div class="row">
-              <div class="span4">
-                <h3>Pretty Printer</h3>
-                <p>
-                  This output helps you understand regular expressions.
-                </p>
-              </div>
-              <div class="span8">
+              <div class="span12">
                 <div id=#parser_output/>
               </div>
             </div>
@@ -95,8 +87,19 @@ function resource display() {
               </div>
               <div class="span8" id=#lint_rules/>
             </div>
-          </section>
-        </div>
+        </section>
+
+        <footer class="footer">
+          <p>
+          <a href="/about/">About us</a> ·
+          <a href="/press/">Written in Opa</a> ·
+          <a href="/privacy/">Fork on github.com</a>
+          </p>
+
+          <div class="social-buttons">
+            twitter - facebook
+          </div>
+        </footer>
       </div>
     </>
   )
@@ -111,7 +114,7 @@ function ready() {
   void
 }
 
-@async function do_work() {
+function do_work() {
   check_regexp()
 }
 
@@ -137,20 +140,16 @@ function void linter_run(option(regexp) tree_opt) {
 */
 
 client function void check_regexp() {
-  // Run the parser
   string regexp = Dom.get_value(#regexp)
   parsed_regexp = RegexpParser.parse(regexp)
-//  #parser_output = RegexpXhtmlPrinter.pretty_print(parsed_regexp)
-  #parser_debug1 = Debug.dump(parsed_regexp)
-  #parser_debug2 = RegexpStringPrinter.pretty_print(parsed_regexp)
+  #parser_debug = RegexpStringPrinter.pretty_print(parsed_regexp)
   do_svg(parsed_regexp)
 //  linter_run(parsed_regexp)
-
   void
 }
 
 server function do_svg(r) {
-  #parser_debug3 = RegexpSvgPrinter.pretty_print(r)
+  #parser_output = RegexpSvgPrinter.pretty_print(r)
   void;
 }
 

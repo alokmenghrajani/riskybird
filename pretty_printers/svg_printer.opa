@@ -62,7 +62,7 @@ module RegexpSvgPrinter {
         arrows = drawArrows(nodes)
 
         d = getDimensions(nodes)
-        <svg:svg xmlns:svg="http://www.w3.org/2000/svg" version="1.1" style="position: absolute; border: 1px solid red; height: {d.height}px; width: {d.width}px">
+        <svg:svg xmlns:svg="http://www.w3.org/2000/svg" version="1.1" style="height: {d.height+2}px; width: {d.width+2}px">
           {svg}
           {arrows}
         </svg:svg>
@@ -91,8 +91,8 @@ module RegexpSvgPrinter {
       match (node) {
         case {~node}:
           // to compute the layout of a node, we simply
-          // set the width and height to 100.
-          {node: {node with width: 100, height: 100}}
+          // set the width and height to 80.
+          {node: {node with width: 80, height: 80}}
         case {~choice}:
           // to compute the layout of a sequence of nodes:
           // 1. compute the layout of every inner element
@@ -108,7 +108,7 @@ module RegexpSvgPrinter {
           // 3. set this element's height to max(all inner heights)
           items = List.map(computeDimensions, seq.items)
           SvgMaxSum max_sum = computeMaxSum(items)
-          {seq: {seq with width: max_sum.sum_width, height: max_sum.max_height, ~items}}
+          {seq: {seq with width: max_sum.sum_width, height: max_sum.max_height + seq.border/2, ~items}}
       }
     }
 
@@ -128,13 +128,13 @@ module RegexpSvgPrinter {
           {choice: {~width, ~height, ~items}}
         case {~seq}:
           // width increase will be distributed
-          int delta_width = Float.to_int(Float.of_int(width - seq.width) / Float.of_int(List.length(seq.items)))
+          int delta_width = Float.to_int(Float.of_int(width - seq.width - seq.border) / Float.of_int(List.length(seq.items)))
           items = List.map(function(e){
             d = getDimensions(e)
-            computeResize(e, d.width + delta_width, height)},
+            computeResize(e, d.width + delta_width, height - seq.border)},
             seq.items
           )
-          {seq: {~width, ~height, ~items}}
+          {seq: {seq with ~width, ~height, ~items}}
       }
     }
 
@@ -160,16 +160,16 @@ module RegexpSvgPrinter {
               {x: r.x + d.width, y:r.y, l:List.cons(new_e, r.l)}
             },
             seq.items,
-            {~x, ~y, l:[]}
+            {x: x+seq.border/2, y: y+seq.border/2, l:[]}
           )
-          {seq: {seq with items:t.l}}
+          {seq: {seq with items:t.l, x: x, y: y}}
       }
     }
 
     node = computeDimensions(node)
     d = getDimensions(node)
     node = computeResize(node, d.width, d.height)
-    computePositions(node, 0, 0)
+    computePositions(node, 1, 1)
   }
 
   function xhtml toXml(SvgElement nodes) {
@@ -195,7 +195,14 @@ module RegexpSvgPrinter {
     match (nodes) {
       case {~node}: toXmlNode(node)
       case {~choice}: toXmlNodes(choice.items)
-      case {~seq}: toXmlNodes(seq.items)
+      case {~seq}:
+        r = toXmlNodes(seq.items)
+        <>
+          <svg:rect x={seq.x} y={seq.y} width={seq.width} height={seq.height}
+            style="fill: none; stroke: blue; stroke-width: 1;"/>
+          <svg:text x={seq.x+2} y={seq.y+10} height="8">{seq.group_id}</svg:text>
+          {r}
+        </>
     }
   }
 
@@ -247,7 +254,7 @@ module RegexpSvgPrinter {
         y2 = a2.y + a2.height / 2
 
         d1 = "M{x1-15},{y1} L{x1-22},{y1-4} L{x1-20},{y1} L{x1-22},{y1+4} L{x1-15},{y1}"
-        d2 = "M{x1-14},{y1} C{x1-100},{y1} {x2+100},{y2} {x2+14},{y2}"
+        d2 = "M{x1-14},{y1} C{x1-80},{y1} {x2+80},{y2} {x2+14},{y2}"
         <>
           {r}
           <svg:path d={d1} style="fill:rgb(0,0,0); stroke:rgb(0,0,0);stroke-width:2"/>
@@ -278,8 +285,12 @@ and SvgChoice =
     list(SvgElement) items }
 
 and SvgSeq =
-  { int width,
+  { int group_id,
+    int width,
     int height,
+    int x,
+    int y,
+    int border,
     list(SvgElement) items }
 
 and SvgMaxSum =
@@ -296,7 +307,7 @@ module RegexpToSvg {
 
   function SvgElement alternative(alternative s) {
     items = List.map(term, s)
-    {seq: {width: 0, height: 0, ~items}}
+    {seq: {group_id: 0, width: 0, height: 0, x: 0, y: 0, border: 20, ~items}}
   }
 
   function SvgElement term(term b) {

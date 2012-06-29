@@ -38,3 +38,14 @@ hr {
     line-height: 0px;
     position: absolute;
 }
+
+.footer {
+    border-top: 1px solid #DDDDDD;
+    color: #777777;
+    margin-top: 40px;
+    padding: 40px 0;
+    text-align: center;
+    position: absolute;
+    bottom: 0px;
+    width 940px;
+}
