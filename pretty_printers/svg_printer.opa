@@ -91,7 +91,7 @@ module RegexpSvgPrinter {
       match (node) {
         case {~node}:
           // to compute the dimensions of a node we look at its content
-          width = 70 + String.length(node.label)*10
+          width = 70 + String.length(node.label)*7
           {node: {node with ~width, height: 80}}
         case {~choice}:
           // to compute the dimensions of a sequence of nodes:
@@ -177,7 +177,7 @@ module RegexpSvgPrinter {
       x = node.x + node.width / 2
       y = node.y + node.height / 2
       width = 10 + String.length(node.label)*7
-      height = 20
+      height = 30
       c = Color.color_to_string(node.color)
       s2 = "fill:{c};font-size: 15px;text-anchor:middle;"
       <>
@@ -263,14 +263,24 @@ module RegexpSvgPrinter {
     arrows = computeArrows(node, [], [])
     List.fold(
       function((a1, a2), r) {
-        x1 = a1.x + a1.width / 2
-        y1 = a1.y + a1.height / 2
+        // starting point
+        x1 = a2.x + a2.width - 20
+        y1 = a2.y + a2.height / 2
 
-        x2 = a2.x + a2.width / 2
-        y2 = a2.y + a2.height / 2
+        // arrow tip
+        x4 = a1.x + 20
+        y4 = a1.y + a1.height / 2
 
-        d1 = "M{x1-15},{y1} L{x1-22},{y1-4} L{x1-20},{y1} L{x1-22},{y1+4} L{x1-15},{y1}"
-        d2 = "M{x1-14},{y1} C{x1-a1.width/2-10},{y1} {x2+a2.width/2+10},{y2} {x2+14},{y2}"
+        // bezier curve
+        x2 = x1 + (x4 - x1) / 4
+        y2 = y1
+
+        // bezier curve
+        x3 = x4 - (x4 - x1) / 4
+        y3 = y4
+
+        d1 = "M{x4},{y4} L{x4-7},{y4-4} L{x4-5},{y4} L{x4-7},{y4+4} L{x4},{y4}"
+        d2 = "M{x1},{y1} C{x2},{y2} {x3},{y3} {x4},{y4}"
         <>
           {r}
           <svg:path d={d1} style="fill:rgb(0,0,0); stroke:rgb(0,0,0);stroke-width:2"/>
@@ -366,7 +376,7 @@ module RegexpToSvg {
     t1 = List.map(
       function(item) {
         match (item) {
-          case {~char}: char
+          case {~char}: if (char == " ") "⎵" else char
           case {~escaped_char}: print_escaped_char(escaped_char)
           case {~start_char, ~end_char}: "{start_char}-{end_char}"
         }
