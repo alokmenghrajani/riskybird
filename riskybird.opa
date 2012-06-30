@@ -25,12 +25,12 @@
 import stdlib.themes.bootstrap
 import stdlib.web.client
 
-function resource display() {
+function resource display(string r) {
   Resource.styled_page(
     "RegexpLint",
     ["/resources/riskybird.css"],
     <>
-      <div class="navbar navbar-fixed-top">
+      <div id="wrap"><div class="navbar navbar-fixed-top">
         <div class="navbar-inner">
           <div class="container">
             <a href="/" class="brand">RegexpLint</a>
@@ -38,11 +38,16 @@ function resource display() {
         </div>
       </div>
 
-      <div class="container" style="margin-top: 80px;" onready={function(_){ready()}}>
+      <div id="main" class="container" onready={function(_){ready()}}>
         <section id="info">
           <p class="lead">
             RegexpLint helps you understand and analyze regular expressions.<br/>
             We graphically render regular expressions and point out common pitfalls.
+          </p>
+          <p>
+            Try <a href="/?r=%5ea.*%7cb%24">example 1</a> ·
+            <a href="/?r=[a-cd]">example 2</a> ·
+            <a href="/?r=(abc).(efg).%5c2">example 3</a> or
           </p>
         </section>
 
@@ -56,7 +61,7 @@ function resource display() {
                     id=#regexp
                     placeholder="Enter a regular expression"
                     style="width: 80%"
-                    value=""
+                    value="{r}"
                     onkeyup={
                       function(_){ do_work(); }
                     }/>
@@ -80,20 +85,107 @@ function resource display() {
               <div class="span8" id=#lint_rules/>
             </div>
         </section>
-
-        <footer class="footer">
-          <p>
-          <a href="#">About us</a> ·
-          <a href="http://www.opalang.org/">Written in Opa</a> ·
-          <a href="http://github.com/alokmenghrajani/riskybird/">Fork on github.com</a>
-          </p>
-          <div class="social-buttons">
-          </div>
-        </footer>
-
       </div>
+      <div class="push"></div>
+      </div>
+      {display_footer()}
     </>
   )
+}
+
+function resource display_about() {
+  Resource.styled_page(
+    "RegexpLint | About",
+    ["/resources/riskybird.css"],
+    <>
+      <div id="wrap"><div class="navbar navbar-fixed-top">
+        <div class="navbar-inner">
+          <div class="container">
+            <a href="/" class="brand">RegexpLint</a>
+          </div>
+        </div>
+      </div>
+      <div id="main" class="container" onready={function(_){ready()}}>
+        <section id="about">
+          <div class="row">
+            <div class="span4">&nbsp;</div>
+            <div class="span8">
+              <p class="lead">About</p>
+              <p>
+                RegexpLint was written by a few Facebook engineers on their spare
+                time. The purpose of this tool is to help fellow engineers understand,
+                write and audit regular expressions.
+              </p>
+              <p>
+                Our code is written in <a href="http://www.opalang.org/">Opa</a>, a modern web framework. We decided to use
+                to use this framework for various reasons, one of them being that it makes writing parsers very easy!
+                We <a href="http://alokmenghrajani/riskybird/">open sourced</a> all the code to encourage people to look at it,
+                improve it or build on it.
+              </p>
+              <p>
+                What's next? Peer <a href="http://regexplint.userecho.com/">feedback</a> is going to
+                help us decide what we are going to build next!
+              </p>
+            </div>
+          </div>
+          <div class="row">
+            <div class="span2">&nbsp;</div>
+            <div class="span2">
+              <img src="http://graph.facebook.com/julien.verlaguet/picture"
+                style="border: 1px solid #0E0E0E; border-radius: 3px 3px 3px 3px;
+                  box-shadow: 0 8px 5px -4px rgba(0, 0, 0, 0.3);
+                  margin: 12px;"/>
+            </div>
+            <div class="span8" style="margin-top: 12px">
+              <h3>Julien Verlaguet</h3>
+              <p>Wrote the parser.</p>
+            </div>
+          </div>
+          <div class="row">
+            <div class="span2">&nbsp;</div>
+            <div class="span2">
+              <img src="http://graph.facebook.com/erling/picture"
+                style="border: 1px solid #0E0E0E; border-radius: 3px 3px 3px 3px;
+                  box-shadow: 0 8px 5px -4px rgba(0, 0, 0, 0.3);
+                  margin: 12px;"/>
+            </div>
+            <div class="span8" style="margin-top: 12px">
+              <h3>Erling Ellingsen</h3>
+              <p>Found bugs and helped fix them.</p>
+            </div>
+          </div>
+          <div class="row">
+            <div class="span2">&nbsp;</div>
+            <div class="span2">
+              <img src="http://graph.facebook.com/alok/picture"
+                style="border: 1px solid #0E0E0E; border-radius: 3px 3px 3px 3px;
+                  box-shadow: 0 8px 5px -4px rgba(0, 0, 0, 0.3);
+                  margin: 12px;"/>
+            </div>
+            <div class="span8" style="margin-top: 12px">
+              <h3>Alok Menghrajani</h3>
+              <p>Worked on the lint engine.</p>
+            </div>
+          </div>
+        </section>
+      </div>
+      <div class="push"></div>
+      </div>
+      {display_footer()}
+    </>
+  )
+}
+
+function xhtml display_footer() {
+  <footer class="footer">
+    <p>
+      <a href="/about">About</a> ·
+      <a href="http://www.opalang.org/">Written in Opa</a> ·
+      <a href="http://github.com/alokmenghrajani/riskybird/">Fork on github.com</a> ·
+      <a href="http://regexplint.userecho.com/">Provide Feedback</a>
+    </p>
+    <div class="social-buttons"> </div>
+  </footer>
 }
 
 function bool contains(string haystack, string needle) {
@@ -145,8 +237,12 @@ server function do_svg(r) {
 
 function resource start(Uri.relative uri) {
   match (uri) {
-    case {path:{nil} ...}:
-      display()
+    case {path:{nil}, query:{nil} ...}:
+      display("")
+    case {path:{nil}, query:[("r",v)] ...}:
+      display(v)
+    case {path:["about"] ...}:
+      display_about()
     case {~path ...}:
       my_log(path)
       Resource.styled_page("Lost?", [], <>* &lt;------- you are here</>)

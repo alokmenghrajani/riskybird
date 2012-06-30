@@ -1,6 +1,43 @@
-.footer {
-    border-top: 1px solid #DDDDDD;
-    color: #777777;
-    height: 4em;
-    text-align: center;
+* {
+  margin:0;
 }
+
+html, body {
+  height: 100%;
+}
+
+#wrap {
+  min-height: 100%;
+  height: auto !important;
+  height: 100%;
+  margin: 0 auto -41px;
+}
+
+#main {
+  overflow: visible;
+  padding-bottom: 40px;
+  padding-top: 80px;
+}
+
+.push {
+  height: 41px;
+}
+
+.footer {
+  border-top: 1px solid #DDDDDD;
+  height: 40px;
+  color: #777777;
+  text-align: center;
+  margin: 0 auto;
+  clear:both;
+  width: 940px;
+}
+
+/*Opera Fix*/
+//body:before {/* thanks to Maleika (Kohoutec)*/
+//  content:"";
+//  height:100%;
+//  float:left;
+//  width:0;
+//  margin-top:-32767px;/* thank you Erik J - negate effect of float*/
+//}
