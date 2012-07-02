@@ -62,7 +62,7 @@ function resource display(string r) {
                     placeholder="Enter a regular expression"
                     style="width: 80%"
                     value="{r}"
-                    onkeyup={
+                    onnewline={
                       function(_){ do_work(); }
                     }/>
                 </div>
