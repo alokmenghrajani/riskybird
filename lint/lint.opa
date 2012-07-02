@@ -128,13 +128,13 @@ module RegexpLinterAnchor {
   function check_anchors get_anchor_alternative(alternative s, check_anchors r) {
     if (r.at_start == true) {
       match (s) {
-        case {~hd, ~tl}: get_anchor_term(hd, r)
+        case {~hd, tl:_}: get_anchor_term(hd, r)
         case []: {at_start:true, result:[false]}        // WTF!!
       }
     } else {
       match (s) {
         case [hd]: get_anchor_term(hd, r)
-        case {~hd, ~tl}: get_anchor_alternative(tl, r)
+        case {hd:_, ~tl}: get_anchor_alternative(tl, r)
         case []: {at_start:false, result:[false]}  // WTF!
       }
     }
@@ -143,14 +143,35 @@ module RegexpLinterAnchor {
   function check_anchors get_anchor_term(term term, check_anchors r) {
     if (r.at_start == true) {
       match (term) {
-        case {assertion: {anchor_start}}: {at_start:true, result:List.cons(true, r.result)}
-        case {assertion: {anchor_end}}: {at_start:true, result:List.cons(false, r.result)}
-        case {~atom, ...}: get_anchor_atom(atom, r)
+        case {assertion: {anchor_start}}:
+        {at_start:true, result:List.cons(true, r.result)}
+        case {assertion: {anchor_end}}:
+          {at_start:true, result:List.cons(false, r.result)}
+        case {assertion: {match_ahead:_}}:
+          {at_start:true, result:List.cons(true, r.result)}
+        case {assertion: {dont_match_ahead:_}}:
+          {at_start:true, result:List.cons(true, r.result)}
+        case {assertion: {match_word_boundary}}:
+          {at_start:true, result:List.cons(true, r.result)}
+        case {assertion: {dont_match_word_boundary}}:
+          {at_start:true, result:List.cons(true, r.result)}
+        case {~atom, ...}:
+          get_anchor_atom(atom, r)
       }
     } else {
       match (term) {
-        case {assertion: {anchor_start}}: {at_start:false, result:List.cons(false, r.result)}
-        case {assertion: {anchor_end}}: {at_start:false, result:List.cons(true, r.result)}
+        case {assertion: {anchor_start}}:
+          {at_start:false, result:List.cons(false, r.result)}
+        case {assertion: {anchor_end}}:
+          {at_start:false, result:List.cons(true, r.result)}
+        case {assertion: {match_ahead:_}}:
+          {at_start:true, result:List.cons(true, r.result)}
+        case {assertion: {dont_match_ahead:_}}:
+          {at_start:true, result:List.cons(true, r.result)}
+        case {assertion: {match_word_boundary}}:
+          {at_start:true, result:List.cons(true, r.result)}
+        case {assertion: {dont_match_word_boundary}}:
+          {at_start:true, result:List.cons(true, r.result)}
         case {~atom, ...}: get_anchor_atom(atom, r)
       }
     }
@@ -210,10 +231,29 @@ module RegexpLinterHelper {
       }
     }
 
+    function int escaped_char_to_int(escaped_char escaped_char) {
+      match (escaped_char) {
+        case {control_escape:_}: // TODO
+          32
+        case {control_letter:_}: // TODO
+          32
+        case {hex_escape_sequence:_}: // TODO
+          32
+        case {unicode_escape_sequence:_}: // TODO
+          32
+        case {~identity_escape}:
+          int_of_first_char(identity_escape)
+        case {~character_class_escape}:
+          int_of_first_char(character_class_escape)
+      }
+    }
+
     function intset set_to_charmap(class_range i, intset map) {
       match (i) {
         case {~char}:
           IntSet.add(int_of_first_char(char), map)
+        case {~escaped_char}:
+          IntSet.add(escaped_char_to_int(escaped_char), map)
         case {~start_char, ~end_char}:
           range_to_charmap(int_of_first_char(start_char), int_of_first_char(end_char), map)
       }
@@ -313,7 +353,7 @@ module RegexpLinter {
 
   function lint_result do_term(regexp re, term b, lint_result res) {
     match (b) {
-      case {~id, ~atom, ~quantifier, ~greedy}:
+      case {id:_, ~atom, ~quantifier, ~greedy}:
         // process quantifier
         res = do_quantifier(quantifier, greedy, res)
         // process atom

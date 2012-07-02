@@ -43,12 +43,18 @@ module RegexpFixUnreferencedGroup {
 
   function atom do_atom(atom atom, int id_to_match) {
     match (atom) {
-      case {id:_, ~group_id, ~group}:
+      case {~id, ~group_id, ~group}:
         if (group_id == id_to_match) {
-          // TODO: rename all the references!
-          {ncgroup:group}
+          ncgroup = regexp(group, id_to_match)
+          {~ncgroup}
         } else {
-          atom;
+          {~id, ~group_id, group:regexp(group, id_to_match)}
+        }
+      case {~group_ref}:
+        if (group_ref >= id_to_match) {
+          {group_ref: group_ref-1}
+        } else {
+          {~group_ref}
         }
       case _: atom
     }
