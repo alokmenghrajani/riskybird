@@ -35,8 +35,29 @@ function expect_fail(rule_str, s) {
   OK.ok_ko("test [{rule_str}]: {s}", Option.is_none(p))
 }
 
+function expect_lint_error(string rule_str, string s, int expected_lint_error) {
+  p = RegexpParser.parse(s)
+  match(p) {
+    case {none}: OK.fail("test [{rule_str}]: {s} FAILED TO PARSE!")
+    case {some: tree}:
+      lint_result r = RegexpLinter.regexp(tree)
+      OK.ok_ko("test [{rule_str}]: {s}", IntSet.mem(expected_lint_error, r.matched_rules))
+  }
+}
+
+function expect_clean_lint(string rule_str, string s) {
+  p = RegexpParser.parse(s)
+  match(p) {
+    case {none}: OK.fail("test [{rule_str}]: {s} FAILED TO PARSE!")
+    case {some: tree}:
+      lint_result r = RegexpLinter.regexp(tree)
+      OK.ok_ko("test [{rule_str}]: {s}", IntSet.is_empty(r.matched_rules))
+  }
+}
+
 // empty regexp
 expect_parse("empty regexp", "")
+expect_clean_lint("empty regexp", "")
 
 // alternatives
 expect_parse("alternative", "a|bde|efg")
@@ -53,6 +74,11 @@ expect_parse("word boundary", "\\Bthing")
 expect_parse("look ahead", "(?=abc|def)")
 expect_parse("look ahead", "(?!abc|def)")
 
+expect_lint_error("not always anchored", "^ab|c", 10);
+expect_lint_error("not always anchored", "ab|c$", 11);
+expect_lint_error("not always anchored", "^a$|b|c", 10);
+expect_lint_error("not always anchored", "^a$|b|c", 11);
+
 // quantifiers
 expect_parse("zero or more quantifier", "a*")
 expect_parse("one or more quantifier", "a+")
@@ -62,6 +88,9 @@ expect_parse("at least 20 quantifier", "a\{20,\}")
 expect_parse("range quantifier", "a\{4,4\}")
 expect_parse("range quantifier", "a\{4,100\}")
 
+expect_lint_error("invalid quantifier", "a\{4,2\}", 1)
+expect_lint_error("possible improvement", "a\{4,4\}", 2)
+
 // non greedy quantifiers
 expect_parse("zero or more non greedy", "x??")
 expect_parse("non greedy one or more quantifier", "a+?")
@@ -70,6 +99,8 @@ expect_parse("non greedy exactly 4 quantifier", "a\{4\}?")
 expect_parse("non greedy at least 20 quantifier", "a\{20,\}?")
 expect_parse("non greedy range quantifier", "a\{4,4\}?")
 expect_parse("non greedy range quantifier", "a\{4,100\}?")
+
+expect_lint_error("non greedy exactly 4 quantifier", "a\{4\}?", 3)
 
 // atoms
 expect_parse("dot", "a.c")
@@ -84,6 +115,12 @@ expect_parse("special characters", "a\\S");
 expect_parse("special characters", "a\\w");
 expect_parse("special characters", "a\\W");
 
+expect_lint_error("group which doesn't exist", "(a)\\2", 4)
+expect_lint_error("group which doesn't yet exist", "\\1(a)", 4)
+expect_lint_error("group which doesn't yet exist", "(a\\1)", 4)
+expect_lint_error("group which doesn't yet exist", "((a)\\1)", 4)
+expect_lint_error("group not referenced", "(a)", 8)
+
 // character sets and ranges
 expect_parse("a set of characters", "[abc]")
 expect_parse("a range of characters", "[a-m]")
@@ -97,6 +134,19 @@ expect_parse("middle -", "[a-c-e]")
 expect_parse("end -", "[abc-]")
 expect_parse("special characters", "[?.]")
 expect_parse("special characters in a range", "[.-?]")
+
+expect_lint_error("overlapping ranges", "[a-mb-z]", 9)
+expect_lint_error("included ranges", "[a-md-g]", 9)
+expect_lint_error("character from range", "[a-zx]", 9)
+expect_lint_error("duplicate character", "[xabcx]", 9)
+expect_lint_error("contiguous ranges", "[a-cde-f]", 9)
+expect_lint_error("repeated ranges", "[a-ca-c]", 9)
+
+expect_lint_error("complex overlapping", "[fg-ia-ec-j]", 9)
+expect_lint_error("complex inclusion", "[fg-ia-ec-h]", 9)
+expect_lint_error("invalid range", "[z-a]", 5)
+expect_lint_error("useless range", "[x-x]", 6)
+expect_lint_error("lazyness", "[0-9A-z]", 7)
 
 // escape characters
 expect_parse("control escape", "a\\n")
