@@ -46,3 +46,11 @@ function bool list_check_all_same(list('a) l) {
   )
   t.result
 }
+
+/**
+ * Returns true if haystack contains needle.
+ */
+function bool contains(string haystack, string needle) {
+  Option.is_some(String.strpos(needle, haystack))
+}
+

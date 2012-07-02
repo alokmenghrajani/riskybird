@@ -25,6 +25,14 @@
 import stdlib.themes.bootstrap
 import stdlib.web.client
 
+/**
+ * Renders the main page.
+ *
+ * The page contains an input forms field and a few example links.
+ *
+ * - the svg rendering gets stuffed in #parser_output
+ * - the lint results are put in #lint_output
+ */
 function resource display(string r) {
   Resource.styled_page(
     "RegexpLint",
@@ -38,7 +46,7 @@ function resource display(string r) {
         </div>
       </div>
 
-      <div id="main" class="container" onready={function(_){ready()}}>
+      <div id="main" class="container" onready={function(_){check_regexp()}}>
         <section id="info">
           <p class="lead">
             RegexpLint helps you understand and analyze regular expressions.<br/>
@@ -62,9 +70,7 @@ function resource display(string r) {
                     placeholder="Enter a regular expression"
                     style="width: 80%"
                     value="{r}"
-                    onnewline={
-                      function(_){ do_work(); }
-                    }/>
+                    onnewline={function(_){check_regexp()}}/>
                 </div>
                 <br/>
               </div>
@@ -74,15 +80,9 @@ function resource display(string r) {
                 <div id=#parser_output/>
               </div>
             </div>
-            <div class="row"><div class="span12"><br/></div></div>
-            <div class="row hide" id=#lint>
-              <div class="span4">
-                <h3>Lint errors & warnings</h3>
-                <p>
-                  The automated rules have detected one or more violations.
-                </p>
-              </div>
-              <div class="span8" id=#lint_rules/>
+            <div class="row" style="margin-top: 12px">
+              <div class="span4" id=#lint_output/>
+              <div class="span8">&nbsp;</div>
             </div>
         </section>
       </div>
@@ -93,6 +93,9 @@ function resource display(string r) {
   )
 }
 
+/**
+ * Our nice little about page.
+ */
 function resource display_about() {
   Resource.styled_page(
     "RegexpLint | About",
@@ -105,7 +108,7 @@ function resource display_about() {
           </div>
         </div>
       </div>
-      <div id="main" class="container" onready={function(_){ready()}}>
+      <div id="main" class="container">
         <section id="about">
           <div class="row">
             <div class="span4">&nbsp;</div>
@@ -176,6 +179,9 @@ function resource display_about() {
   )
 }
 
+/**
+ * Shared footer.
+ */
 function xhtml display_footer() {
   <footer class="footer">
     <p>
@@ -188,20 +194,9 @@ function xhtml display_footer() {
   </footer>
 }
 
-function bool contains(string haystack, string needle) {
-  Option.is_some(String.strpos(needle, haystack))
-}
-
-function ready() {
-  do_work()
-  void
-}
-
-function do_work() {
-  check_regexp()
-}
-
-/*
+/**
+ * Runs the lint engine.
+ */
 function void linter_run(option(regexp) tree_opt) {
   l =
     match(tree_opt) {
@@ -211,28 +206,29 @@ function void linter_run(option(regexp) tree_opt) {
         RegexpLinterRender.render(status)
      }
   if (Option.is_some(l)) {
-    Dom.remove_class(#lint, "hide")
-    _ = Dom.put_replace(#lint_rules, Dom.of_xhtml(Option.get(l)))
-    void
+    #lint_output = Option.get(l)
   } else {
-    Dom.add_class(#lint, "hide")
-    Dom.remove_content(#lint_rules)
-    void
+    #lint_output = <></>
   }
 }
-*/
 
+/**
+ * Parses the regexp and then:
+ * - renders it (using the SvgPrinter)
+ * - runs it throught the lint engine
+ */
 client function void check_regexp() {
   string regexp = Dom.get_value(#regexp)
   parsed_regexp = RegexpParser.parse(regexp)
+
+  // hack required because we currently can't render the svg on the client side
   do_svg(parsed_regexp)
-//  linter_run(parsed_regexp)
-  void
+
+  linter_run(parsed_regexp)
 }
 
-server function do_svg(r) {
-  #parser_output = RegexpSvgPrinter.pretty_print(r)
-  void;
+server function void do_svg(parsed_regexp) {
+  #parser_output = RegexpSvgPrinter.pretty_print(parsed_regexp)
 }
 
 function resource start(Uri.relative uri) {

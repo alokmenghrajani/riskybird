@@ -3,6 +3,26 @@
  *
  * The purpose of the lint engine is to detect common mistakes people make when
  * composing regular expressions.
+ *
+ *
+ *
+ *   This file is part of RiskyBird
+ *
+ *   RiskyBird is free software: you can redistribute it and/or modify
+ *   it under the terms of the GNU Affero General Public License as published by
+ *   the Free Software Foundation, either version 3 of the License, or
+ *   (at your option) any later version.
+ *
+ *   RiskyBird is distributed in the hope that it will be useful,
+ *   but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *   GNU Affero General Public License for more details.
+ *
+ *   You should have received a copy of the GNU Affero General Public License
+ *   along with RiskyBird.  If not, see <http://www.gnu.org/licenses/>.
+ *
+ * @author Julien Verlaguet
+ * @author Alok Menghrajani
  */
 
 /* The status of the linter */
@@ -33,14 +53,10 @@ module RegexpLinterRender {
               <>i.e. {some}</>
             }
             <>
-              <div class="alert-message block-message warning">
-                <p>
-                  <span class="icon32 icon-alert"/>
-                  <strong>{error.title}</strong><br/>
-                  {error.body}<br/>
-                  {patch}
-                </p>
-                <div class="alert-actions"/>
+              <div class="alert alert-error">
+                <strong>{error.title}</strong><br/>
+                {error.body}<br/>
+                {patch}
               </div>
               {r}
             </>
@@ -48,7 +64,7 @@ module RegexpLinterRender {
           result.errors,
           <></>
         )
-        {some: <div id="lint_rules" class="span8">{t}</div>}
+        {some: <>{t}</>}
     }
   }
 }
@@ -124,25 +140,25 @@ module RegexpLinterAnchor {
     }
   }
 
-  function check_anchors get_anchor_term(term b, check_anchors r) {
+  function check_anchors get_anchor_term(term term, check_anchors r) {
     if (r.at_start == true) {
-      match (b) {
-        case {anchor_start}: {at_start:true, result:List.cons(true, r.result)}
-        case {anchor_end}: {at_start:true, result:List.cons(false, r.result)}
-        case {~belt, ...}: get_anchor_atom(belt, r)
+      match (term) {
+        case {assertion: {anchor_start}}: {at_start:true, result:List.cons(true, r.result)}
+        case {assertion: {anchor_end}}: {at_start:true, result:List.cons(false, r.result)}
+        case {~atom, ...}: get_anchor_atom(atom, r)
       }
     } else {
-      match (b) {
-        case {anchor_start}: {at_start:false, result:List.cons(false, r.result)}
-        case {anchor_end}: {at_start:false, result:List.cons(true, r.result)}
-        case {~belt, ...}: get_anchor_atom(belt, r)
+      match (term) {
+        case {assertion: {anchor_start}}: {at_start:false, result:List.cons(false, r.result)}
+        case {assertion: {anchor_end}}: {at_start:false, result:List.cons(true, r.result)}
+        case {~atom, ...}: get_anchor_atom(atom, r)
       }
     }
   }
 
-  function check_anchors get_anchor_atom(atom belt, check_anchors r) {
-    match (belt) {
-      case {~egroup, ...}: get_anchor_regexp(egroup, r)
+  function check_anchors get_anchor_atom(atom atom, check_anchors r) {
+    match (atom) {
+      case {~group, ...}: get_anchor_regexp(group, r)
       case {~ncgroup, ...}: get_anchor_regexp(ncgroup, r)
       case _: {at_start: r.at_start, result: List.cons(false, r.result)}
     }
@@ -172,7 +188,7 @@ module RegexpLinterHelper {
           lint_rule: 8,
           title: "unused group",
           body: "some groups are not referenced, consider using (?:...)",
-          patch: {some: RegexpStringPrinter.print_alternative_list(new_regexp)}
+          patch: {some: RegexpStringPrinter.print_regexp(new_regexp)}
         }
         RegexpLinter.add(res, err)
     }
@@ -194,43 +210,43 @@ module RegexpLinterHelper {
       }
     }
 
-    function intset set_to_charmap(item i, intset map) {
+    function intset set_to_charmap(class_range i, intset map) {
       match (i) {
-        case {~ichar}:
-          IntSet.add(int_of_first_char(ichar), map)
-        case {irange: {~rstart, ~rend}}:
-          range_to_charmap(int_of_first_char(rstart), int_of_first_char(rend), map)
+        case {~char}:
+          IntSet.add(int_of_first_char(char), map)
+        case {~start_char, ~end_char}:
+          range_to_charmap(int_of_first_char(start_char), int_of_first_char(end_char), map)
       }
     }
 
-    recursive function (list(item), map) charmap_to_range(int min, int max, intset map, list(item) items) {
+    recursive function (list(class_range), map) charmap_to_range(int min, int max, intset map, list(class_range) class_ranges) {
       map = IntSet.remove(max, map)
       if (IntSet.mem(max+1, map)) {
-        charmap_to_range(min, max+1, map, items)
+        charmap_to_range(min, max+1, map, class_ranges)
       } else if (min == max) {
-        item = {ichar: textToString(Text.from_character(min))}
-        items = List.cons(item, items)
-        (items, map)
+        class_range = {char: textToString(Text.from_character(min))}
+        class_ranges = List.cons(class_range, class_ranges)
+        (class_ranges, map)
       } else if (min+1 == max) {
-        item = {ichar: textToString(Text.from_character(min))}
-        items = List.cons(item, items)
-        item = {ichar: textToString(Text.from_character(max))}
-        items = List.cons(item, items)
-        (items, map)
+        class_range = {char: textToString(Text.from_character(min))}
+        class_ranges = List.cons(class_range, class_ranges)
+        class_range = {char: textToString(Text.from_character(max))}
+        class_ranges = List.cons(class_range, class_ranges)
+        (class_ranges, map)
       } else {
-        item = {irange: {rstart: textToString(Text.from_character(min)), rend: textToString(Text.from_character(max))}}
-        items = List.cons(item, items)
-        (items, map)
+        class_range = {start_char: textToString(Text.from_character(min)), end_char: textToString(Text.from_character(max))}
+        class_ranges = List.cons(class_range, class_ranges)
+        (class_ranges, map)
       }
     }
 
-    recursive function charmap_to_set(intset map, list(item) items) {
+    recursive function charmap_to_set(intset map, list(class_range) class_ranges) {
       if (IntSet.is_empty(map)) {
-        items;
+        class_ranges;
       } else {
         (int min, _) = IntMap.min_binding(map)
-        (items, map) = charmap_to_range(min, min, map, items)
-        charmap_to_set(map, items)
+        (class_ranges, map) = charmap_to_range(min, min, map, class_ranges)
+        charmap_to_set(map, class_ranges)
       }
     }
 
@@ -240,18 +256,18 @@ module RegexpLinterHelper {
       // if rules 5, 6 or 7 matched, we'll skip this one.
       res;
     } else {
-      map = List.fold(set_to_charmap, set.items, IntMap.empty)
-      new_set = {set with items: List.rev(charmap_to_set(map, []))}
+      map = List.fold(set_to_charmap, set.class_ranges, IntMap.empty)
+      new_set = {set with class_ranges: List.rev(charmap_to_set(map, []))}
 
-      s1 = RegexpStringPrinter.print_set(new_set)
-      s2 = RegexpStringPrinter.print_set(set)
+      s1 = RegexpStringPrinter.print_character_class(new_set)
+      s2 = RegexpStringPrinter.print_character_class(set)
       if (s1 != s2) {
         regexp new_regexp = RegexpFixNonOptimalCharacterRange.regexp(re, character_class_id, new_set)
         err = {
           lint_rule: 9,
           title: "non optimal character range",
           body: "shorter way to write {s2}: {s1}",
-          patch: {some: RegexpStringPrinter.print_alternative_list(new_regexp)}
+          patch: {some: RegexpStringPrinter.print_regexp(new_regexp)}
         }
         RegexpLinter.add(res, err)
       } else {
@@ -297,11 +313,11 @@ module RegexpLinter {
 
   function lint_result do_term(regexp re, term b, lint_result res) {
     match (b) {
-      case {~id, ~belt, ~bpost, ~greedy}:
+      case {~id, ~atom, ~quantifier, ~greedy}:
         // process quantifier
-        res = do_quantifier(bpost, greedy, res)
+        res = do_quantifier(quantifier, greedy, res)
         // process atom
-        do_atom(re, belt, res)
+        do_atom(re, atom, res)
       case _:
         res
     }
@@ -329,7 +345,7 @@ module RegexpLinter {
         } else {
           res;
         }
-      case {exact:_}:
+      case {exactly:_}:
         if (greedy == false) {
           err = {
             lint_rule: 3,
@@ -346,10 +362,10 @@ module RegexpLinter {
     }
   }
 
-  function lint_result do_atom(regexp re, atom e, lint_result res) {
-    match (e) {
-      case {id:_, ~group_id, ~egroup}:
-        res = do_regexp(egroup, res)
+  function lint_result do_atom(regexp re, atom atom, lint_result res) {
+    match (atom) {
+      case {id:_, ~group_id, ~group}:
+        res = do_regexp(group, res)
         {res with groups: IntSet.add(group_id, res.groups)}
       case {~group_ref}:
         res = if (IntSet.mem(group_ref, res.groups)) {
@@ -364,34 +380,34 @@ module RegexpLinter {
           add(res, err)
         }
         {res with groups_referenced: IntSet.add(group_ref, res.groups_referenced)}
-      case {~id, ~eset}:
-        res = List.fold(do_item, eset.items, res)
-        RegexpLinterHelper.check_set(re, id, eset, res)
+      case {~id, ~char_class}:
+        res = List.fold(do_item, char_class.class_ranges, res)
+        RegexpLinterHelper.check_set(re, id, char_class, res)
       case _:
         res
     }
   }
 
-  function lint_result do_item(item i, lint_result res) {
+  function lint_result do_item(class_range i, lint_result res) {
     match (i) {
-      case {irange: r}:
-        if (r.rstart > r.rend) {
+      case {~start_char, ~end_char}:
+        if (start_char > end_char) {
           err = {
             lint_rule: 5,
             title: "invalid range in character class",
-            body: "[{r.rstart}-{r.rend}] is invalid.",
+            body: "[{start_char}-{end_char}] is invalid.",
             patch: {none}
           }
           add(res, err)
-        } else if (r.rstart == r.rend) {
+        } else if (start_char == end_char) {
           err = {
             lint_rule: 6,
             title: "useless range in character class",
-            body: "[{r.rstart}-{r.rend}] is useless.",
+            body: "[{start_char}-{end_char}] is useless.",
             patch: {none}
           }
           add(res, err)
-        } else if (r.rstart == "A" && r.rend == "z") {
+        } else if (start_char == "A" && end_char == "z") {
           err = {
             lint_rule: 7,
             title: "programmer laziness",
