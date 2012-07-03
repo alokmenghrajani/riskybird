@@ -25,20 +25,36 @@
  * @author Alok Menghrajani
  */
 
+import stdlib.web.client
+
 /* The status of the linter */
 type lint_result = {
-  intset matched_rules,
+  set(lint_rule_type) matched_rules,
   list(lint_error) errors,
   intset groups,
   intset groups_referenced,
 }
 
-type lint_error = {
-  int lint_rule,
+/* A lint error */
+and lint_error = {
+  lint_rule_type lint_rule,
   string title,
   string body,
+  string class,
   option(string) patch,
 }
+
+and lint_rule_type =
+  { inconsistent_start_anchors } or
+  { inconsistent_end_anchors } or
+  { unused_group } or
+  { incorrect_reference } or
+  { incorrect_quantifier } or
+  { non_ideal_quantifier } or
+  { useless_non_greedy } or
+  { invalid_range_in_character_class } or
+  { non_optimal_class_range } or
+  { lazy_character_class }
 
 module RegexpLinterRender {
   function option(xhtml) render(lint_result result) {
@@ -47,25 +63,30 @@ module RegexpLinterRender {
       case _:
         t = List.fold(
           function(error, r) {
-            patch = match (error.patch) {
-              case {none}: <></>
-              case {~some}:
-              <>i.e. {some}</>
-            }
-            <>
-              <div class="alert alert-error">
-                <strong>{error.title}</strong><br/>
-                {error.body}<br/>
-                {patch}
-              </div>
-              {r}
-            </>
+            <>{r}{render_lint(error)}</>
           },
           result.errors,
-          <></>
-        )
+          <></>)
         {some: <>{t}</>}
     }
+  }
+
+  client function xhtml render_lint(lint_error error) {
+    patch = match (error.patch) {
+      case {none}: <></>
+      case {~some}:
+        <>
+          <a href="/?r={Uri.encode_string(some)}" class="btn btn-mini btn-success pull-right">
+            apply fix
+          </a>
+          <br/>
+        </>
+    }
+    <div class="alert {error.class}">
+      <strong>{error.title}</strong><br/>
+      {error.body}<br/>
+      {patch}
+    </div>
   }
 }
 
@@ -102,16 +123,18 @@ module RegexpLinterAnchor {
     if (ok == false) {
       err = if (at_start) {
         {
-          lint_rule: 10,
+          lint_rule: {inconsistent_start_anchors},
           title: "inconsistent anchors",
           body: "start anchor is only applied in some cases",
+          class: "alert-info",
           patch: {none}
         }
       } else {
         {
-          lint_rule: 11,
+          lint_rule: {inconsistent_end_anchors},
           title: "inconsistent anchors",
           body: "end anchor is only applied in some cases",
+          class: "alert-info",
           patch: {none}
         }
       }
@@ -207,9 +230,10 @@ module RegexpLinterHelper {
       case {some: unused_group}:
         regexp new_regexp = RegexpFixUnreferencedGroup.regexp(re, unused_group)
         err = {
-          lint_rule: 8,
+          lint_rule: {unused_group},
           title: "unused group",
-          body: "some groups are not referenced, consider using (?:...)",
+          body: "some groups are not referenced, consider using non capturing groups: (?:...)",
+          class: "",
           patch: {some: RegexpStringPrinter.print_regexp(new_regexp)}
         }
         RegexpLinter.add(res, err)
@@ -291,9 +315,9 @@ module RegexpLinterHelper {
       }
     }
 
-    if (IntSet.mem(5, res.matched_rules) ||
-        IntSet.mem(6, res.matched_rules) ||
-        IntSet.mem(7, res.matched_rules)) {
+    if (Set.mem({invalid_range_in_character_class}, res.matched_rules) ||
+        Set.mem({non_optimal_class_range}, res.matched_rules) ||
+        Set.mem({lazy_character_class}, res.matched_rules)) {
       // if rules 5, 6 or 7 matched, we'll skip this one.
       res;
     } else {
@@ -305,9 +329,10 @@ module RegexpLinterHelper {
       if (s1 != s2) {
         regexp new_regexp = RegexpFixNonOptimalCharacterRange.regexp(re, character_class_id, new_set)
         err = {
-          lint_rule: 9,
+          lint_rule: {non_optimal_class_range},
           title: "non optimal character range",
           body: "shorter way to write {s2}: {s1}",
+          class: "",
           patch: {some: RegexpStringPrinter.print_regexp(new_regexp)}
         }
         RegexpLinter.add(res, err)
@@ -321,10 +346,10 @@ module RegexpLinterHelper {
 module RegexpLinter {
 
   function lint_result add(lint_result current, lint_error error) {
-    if (IntSet.mem(error.lint_rule, current.matched_rules)) {
+    if (Set.mem(error.lint_rule, current.matched_rules)) {
       current;
     } else {
-      matched_rules = IntSet.add(error.lint_rule, current.matched_rules)
+      matched_rules = Set.add(error.lint_rule, current.matched_rules)
       errors = List.cons(error, current.errors)
       {current with ~matched_rules, ~errors}
     }
@@ -332,7 +357,7 @@ module RegexpLinter {
 
   function lint_result regexp(regexp re) {
     lint_result res = {
-      matched_rules: IntSet.empty,
+      matched_rules: Set.empty,
       errors: [],
       groups: IntSet.empty,
       groups_referenced: IntSet.empty
@@ -369,17 +394,19 @@ module RegexpLinter {
       case {~min, ~max}:
         if (min > max) {
           err = {
-            lint_rule: 1,
+            lint_rule: {incorrect_quantifier},
             title: "incorrect quantifier",
             body: "min is greater than max",
+            class: "alert-error",
             patch: {none}
           }
           add(res, err)
         } else if (min == max) {
           err = {
-            lint_rule: 2,
+            lint_rule: {non_ideal_quantifier},
             title: "improve the quantifier",
             body: "\{{min},{max}\} can be written as \{{min}\}",
+            class: "",
             patch: {none}
           }
           add(res, err)
@@ -389,9 +416,10 @@ module RegexpLinter {
       case {exactly:_}:
         if (greedy == false) {
           err = {
-            lint_rule: 3,
+            lint_rule: {useless_non_greedy},
             title: "useless non greedy",
             body: "when matching an exact amount, using non greddy makes no sense",
+            class: "",
             patch: {none}
           }
           add(res, err)
@@ -415,9 +443,10 @@ module RegexpLinter {
           res;
         } else {
           err = {
-            lint_rule: 4,
+            lint_rule: {incorrect_reference},
             title: "incorrect reference",
             body: "\\{group_ref} refers to an invalid capture group",
+            class: "alert-error",
             patch: {none}
           }
           add(res, err)
@@ -436,25 +465,28 @@ module RegexpLinter {
       case {~start_char, ~end_char}:
         if (start_char > end_char) {
           err = {
-            lint_rule: 5,
+            lint_rule: {invalid_range_in_character_class},
             title: "invalid range in character class",
             body: "[{start_char}-{end_char}] is invalid.",
+            class: "alert-error",
             patch: {none}
           }
           add(res, err)
         } else if (start_char == end_char) {
           err = {
-            lint_rule: 6,
+            lint_rule: {non_optimal_class_range},
             title: "useless range in character class",
             body: "[{start_char}-{end_char}] is useless.",
+            class: "",
             patch: {none}
           }
           add(res, err)
         } else if (start_char == "A" && end_char == "z") {
           err = {
-            lint_rule: 7,
+            lint_rule: {lazy_character_class},
             title: "programmer laziness",
             body: "When you write A-z instead of A-Za-z, you are matching on 6 extra characters!",
+            class: "",
             patch: {none}
           }
           add(res, err)

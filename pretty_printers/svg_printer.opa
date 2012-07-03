@@ -179,11 +179,13 @@ module RegexpSvgPrinter {
       width = 10 + String.length(node.label)*7
       height = 30
       c = Color.color_to_string(node.color)
-      s2 = "fill:{c};font-size: 15px;text-anchor:middle;"
+      s1 = "fill:{c};font-size: 15px;text-anchor:middle;"
+      s2 = "fill:{c};font-size: 10px;text-anchor:middle;"
       <>
         <svg:rect x={x-width/2} y={y-height/2} rx="20" ry="20" width={width} height={height}
           style="fill:none; stroke:{c};stroke-width:1"/>
-        <svg:text x={x} y={y+5} style="{s2}">{node.label}</svg:text>
+        <svg:text x={x} y={y+5} style="{s1}">{node.label}</svg:text>
+        <svg:text x={x} y={y-20} style="{s2}">{node.extra}</svg:text>
       </>
     }
 
@@ -214,10 +216,13 @@ module RegexpSvgPrinter {
           case {none}:
             <></>
         }
+        s = "fill:blue;font-size: 10px;text-anchor:end;"
+
         <>
           {rect}
           {text}
           {items}
+          <svg:text x={seq.x+seq.width-2} y={seq.y+10} style="{s}">{seq.extra}</svg:text>
         </>
     }
   }
@@ -300,6 +305,7 @@ type SvgElement =
 
 and SvgNode =
   { string label,
+    xhtml extra,
     int width,
     int height,
     int x,
@@ -313,6 +319,7 @@ and SvgChoice =
 
 and SvgSeq =
   { option(string) group_id,
+    xhtml extra,
     int width,
     int height,
     int x,
@@ -334,45 +341,62 @@ module RegexpToSvg {
 
   function SvgElement alternative(alternative s) {
     items = List.map(term, s)
-    {seq: {group_id: {none}, width: 0, height: 0, x: 0, y: 0, border: 0, ~items}}
+    {seq: {group_id: {none}, width: 0, height: 0, x: 0, y: 0, border: 0, ~items, extra: <></>}}
   }
 
   function SvgElement term(term b) {
     match (b) {
       // todo: we are currently dropping the quantifier
-      case {~atom, ...}: do_atom(atom)
-      case {assertion: {anchor_start}}: {node: {label: "^", width: 0, height: 0, x: 0, y: 0, color: Color.cadetblue}}
-      case {assertion: {anchor_end}}: {node: {label: "$", width: 0, height: 0, x: 0, y: 0, color: Color.cadetblue}}
-      case {assertion: {match_word_boundary}}: {node: {label: "\\b", width: 0, height: 0, x: 0, y: 0, color: Color.cadetblue}}
-      case {assertion: {dont_match_word_boundary}}: {node: {label: "\\B", width: 0, height: 0, x: 0, y: 0, color: Color.cadetblue}}
+      case {~atom, ~quantifier, ...}: do_atom(atom, quantifier)
+      case {assertion: {anchor_start}}: {node: {label: "^", extra: <></>, width: 0, height: 0, x: 0, y: 0, color: Color.cadetblue}}
+      case {assertion: {anchor_end}}: {node: {label: "$", extra: <></>, width: 0, height: 0, x: 0, y: 0, color: Color.cadetblue}}
+      case {assertion: {match_word_boundary}}: {node: {label: "\\b", extra: <></>, width: 0, height: 0, x: 0, y: 0, color: Color.cadetblue}}
+      case {assertion: {dont_match_word_boundary}}: {node: {label: "\\B", extra: <></>, width: 0, height: 0, x: 0, y: 0, color: Color.cadetblue}}
       case {assertion: {~match_ahead}}:
-        {seq: {group_id: {some: "?="}, width: 0, height: 0, x: 0, y: 0, border: 20, items: [regexp(match_ahead)]}}
+        {seq: {group_id: {some: "?="}, width: 0, height: 0, x: 0, y: 0, border: 20, items: [regexp(match_ahead)], extra: <></>}}
       case {assertion: {~dont_match_ahead}}:
-        {seq: {group_id: {some: "?!"}, width: 0, height: 0, x: 0, y: 0, border: 20, items: [regexp(dont_match_ahead)]}}
+        {seq: {group_id: {some: "?!"}, width: 0, height: 0, x: 0, y: 0, border: 20, items: [regexp(dont_match_ahead)], extra: <></>}}
     }
   }
 
-  function SvgElement do_atom(atom atom) {
+  function SvgElement do_atom(atom atom, quantifier quantifier) {
+    extra = do_quantifier(quantifier)
+
     match (atom) {
       case {~char}:
-        {node: {label: char, width: 0, height: 0, x:0, y: 0, color: Color.black}}
+        {node: {label: char, ~extra, width: 0, height: 0, x:0, y: 0, color: Color.black}}
       case {dot}:
-        {node: {label: ".", width: 0, height: 0, x:0, y: 0, color: Color.cadetblue}}
+        {node: {label: ".", ~extra, width: 0, height: 0, x:0, y: 0, color: Color.cadetblue}}
       case {~character_class_escape}:
-        {node: {label: "\\{character_class_escape}", width:0, height:0, x:0, y:0, color: Color.cadetblue}}
+        {node: {label: "\\{character_class_escape}", ~extra, width:0, height:0, x:0, y:0, color: Color.cadetblue}}
       case {~escaped_char}:
-        do_escaped_char(escaped_char)
-      case {~group_ref}: {node: {label: "\\{group_ref}", width: 0, height: 0, x:0, y: 0, color: Color.cadetblue}}
+        do_escaped_char(escaped_char, extra)
+      case {~group_ref}: {node: {label: "\\{group_ref}", ~extra, width: 0, height: 0, x:0, y: 0, color: Color.cadetblue}}
       case {~group, ~group_id, ...}:
-        {seq: {group_id: {some: "{group_id}"}, width: 0, height: 0, x: 0, y: 0, border: 20, items: [regexp(group)]}}
+        {seq: {group_id: {some: "{group_id}"}, width: 0, height: 0, x: 0, y: 0, border: 20,
+          items: [regexp(group)], ~extra
+        }}
       case {~ncgroup, ...}:
-        {seq: {group_id: {none}, width: 0, height: 0, x: 0, y: 0, border: 20, items: [regexp(ncgroup)]}}
+        {seq: {group_id: {none}, width: 0, height: 0, x: 0, y: 0, border: 20, items: [regexp(ncgroup)],
+          ~extra}}
       case {~char_class, ...}:
-        do_character_class(char_class)
+        do_character_class(char_class, extra)
     }
   }
 
-  function do_character_class(character_class char_class) {
+  function xhtml do_quantifier(quantifier quantifier) {
+    match (quantifier) {
+      case {noop}: <></>
+      case {star}: <>&infin;</>
+      case {plus}: <>1-&infin;</>
+      case {qmark}: <>0-1</>
+      case {exactly: x}: <>{x}</>
+      case {at_least: x}: <>{x}-&infin;</>
+      case {~min, ~max}: <>{min}-{max}</>
+    }
+  }
+
+  function do_character_class(character_class char_class, xhtml extra) {
     t1 = List.map(
       function(item) {
         match (item) {
@@ -389,7 +413,7 @@ module RegexpToSvg {
     } else {
       "[{t2}]"
     }
-    {node: {label: s, width: 0, height: 0, x:0, y: 0, color: Color.black}}
+    {node: {label: s, ~extra, width: 0, height: 0, x:0, y: 0, color: Color.black}}
   }
 
   function string join(list(string) l, string glue) {
@@ -411,9 +435,9 @@ module RegexpToSvg {
     }
   }
 
-  function SvgElement do_escaped_char(escaped_char escaped_char) {
+  function SvgElement do_escaped_char(escaped_char escaped_char, xhtml extra) {
     c = print_escaped_char(escaped_char)
-    {node: {label: c, width:0, height:0, x:0, y:0, color: Color.cadetblue}}
+    {node: {label: c, ~extra, width:0, height:0, x:0, y:0, color: Color.cadetblue}}
   }
 }
 

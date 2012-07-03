@@ -23,7 +23,6 @@
  */
 
 import stdlib.themes.bootstrap
-import stdlib.web.client
 
 /**
  * Renders the main page.
@@ -54,8 +53,8 @@ function resource display(string r) {
           </p>
           <p>
             Try <a href="/?r=%5ea.*%7cb%24">example 1</a> ·
-            <a href="/?r=[a-cd]">example 2</a> ·
-            <a href="/?r=(abc).(efg).%5c2">example 3</a> or
+            <a href="/?r=a%28bc%3F%7C%5Bd-e%5D%29%7B4%2C%7Df">example 2</a> ·
+            <a href="/?r=(abc).(efg).%5c2%5c4">example 3</a> or
           </p>
         </section>
 
@@ -70,7 +69,8 @@ function resource display(string r) {
                     placeholder="Enter a regular expression"
                     style="width: 80%"
                     value="{r}"
-                    onnewline={function(_){check_regexp()}}/>
+                    onnewline={function(_){check_regexp()}}
+                  />
                 </div>
                 <br/>
               </div>
@@ -219,12 +219,19 @@ function void linter_run(option(regexp) tree_opt) {
  */
 client function void check_regexp() {
   string regexp = Dom.get_value(#regexp)
-  parsed_regexp = RegexpParser.parse(regexp)
 
-  // hack required because we currently can't render the svg on the client side
-  do_svg(parsed_regexp)
+  // easter egg
+  if (regexp == "xkcd") {
+    #parser_output = <img src="http://imgs.xkcd.com/comics/regular_expressions.png "/>
+    #lint_output = <></>
+  } else {
+    parsed_regexp = RegexpParser.parse(regexp)
 
-  linter_run(parsed_regexp)
+    // hack required because we currently can't render the svg on the client side
+    do_svg(parsed_regexp)
+
+    linter_run(parsed_regexp)
+  }
 }
 
 server function void do_svg(parsed_regexp) {
