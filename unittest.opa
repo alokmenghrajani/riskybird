@@ -120,6 +120,7 @@ expect_lint_error("group which doesn't yet exist", "\\1(a)", 4)
 expect_lint_error("group which doesn't yet exist", "(a\\1)", 4)
 expect_lint_error("group which doesn't yet exist", "((a)\\1)", 4)
 expect_lint_error("group not referenced", "(a)", 8)
+expect_lint_error("group not referenced", "((x) (y))\\1\\2", 8)
 
 // character sets and ranges
 expect_parse("a set of characters", "[abc]")
@@ -173,3 +174,4 @@ expect_fail("invalid quantifier", "a\{-4,\}")
 expect_fail("invalid quantifier", "a\{-4\}")
 
 expect_fail("invalid character", "a//")
+

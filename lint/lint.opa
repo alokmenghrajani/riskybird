@@ -200,7 +200,8 @@ module RegexpLinterHelper {
         {some: x}
       }
     }
-    t = f(IntSet.height(res.groups), res.groups_referenced)
+
+    t = f(IntSet.size(res.groups), res.groups_referenced)
     match (t) {
       case {none}: res
       case {some: unused_group}:
@@ -351,8 +352,8 @@ module RegexpLinter {
     List.fold(function(e,r){do_term(re, e, r)}, s, res)
   }
 
-  function lint_result do_term(regexp re, term b, lint_result res) {
-    match (b) {
+  function lint_result do_term(regexp re, term term, lint_result res) {
+    match (term) {
       case {id:_, ~atom, ~quantifier, ~greedy}:
         // process quantifier
         res = do_quantifier(quantifier, greedy, res)
@@ -407,6 +408,8 @@ module RegexpLinter {
       case {id:_, ~group_id, ~group}:
         res = do_regexp(group, res)
         {res with groups: IntSet.add(group_id, res.groups)}
+      case {~ncgroup}:
+        do_regexp(ncgroup, res)
       case {~group_ref}:
         res = if (IntSet.mem(group_ref, res.groups)) {
           res;

@@ -83,6 +83,10 @@ module RegexpAssignId {
         st2 = {term_id: st.term_id+1, group_id: st.group_id+1}
         t = regexp(st2, group)
         do_wrap(t.st, {id: st.term_id, group_id: st.group_id, group: t.v})
+      case {~ncgroup}:
+        st2 = {term_id: st.term_id+1, group_id: st.group_id}
+        t = regexp(st2, ncgroup)
+        do_wrap(t.st, {ncgroup: t.v})
       case {id:_, ~char_class}:
         a = {id: st.term_id, ~char_class}
         st = {term_id: st.term_id+1, group_id:st.group_id}
