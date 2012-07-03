@@ -1,26 +1,19 @@
-Improve UI
-
-Explain what we are doing
-
-Handle differences between various regexp implementations (e.g. php vs javascript)
-
-Make sure parser is complete
-
-More lint rules:
-
-- x*x => x+
-- x*x* => x*
-- xx* => x+
-- crazy things like \c vs \i
-- escape sequences:
-  \cj ==> \n
-  \x0a ==> \n
-  \u000a ==> \n
-  etc.
-  [0-9] => \d
-  etc.
-- empty class ranges don't match anything: []
-
+- Handle differences between various regexp implementations (e.g. php vs javascript)
+- Make sure parser is complete
+  - why can't it parse the crazy regexp?
+- More lint rules:
+  - x*x => x+
+  - x*x* => x*
+  - xx* => x+
+  - crazy things like \c vs \i
+  - escape sequences:
+    \cj ==> \n
+    \x0a ==> \n
+    \u000a ==> \n
+    etc.
+    [0-9] => \d
+    etc.
+  - empty class ranges don't match anything: []
 
   /\b/ matches word boundary
   /[\b]/ matches back space (\x08)
@@ -31,15 +24,13 @@ More lint rules:
     /[\92]/ matches '2'
     /[\12]/ doesn't match '2'
 
-Render empty stuff (e.g. "a|" is not the same as "a")
+- Render empty stuff (e.g. "a|" is not the same as "a")
 
-lint rule fixer
+- lint rule engine fixer: improve things
+- lint rule engine comment code
 
 - detect www., .com or .net and
   suggest replacing "." with "\.".
 - detect \/\/ and suggest using % % as the regexp seperator
 - detect error prone priority rules (e.g. ^ab|c$)
 
-make sure when the lint rule fixer removes a group, it renumbers things:
-i.e.
-fix for (a)b(c)\2 should be: (?:a)b(c)\1
