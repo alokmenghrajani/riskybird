@@ -10,22 +10,22 @@ html, body {
   min-height: 100%;
   height: auto !important;
   height: 100%;
-  margin: 0 auto -41px;
+  margin: 0 auto -71px;
 }
 
 #main {
   overflow: visible;
-  padding-bottom: 40px;
+  padding-bottom: 70px;
   padding-top: 80px;
 }
 
 .push {
-  height: 41px;
+  height: 71px;
 }
 
 .footer {
   border-top: 1px solid #DDDDDD;
-  height: 40px;
+  height: 70px;
   color: #777777;
   text-align: center;
   margin: 0 auto;
