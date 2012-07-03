@@ -191,7 +191,10 @@ function xhtml display_footer() {
       <a href="http://regexplint.userecho.com/">Provide Feedback</a>
     </p>
     <div class="social-buttons">
-      <iframe src="//www.facebook.com/plugins/like.php?href=https%3A%2F%2Fwww.facebook.com%2FRegexpLint&amp;send=false&amp;layout=button_count&amp;width=450&amp;show_faces=false&amp;action=like&amp;colorscheme=light&amp;font&amp;height=21&amp;appId=202562833203260" scrolling="no" frameborder="0" style="border:none; overflow:hidden; width:450px; height:24px;" allowTransparency="true"></iframe>
+      <iframe src="http://www.facebook.com/plugins/like.php?href=http%3A%2F%2Fwww.facebook.com%2FRegexpLint&amp;send=false&layout=button_count&amp;width=75&amp;show_faces=false&amp;action=like&amp;colorscheme=light&amp;font&amp;height=21&amp;appId=202562833203260" scrolling="no" frameborder="0" style="border:none; overflow:hidden; width:75px; height:21px;" allowTransparency="true"></iframe>
+      <span style="padding-left: 20px">&nbsp;</span>
+      <a href="https://twitter.com/share" class="twitter-share-button" data-url="http://regexp.quaxio.com/" data-via="alokmenghrajani">Tweet</a>
+      <script>{"!function(d,s,id)\{var js,fjs=d.getElementsByTagName(s)[0];if(!d.getElementById(id))\{js=d.createElement(s);js.id=id;js.src='//platform.twitter.com/widgets.js';fjs.parentNode.insertBefore(js,fjs);\}\}(document,'script','twitter-wjs');"}</script>
     </div>
   </footer>
 }
