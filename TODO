@@ -7,6 +7,8 @@ Launch blocking:
 
 At some point:
 - Handle differences between various regexp implementations (e.g. php vs javascript)
+  - python auto anchors
+  - other languages can use % % as the regexp seperator
 - Make sure parser is complete
   - why can't it parse the crazy regexp?
 - More lint rules:
@@ -21,7 +23,6 @@ At some point:
     etc.
     [0-9] => \d
     etc.
-  - empty class ranges don't match anything: []
 
   /\b/ matches word boundary
   /[\b]/ matches back space (\x08)
@@ -32,9 +33,6 @@ At some point:
     /[\92]/ matches '2'
     /[\12]/ doesn't match '2'
 
-- lint rule engine fixer: improve things
-- lint rule engine comment code
-
 - detect www., .com or .net and
   suggest replacing "." with "\.".
-- detect \/\/ and suggest using % % as the regexp seperator
+

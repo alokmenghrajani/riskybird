@@ -497,18 +497,29 @@ module RegexpLinter {
           add(res, err)
         }
         {res with groups_referenced: IntSet.add(group_ref, res.groups_referenced)}
+
       case {~id, ~char_class}:
         res = List.fold(do_item, char_class.class_ranges, res)
         res = RegexpLinterHelper.check_set(re, id, char_class, res)
 
         // Check if the character class is empty.
         if (List.is_empty(char_class.class_ranges)) {
-          err = {
-            lint_rule: {empty_character_class},
-            title: "empty character class",
-            body: "[] is an empty character class and can never be matched.",
-            class: "",
-            patch: {none}
+          err = if (char_class.neg) {
+            {
+              lint_rule: {empty_character_class},
+              title: "empty negative character class",
+              body: "[^] is equivalent to . and will match any character.",
+              class: "",
+              patch: {none}
+            }
+          } else {
+            {
+              lint_rule: {empty_character_class},
+              title: "empty character class",
+              body: "[] is an empty character class and will never match.",
+              class: "",
+              patch: {none}
+            }
           }
           add(res, err)
         } else {
