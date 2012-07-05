@@ -8,6 +8,7 @@ SRC= \
 	pretty_printers/svg_printer.opa \
 	lint/lint.opa \
 	lint/fix.opa \
+	lint/escaped_char.opa \
 	utils/anchors.opa \
 	utils/misc.opa
 

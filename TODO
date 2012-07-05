@@ -4,6 +4,7 @@ Launch blocking:
 3. make sure everything is client side
 4. render empty stuff (e.g. "a|" is not the same as "a")
 5. class linter should know that '-' goes at the end.
+6. wait for opa ? bugfix
 
 At some point:
 - Handle differences between various regexp implementations (e.g. php vs javascript)
@@ -15,13 +16,7 @@ At some point:
   - x*x => x+
   - x*x* => x*
   - xx* => x+
-  - crazy things like \c vs \i
-  - escape sequences:
-    \cj ==> \n
-    \x0a ==> \n
-    \u000a ==> \n
-    etc.
-    [0-9] => \d
+  - [0-9] => \d
     etc.
 
   /\b/ matches word boundary
@@ -29,10 +24,13 @@ At some point:
   so the identity escapes are useful in the following cases:
   - outside ranges: ^$\.*+?()[]{}|
   - inside ranges: \]-
-  - haven't understood how decimal escape work:
+
+- Note:
+  we aren't handling octal escapes:
     /[\92]/ matches '2'
     /[\12]/ doesn't match '2'
+  don't know how to handle \01, \010, etc. there is a potential
+  confusion between octal & group ref
 
 - detect www., .com or .net and
   suggest replacing "." with "\.".
-

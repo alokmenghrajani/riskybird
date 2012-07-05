@@ -27,31 +27,31 @@ import stdlib.tests
 function expect_parse(rule_str, s) {
   p = RegexpParser.parse(s)
   r = RegexpStringPrinter.pretty_print(p)
-  OK.check_equal("test [{rule_str}]: {s}", r, s)
+  OK.check_equal(String.pad_right(" ", 50, "test [{rule_str}]: {s}"), r, s)
 }
 
 function expect_fail(rule_str, s) {
   p = RegexpParser.parse(s)
-  OK.ok_ko("test [{rule_str}]: {s}", Option.is_none(p))
+  OK.ok_ko(String.pad_right(" ", 50, "test [{rule_str}]: {s}"), Option.is_none(p))
 }
 
 function expect_lint_error(string rule_str, string s, lint_rule_type expected_lint_error) {
   p = RegexpParser.parse(s)
   match(p) {
-    case {none}: OK.fail("test [{rule_str}]: {s} FAILED TO PARSE!")
+    case {none}: OK.fail(String.pad_right(" ", 50, "test [{rule_str}]: {s} FAILED TO PARSE!"))
     case {some: tree}:
       lint_result r = RegexpLinter.regexp(tree)
-      OK.ok_ko("test [{rule_str}]: {s}", Set.mem(expected_lint_error, r.matched_rules))
+      OK.ok_ko(String.pad_right(" ", 50, "test [{rule_str}]: {s}"), Set.mem(expected_lint_error, r.matched_rules))
   }
 }
 
 function expect_clean_lint(string rule_str, string s) {
   p = RegexpParser.parse(s)
   match(p) {
-    case {none}: OK.fail("test [{rule_str}]: {s} FAILED TO PARSE!")
+    case {none}: OK.fail(String.pad_right(" ", 50, "test [{rule_str}]: {s} FAILED TO PARSE!"))
     case {some: tree}:
       lint_result r = RegexpLinter.regexp(tree)
-      OK.ok_ko("test [{rule_str}]: {s}", Set.is_empty(r.matched_rules))
+      OK.ok_ko(String.pad_right(" ", 50, "test [{rule_str}]: {s}"), Set.is_empty(r.matched_rules))
   }
 }
 
@@ -165,6 +165,13 @@ expect_parse("control letter", "a\\cj")
 expect_parse("hex escape", "a\\x0ab")
 expect_parse("unicode escape", "a\\u000ab")
 expect_parse("identity escape", "a\\[b")
+
+expect_lint_error("escaped char", "\\i", {improve_escaped_char})
+expect_lint_error("escaped char", "\\cj", {improve_escaped_char})
+expect_lint_error("escaped char", "\\x0a", {improve_escaped_char})
+expect_lint_error("escaped char", "\\x61", {improve_escaped_char})
+expect_clean_lint("escaped char", "\\$")
+expect_lint_error("escaped char", "\\u0065", {improve_escaped_char})
 
 // class escapes
 expect_parse("control escape", "[\\nz]")

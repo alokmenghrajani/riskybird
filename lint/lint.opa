@@ -55,7 +55,8 @@ and lint_rule_type =
   { invalid_range_in_character_class } or
   { non_optimal_class_range } or
   { lazy_character_class } or
-  { empty_character_class }
+  { empty_character_class } or
+  { improve_escaped_char }
 
 module RegexpLinterRender {
   function option(xhtml) render(lint_result result) {
@@ -280,6 +281,30 @@ module RegexpLinterHelper {
     }
   }
 
+  function string int_to_hex(int i) {
+    s = Int.to_hex(i)
+    s = String.lowercase(s)
+    String.pad_left("0", 2, s)
+  }
+
+  function string int_to_unicode_hex(int i) {
+    s = Int.to_hex(i)
+    s = String.lowercase(s)
+    String.pad_left("0", 4, s)
+  }
+
+  function class_atom int_to_class_atom(int i) {
+    if (i<33) {
+      {escaped_char: {hex_escape_sequence: int_to_hex(i)}}
+    } else if (i < 127) {
+      {char: textToString(Text.from_character(i))}
+    } else if (i < 256) {
+      {escaped_char: {hex_escape_sequence: int_to_hex(i)}}
+    } else {
+      {escaped_char: {unicode_escape_sequence: int_to_unicode_hex(i)}}
+    }
+  }
+
   /**
    * The easiest way to lint a character set is to rewrite
    * the set and then compare the results. If the length
@@ -302,30 +327,6 @@ module RegexpLinterHelper {
           IntSet.add(class_atom_to_int(class_atom), map)
         case {~start_char, ~end_char}:
           range_to_charmap(class_atom_to_int(start_char), class_atom_to_int(end_char), map)
-      }
-    }
-
-    function string int_to_hex(int i) {
-      s = Int.to_hex(i)
-      s = String.lowercase(s)
-      String.pad_left("0", 2, s)
-    }
-
-    function string int_to_unicode_hex(int i) {
-      s = Int.to_hex(i)
-      s = String.lowercase(s)
-      String.pad_left("0", 4, s)
-    }
-
-    function class_atom int_to_class_atom(int i) {
-      if (i<33) {
-        {escaped_char: {hex_escape_sequence: int_to_hex(i)}}
-      } else if (i < 127) {
-        {char: textToString(Text.from_character(i))}
-      } else if (i < 256) {
-        {escaped_char: {hex_escape_sequence: int_to_hex(i)}}
-      } else {
-        {escaped_char: {unicode_escape_sequence: int_to_unicode_hex(i)}}
       }
     }
 
@@ -497,7 +498,8 @@ module RegexpLinter {
           add(res, err)
         }
         {res with groups_referenced: IntSet.add(group_ref, res.groups_referenced)}
-
+      case {~escaped_char}:
+        LintEscapedChar.escaped_char(escaped_char, res)
       case {~id, ~char_class}:
         res = List.fold(do_item, char_class.class_ranges, res)
         res = RegexpLinterHelper.check_set(re, id, char_class, res)
