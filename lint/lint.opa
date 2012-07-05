@@ -54,7 +54,8 @@ and lint_rule_type =
   { useless_non_greedy } or
   { invalid_range_in_character_class } or
   { non_optimal_class_range } or
-  { lazy_character_class }
+  { lazy_character_class } or
+  { empty_character_class }
 
 module RegexpLinterRender {
   function option(xhtml) render(lint_result result) {
@@ -498,7 +499,21 @@ module RegexpLinter {
         {res with groups_referenced: IntSet.add(group_ref, res.groups_referenced)}
       case {~id, ~char_class}:
         res = List.fold(do_item, char_class.class_ranges, res)
-        RegexpLinterHelper.check_set(re, id, char_class, res)
+        res = RegexpLinterHelper.check_set(re, id, char_class, res)
+
+        // Check if the character class is empty.
+        if (List.is_empty(char_class.class_ranges)) {
+          err = {
+            lint_rule: {empty_character_class},
+            title: "empty character class",
+            body: "[] is an empty character class and can never be matched.",
+            class: "",
+            patch: {none}
+          }
+          add(res, err)
+        } else {
+          res;
+        }
       case _:
         res
     }

@@ -1,3 +1,11 @@
+Launch blocking:
+1. google analytics
+2. make sure the tool works on various browsers
+3. make sure everything is client side
+4. render empty stuff (e.g. "a|" is not the same as "a")
+5. class linter should know that '-' goes at the end.
+
+At some point:
 - Handle differences between various regexp implementations (e.g. php vs javascript)
 - Make sure parser is complete
   - why can't it parse the crazy regexp?
@@ -24,13 +32,9 @@
     /[\92]/ matches '2'
     /[\12]/ doesn't match '2'
 
-- Render empty stuff (e.g. "a|" is not the same as "a")
-
 - lint rule engine fixer: improve things
 - lint rule engine comment code
 
 - detect www., .com or .net and
   suggest replacing "." with "\.".
 - detect \/\/ and suggest using % % as the regexp seperator
-- detect error prone priority rules (e.g. ^ab|c$)
-

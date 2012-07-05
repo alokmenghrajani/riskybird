@@ -157,6 +157,8 @@ expect_lint_error("character from range", "[\\00-\\0a\\cj]", {non_optimal_class_
 expect_lint_error("character from range", "[\\00-\\0a\\n]", {non_optimal_class_range})
 expect_clean_lint("character range", "[\\x00-\\x0a]")
 
+expect_lint_error("empty character class", "foo[]bar", {empty_character_class})
+
 // escape characters
 expect_parse("control escape", "a\\n")
 expect_parse("control letter", "a\\cj")

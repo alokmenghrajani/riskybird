@@ -145,8 +145,8 @@ module RegexpParser {
     case ".": { dot }
     case "(?:" ~regexp ")": { ncgroup: coerce(regexp) }
     case "(" ~regexp ")": { id: 0, group_id: 0, group: coerce(regexp) }
-    case "[^" ~class_ranges "]": { id: 0, char_class: {neg: true, ~class_ranges} }
-    case "[" ~class_ranges "]": { id: 0, char_class: {neg:false, ~class_ranges} }
+    case "[^" class_ranges=class_range* "]": { id: 0, char_class: {neg: true, ~class_ranges} }
+    case "[" class_ranges=class_range* "]": { id: 0, char_class: {neg:false, ~class_ranges} }
     case "\\" x = { Rule.integer }: { group_ref: x }
     case "\\" x = { character_class_escape }: { character_class_escape:x }
     case x = { character_escape }: { escaped_char: x}
@@ -216,11 +216,6 @@ module RegexpParser {
   class_escape = parser {
     case x = { character_escape }: x
     case "\\" x = { character_class_escape }: { character_class_escape: x }
-  }
-
-  class_ranges = parser {
-    case ~class_range ~class_ranges: List.cons(class_range, class_ranges)
-    case ~class_range: [class_range]
   }
 
   class_atom = parser {
