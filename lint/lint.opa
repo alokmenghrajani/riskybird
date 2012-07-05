@@ -240,6 +240,45 @@ module RegexpLinterHelper {
     }
   }
 
+  function int escaped_char_to_int(escaped_char escaped_char) {
+    match (escaped_char) {
+      case {~control_escape}:
+        match (control_escape) {
+          case "f": 12
+          case "n": 10
+          case "r": 13
+          case "t": 9
+          case "v": 11
+          case _: 0
+        }
+      case {~control_letter}:
+        mod(int_of_first_char(control_letter), 32)
+      case {~hex_escape_sequence}:
+        match (Parser.try_parse(Rule.hexadecimal_number, hex_escape_sequence)) {
+          case {~some}: some
+          case {none}: 0
+        }
+      case {~unicode_escape_sequence}:
+        match (Parser.try_parse(Rule.hexadecimal_number, unicode_escape_sequence)) {
+          case {~some}: some
+          case {none}: 0
+        }
+      case {~identity_escape}:
+        int_of_first_char(identity_escape)
+      case {~character_class_escape}:
+        int_of_first_char(character_class_escape)
+    }
+  }
+
+  function int class_atom_to_int(class_atom class_atom) {
+    match (class_atom) {
+      case {~char}:
+        int_of_first_char(char)
+      case {~escaped_char}:
+        escaped_char_to_int(escaped_char)
+    }
+  }
+
   /**
    * The easiest way to lint a character set is to rewrite
    * the set and then compare the results. If the length
@@ -256,31 +295,36 @@ module RegexpLinterHelper {
       }
     }
 
-    function int escaped_char_to_int(escaped_char escaped_char) {
-      match (escaped_char) {
-        case {control_escape:_}: // TODO
-          32
-        case {control_letter:_}: // TODO
-          32
-        case {hex_escape_sequence:_}: // TODO
-          32
-        case {unicode_escape_sequence:_}: // TODO
-          32
-        case {~identity_escape}:
-          int_of_first_char(identity_escape)
-        case {~character_class_escape}:
-          int_of_first_char(character_class_escape)
+    function intset set_to_charmap(class_range i, intset map) {
+      match (i) {
+        case {~class_atom}:
+          IntSet.add(class_atom_to_int(class_atom), map)
+        case {~start_char, ~end_char}:
+          range_to_charmap(class_atom_to_int(start_char), class_atom_to_int(end_char), map)
       }
     }
 
-    function intset set_to_charmap(class_range i, intset map) {
-      match (i) {
-        case {~char}:
-          IntSet.add(int_of_first_char(char), map)
-        case {~escaped_char}:
-          IntSet.add(escaped_char_to_int(escaped_char), map)
-        case {~start_char, ~end_char}:
-          range_to_charmap(int_of_first_char(start_char), int_of_first_char(end_char), map)
+    function string int_to_hex(int i) {
+      s = Int.to_hex(i)
+      s = String.lowercase(s)
+      String.pad_left("0", 2, s)
+    }
+
+    function string int_to_unicode_hex(int i) {
+      s = Int.to_hex(i)
+      s = String.lowercase(s)
+      String.pad_left("0", 4, s)
+    }
+
+    function class_atom int_to_class_atom(int i) {
+      if (i<33) {
+        {escaped_char: {hex_escape_sequence: int_to_hex(i)}}
+      } else if (i < 127) {
+        {char: textToString(Text.from_character(i))}
+      } else if (i < 256) {
+        {escaped_char: {hex_escape_sequence: int_to_hex(i)}}
+      } else {
+        {escaped_char: {unicode_escape_sequence: int_to_unicode_hex(i)}}
       }
     }
 
@@ -289,17 +333,17 @@ module RegexpLinterHelper {
       if (IntSet.mem(max+1, map)) {
         charmap_to_range(min, max+1, map, class_ranges)
       } else if (min == max) {
-        class_range = {char: textToString(Text.from_character(min))}
+        class_range = {class_atom: int_to_class_atom(min)}
         class_ranges = List.cons(class_range, class_ranges)
         (class_ranges, map)
       } else if (min+1 == max) {
-        class_range = {char: textToString(Text.from_character(min))}
+        class_range = {class_atom: int_to_class_atom(min)}
         class_ranges = List.cons(class_range, class_ranges)
-        class_range = {char: textToString(Text.from_character(max))}
+        class_range = {class_atom: int_to_class_atom(max)}
         class_ranges = List.cons(class_range, class_ranges)
         (class_ranges, map)
       } else {
-        class_range = {start_char: textToString(Text.from_character(min)), end_char: textToString(Text.from_character(max))}
+        class_range = {start_char: int_to_class_atom(min), end_char: int_to_class_atom(max)}
         class_ranges = List.cons(class_range, class_ranges)
         (class_ranges, map)
       }
@@ -331,7 +375,7 @@ module RegexpLinterHelper {
         err = {
           lint_rule: {non_optimal_class_range},
           title: "non optimal character range",
-          body: "shorter way to write {s2}: {s1}",
+          body: "A shorter/cleaner way to write {s2} is {s1}",
           class: "",
           patch: {some: RegexpStringPrinter.print_regexp(new_regexp)}
         }
@@ -463,25 +507,31 @@ module RegexpLinter {
   function lint_result do_item(class_range i, lint_result res) {
     match (i) {
       case {~start_char, ~end_char}:
-        if (start_char > end_char) {
+        start = RegexpLinterHelper.class_atom_to_int(start_char)
+        end = RegexpLinterHelper.class_atom_to_int(end_char)
+
+        start2 = RegexpStringPrinter.print_class_atom(start_char)
+        end2 = RegexpStringPrinter.print_class_atom(end_char)
+
+        if (start > end) {
           err = {
             lint_rule: {invalid_range_in_character_class},
             title: "invalid range in character class",
-            body: "[{start_char}-{end_char}] is invalid.",
+            body: "[{start2}-{end2}] is invalid.",
             class: "alert-error",
             patch: {none}
           }
           add(res, err)
-        } else if (start_char == end_char) {
+        } else if (start == end) {
           err = {
             lint_rule: {non_optimal_class_range},
             title: "useless range in character class",
-            body: "[{start_char}-{end_char}] is useless.",
+            body: "[{start2}-{end2}] is useless.",
             class: "",
             patch: {none}
           }
           add(res, err)
-        } else if (start_char == "A" && end_char == "z") {
+        } else if (start_char == {char: "A"} && end_char == {char: "z"}) {
           err = {
             lint_rule: {lazy_character_class},
             title: "programmer laziness",

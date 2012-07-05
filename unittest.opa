@@ -55,6 +55,8 @@ function expect_clean_lint(string rule_str, string s) {
   }
 }
 
+expect_clean_lint("character range", "[\\x00-\\x0a]")
+
 // empty regexp
 expect_parse("empty regexp", "")
 expect_clean_lint("empty regexp", "")
@@ -149,6 +151,12 @@ expect_lint_error("invalid range", "[z-a]", {invalid_range_in_character_class})
 expect_lint_error("useless range", "[x-x]", {non_optimal_class_range})
 expect_lint_error("lazyness", "[0-9A-z]", {lazy_character_class})
 
+expect_lint_error("overlapping ranges", "[\\x10-\\x20\\x15-\\x25]", {non_optimal_class_range})
+expect_lint_error("overlapping ranges", "[\\x10-\\x70a-e]", {non_optimal_class_range})
+expect_lint_error("character from range", "[\\00-\\0a\\cj]", {non_optimal_class_range})
+expect_lint_error("character from range", "[\\00-\\0a\\n]", {non_optimal_class_range})
+expect_clean_lint("character range", "[\\x00-\\x0a]")
+
 // escape characters
 expect_parse("control escape", "a\\n")
 expect_parse("control letter", "a\\cj")
@@ -174,4 +182,5 @@ expect_fail("invalid quantifier", "a\{-4,\}")
 expect_fail("invalid quantifier", "a\{-4\}")
 
 expect_fail("invalid character", "a//")
+
 

@@ -396,13 +396,15 @@ module RegexpToSvg {
     }
   }
 
-  function do_character_class(character_class char_class, xhtml extra) {
+  function SvgElement do_character_class(character_class char_class, xhtml extra) {
     t1 = List.map(
-      function(item) {
+      function(class_range item) {
         match (item) {
-          case {~char}: if (char == " ") "⎵" else char
-          case {~escaped_char}: print_escaped_char(escaped_char)
-          case {~start_char, ~end_char}: "{start_char}-{end_char}"
+          case {~class_atom}: do_class_atom(class_atom)
+          case {~start_char, ~end_char}:
+            s1 = do_class_atom(start_char)
+            s2 = do_class_atom(end_char)
+            "{s1}-{s2}"
         }
       },
       char_class.class_ranges)
@@ -414,6 +416,15 @@ module RegexpToSvg {
       "[{t2}]"
     }
     {node: {label: s, ~extra, width: 0, height: 0, x:0, y: 0, color: Color.black}}
+  }
+
+  function string do_class_atom(class_atom class_atom) {
+    match (class_atom) {
+      case {~char}:
+        if (char == " ") "⎵" else char
+      case {~escaped_char}:
+        print_escaped_char(escaped_char)
+    }
   }
 
   function string join(list(string) l, string glue) {

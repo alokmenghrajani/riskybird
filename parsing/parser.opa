@@ -93,9 +93,12 @@ and escaped_char =
   { string character_class_escape }  // only used in class_escape
 
 and class_range =
+  { class_atom class_atom } or
+  { class_atom start_char, class_atom end_char }
+
+and class_atom =
   { string char } or
-  { escaped_char escaped_char } or
-  { string start_char, string end_char }
+  { escaped_char escaped_char }
 
 module RegexpParser {
 
@@ -201,11 +204,11 @@ module RegexpParser {
     case x = "v": x
   }
 
-  class_atom = parser {
-    case x = (!class_atom_no .): "{x}"
+  class_atom_char = parser {
+    case x = (!class_atom_char_no .): "{x}"
   }
 
-  class_atom_no = parser {
+  class_atom_char_no = parser {
     case x = "\\": x
     case x = "]": x
   }
@@ -220,10 +223,14 @@ module RegexpParser {
     case ~class_range: [class_range]
   }
 
+  class_atom = parser {
+    case x = { class_escape }: {escaped_char: x}
+    case x = { class_atom_char }: {char: x}
+  }
+
   class_range = parser {
-    case x = { class_escape }: { escaped_char: x}
-    case x = { class_atom } "-" y = { class_atom }: { start_char: x, end_char: y }
-    case x = { class_atom }: { char: x }
+    case x = { class_atom } "-" y = { class_atom }: {start_char: x, end_char: y}
+    case x = { class_atom}: {class_atom: x}
   }
 
   function option(regexp) parse(string s) {

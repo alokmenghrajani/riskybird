@@ -103,9 +103,11 @@ module RegexpStringPrinter {
     t = List.fold(
       function(class_range, r) {
         i = match (class_range) {
-          case {~char}: char
-          case {~escaped_char}: print_escaped_char(escaped_char)
-          case {~start_char, ~end_char}: "{start_char}-{end_char}"
+          case {~class_atom}: print_class_atom(class_atom)
+          case {~start_char, ~end_char}:
+            s1 = print_class_atom(start_char)
+            s2 = print_class_atom(end_char)
+            "{s1}-{s2}"
         }
         "{r}{i}"
       },
@@ -116,6 +118,13 @@ module RegexpStringPrinter {
       "[^{t}]"
     } else {
       "[{t}]"
+    }
+  }
+
+  function string print_class_atom(class_atom class_atom) {
+    match (class_atom) {
+      case {~char}: char
+      case {~escaped_char}: print_escaped_char(escaped_char)
     }
   }
 
