@@ -4,6 +4,9 @@ Launch blocking:
 3. make sure everything is client side
 4. class linter should know that '-' goes at the end.
 5. wait for opa ? bugfix
+6. fix some minor rendering issues:
+   - (ab|c)d
+   - facebook.com (merge letters)
 
 At some point:
 - Handle differences between various regexp implementations (e.g. php vs javascript)
@@ -33,3 +36,8 @@ At some point:
 
 - detect www., .com or .net and
   suggest replacing "." with "\.".
+
+
+a a a b c c c
+
+aaa b ccc

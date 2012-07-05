@@ -54,3 +54,37 @@ function bool contains(string haystack, string needle) {
   Option.is_some(String.strpos(needle, haystack))
 }
 
+/**
+ * Functional look&say. Takes a list and groups items
+ * which match some criteria
+ */
+function list_group(list('a) l, ('a, 'a -> bool) comparison_f, ('a, 'a -> 'a) merge_f) {
+  r = List.fold_right(
+    function(acc, 'a e) {
+      match (acc.prev) {
+        case {none}:
+          // we don't have any prev, so store e as prev
+          {acc with prev:{some: e}, current:{some: e}}
+        case {~some}:
+          if (comparison_f(e, some)) {
+            // we have a match, merge current with e
+            current = {some: merge_f(e, Option.get(acc.current))}
+            {acc with ~current}
+          } else {
+            _ = Debug.warning("HERE 1");
+            // we have a mismatch, push current
+            ll = List.cons(Option.get(acc.current), acc.ll)
+            {prev:{some: e}, current:{some: e}, ~ll}
+          }
+      }
+    },
+    l,
+    {prev: {none}, current: {none}, ll: []}
+  )
+  match (r.current) {
+    case {~some}:
+      List.cons(some, r.ll)
+    case {none}:
+      []
+  }
+}

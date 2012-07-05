@@ -341,16 +341,41 @@ module RegexpToSvg {
     {choice: {width: 0, height: 0, ~items}}
   }
 
+  /**
+   * Groups atoms which don't have any quantifiers
+   * and which are simple characters for rendering purpose.
+   */
+  function list(term) group_terms(list(term) terms) {
+    function bool comparison_f(term x, term y) {
+      match ((x, y)) {
+        case {f1:{atom:{char:_}, quantifier:{noop}, ...},
+          f2:{atom:{char:_}, quantifier:{noop}, ...}}: true
+        case _: false
+      }
+    }
+    function term merge_f(term x, term y) {
+      match((x, y)) {
+        case {f1:{atom:{char:c1}, ...},
+          f2:{atom:{char:c2}, ...}}: {id:0, atom: {char:"{c1}{c2}"}, quantifier: {noop}, greedy: false}
+        case _:
+          // never happens
+          x
+      }
+    }
+    list_group(terms, comparison_f, merge_f)
+  }
+
   function SvgElement alternative(alternative s) {
     if (List.is_empty(s)) {
       {node: {label: "∅", extra: <></>, width: 0, height: 0, x: 0, y: 0, color: Color.cadetblue}}
     } else {
-      items = List.map(term, s)
+      s = group_terms(s)
+      items = List.map(do_term, s)
       {seq: {group_id: {none}, width: 0, height: 0, x: 0, y: 0, border: 0, ~items, extra: <></>}}
     }
   }
 
-  function SvgElement term(term b) {
+  function SvgElement do_term(term b) {
     match (b) {
       case {~atom, ~quantifier, ...}: do_atom(atom, quantifier)
       case {assertion: {anchor_start}}: {node: {label: "^", extra: <></>, width: 0, height: 0, x: 0, y: 0, color: Color.cadetblue}}
