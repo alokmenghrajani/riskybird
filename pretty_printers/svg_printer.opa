@@ -91,7 +91,7 @@ module RegexpSvgPrinter {
       match (node) {
         case {~node}:
           // to compute the dimensions of a node we look at its content
-          width = 70 + String.length(node.label)*7
+          width = Int.max(70 + String.length(node.label)*7, 90)
           {node: {node with ~width, height: 80}}
         case {~choice}:
           // to compute the dimensions of a sequence of nodes:
@@ -176,7 +176,7 @@ module RegexpSvgPrinter {
     function xhtml toXmlNode(SvgNode node) {
       x = node.x + node.width / 2
       y = node.y + node.height / 2
-      width = 10 + String.length(node.label)*7
+      width = Int.max(10 + String.length(node.label)*7, 30)
       height = 30
       c = Color.color_to_string(node.color)
       s1 = "fill:{c};font-size: 15px;text-anchor:middle;"
@@ -205,24 +205,26 @@ module RegexpSvgPrinter {
       case {~seq}:
         items = toXmlNodes(seq.items)
         rect = if (seq.border > 0) {
-          <svg:rect x={seq.x} y={seq.y} width={seq.width} height={seq.height}
-            style="fill: none; stroke: blue; stroke-width: 1;"/>
+          <svg:rect x={seq.x} y={seq.y} rx="5" ry="5" width={seq.width} height={seq.height}
+            style="fill: none; stroke: #dc143c; stroke-width: 1;"/>
         } else {
           <></>
         }
+        s1 = "fill:#dc143c; font-size:12px; text-anchor:start;"
+        s2 = "fill:#dc143c; font-size:10px; text-anchor:end;"
+
         text = match (seq.group_id) {
           case {~some}:
-            <svg:text x={seq.x+2} y={seq.y+10} height="8">{some}</svg:text>
+            <svg:text style="{s1}" x={seq.x+2} y={seq.y+12} height="8">{some}</svg:text>
           case {none}:
             <></>
         }
-        s = "fill:blue;font-size: 10px;text-anchor:end;"
 
         <>
           {rect}
           {text}
           {items}
-          <svg:text x={seq.x+seq.width-2} y={seq.y+10} style="{s}">{seq.extra}</svg:text>
+          <svg:text x={seq.x+seq.width-2} y={seq.y+10} style="{s2}">{seq.extra}</svg:text>
         </>
     }
   }
@@ -340,13 +342,16 @@ module RegexpToSvg {
   }
 
   function SvgElement alternative(alternative s) {
-    items = List.map(term, s)
-    {seq: {group_id: {none}, width: 0, height: 0, x: 0, y: 0, border: 0, ~items, extra: <></>}}
+    if (List.is_empty(s)) {
+      {node: {label: "∅", extra: <></>, width: 0, height: 0, x: 0, y: 0, color: Color.cadetblue}}
+    } else {
+      items = List.map(term, s)
+      {seq: {group_id: {none}, width: 0, height: 0, x: 0, y: 0, border: 0, ~items, extra: <></>}}
+    }
   }
 
   function SvgElement term(term b) {
     match (b) {
-      // todo: we are currently dropping the quantifier
       case {~atom, ~quantifier, ...}: do_atom(atom, quantifier)
       case {assertion: {anchor_start}}: {node: {label: "^", extra: <></>, width: 0, height: 0, x: 0, y: 0, color: Color.cadetblue}}
       case {assertion: {anchor_end}}: {node: {label: "$", extra: <></>, width: 0, height: 0, x: 0, y: 0, color: Color.cadetblue}}

@@ -24,7 +24,7 @@ riskybird.exe: $(SRC) resources/riskybird.css riskybird.opa
 	$(OPA) -o riskybird.exe $(SRC) riskybird.opa
 
 riskybird_unittest.exe: $(SRC) unittest.opa
-	$(OPA) -o riskybird_unittest.exe $(SRC) unittest.opa
+	$(OPA) --no-server -o riskybird_unittest.exe $(SRC) unittest.opa
 
 clean:
 	rm -Rf *~ *.exe *.log _build/ *.opp *.js parsing/*.js pretty_printers/*.js utils/*.js lint/*.js _tracks/
