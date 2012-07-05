@@ -369,7 +369,8 @@ module RegexpToSvg {
 
     match (atom) {
       case {~char}:
-        {node: {label: char, ~extra, width: 0, height: 0, x:0, y: 0, color: Color.black}}
+        s = if (char == " ") "⎵" else char
+        {node: {label: s, ~extra, width: 0, height: 0, x:0, y: 0, color: Color.black}}
       case {dot}:
         {node: {label: ".", ~extra, width: 0, height: 0, x:0, y: 0, color: Color.cadetblue}}
       case {~character_class_escape}:
