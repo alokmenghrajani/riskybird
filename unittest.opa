@@ -59,7 +59,7 @@ expect_clean_lint("character range", "[\\x00-\\x0a]")
 
 // empty regexp
 expect_parse("empty regexp", "")
-expect_clean_lint("empty regexp", "")
+expect_clean_lint("almost empty regexp", " ")
 
 // alternatives
 expect_parse("alternative", "a|bde|efg")

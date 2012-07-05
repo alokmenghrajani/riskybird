@@ -56,7 +56,8 @@ and lint_rule_type =
   { non_optimal_class_range } or
   { lazy_character_class } or
   { empty_character_class } or
-  { improve_escaped_char }
+  { improve_escaped_char } or
+  { empty_regexp }
 
 module RegexpLinterRender {
   function option(xhtml) render(lint_result result) {
@@ -416,7 +417,18 @@ module RegexpLinter {
   }
 
   function lint_result do_regexp(regexp re, lint_result res) {
-    List.fold(function(e, r){do_alternative(re, e, r)}, re, res)
+    if (re == [[]]) {
+      err = {
+        lint_rule: {empty_regexp},
+        title: "empty regexp",
+        body: "javascript does not let you write empty regular expressions since // starts a line comment.",
+          class: "alert-error",
+          patch: {some: "/(?:)/"}
+      }
+      RegexpLinter.add(res, err)
+    } else {
+      List.fold(function(e, r){do_alternative(re, e, r)}, re, res)
+    }
   }
 
   function lint_result do_alternative(regexp re, alternative s, lint_result res) {
