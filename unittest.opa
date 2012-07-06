@@ -93,6 +93,12 @@ expect_parse("range quantifier", "a\{4,100\}")
 expect_lint_error("invalid quantifier", "a\{4,2\}", {incorrect_quantifier})
 expect_lint_error("possible improvement", "a\{4,4\}", {non_ideal_quantifier})
 
+expect_lint_error("quantifier ?", "a\{0,1\}", {non_ideal_quantifier})
+expect_lint_error("quantifier *", "a\{0,\}", {non_ideal_quantifier})
+expect_lint_error("quantifier +", "a\{1,\}", {non_ideal_quantifier})
+expect_lint_error("useless quantifier", "a\{1\}", {non_ideal_quantifier})
+expect_lint_error("useless quantifier", "a\{0\}", {non_ideal_quantifier})
+
 // non greedy quantifiers
 expect_parse("zero or more non greedy", "x??")
 expect_parse("non greedy one or more quantifier", "a+?")

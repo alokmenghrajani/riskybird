@@ -447,8 +447,8 @@ module RegexpLinter {
     }
   }
 
-  function lint_result do_quantifier(quantifier bpost, bool greedy, lint_result res) {
-    match (bpost) {
+  function lint_result do_quantifier(quantifier quantifier, bool greedy, lint_result res) {
+    match (quantifier) {
       case {~min, ~max}:
         if (min > max) {
           err = {
@@ -468,15 +468,60 @@ module RegexpLinter {
             patch: {none}
           }
           add(res, err)
+        } else if ((min == 0) && (max == 1)) {
+          err = {
+            lint_rule: {non_ideal_quantifier},
+            title: "improve the quantifier",
+            body: "\{0,1\} can be written as ?",
+            class: "",
+            patch: {none}
+          }
+          add(res, err)
         } else {
           res;
         }
-      case {exactly:_}:
+      case {at_least:0}:
+        err = {
+          lint_rule: {non_ideal_quantifier},
+          title: "improve the quantifier",
+          body: "\{0,\} can be written as *",
+          class: "",
+          patch: {none}
+        }
+        add(res, err)
+      case {at_least:1}:
+        err = {
+          lint_rule: {non_ideal_quantifier},
+          title: "improve the quantifier",
+          body: "\{1,\} can be written as +",
+          class: "",
+          patch: {none}
+        }
+        add(res, err)
+      case {~exactly}:
         if (greedy == false) {
           err = {
             lint_rule: {useless_non_greedy},
             title: "useless non greedy",
             body: "when matching an exact amount, using non greddy makes no sense",
+            class: "",
+            patch: {none}
+          }
+          add(res, err)
+        } else if (exactly == 0) {
+          err = {
+            lint_rule: {non_ideal_quantifier},
+            title: "remove the quantifier",
+            body: "\{0\} makes no sense.",
+            class: "alert-error",
+            patch: {none}
+          }
+          add(res, err)
+        } else if (exactly == 1) {
+          err = {
+            lint_rule: {non_ideal_quantifier},
+            title: "remove the quantifier",
+            body: "\{1\} makes no sense.",
             class: "",
             patch: {none}
           }
