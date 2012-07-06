@@ -379,7 +379,7 @@ module RegexpToSvg {
 
   function SvgElement do_term(term b) {
     match (b) {
-      case {~atom, ~quantifier, ...}: do_atom(atom, quantifier)
+      case {id:_, ~atom, ~quantifier, ~greedy}: do_atom(atom, quantifier, greedy)
       case {assertion: {anchor_start}}: {node: {label: "^", extra: <></>, width: 0, height: 0, x: 0, y: 0, color: Color.cadetblue}}
       case {assertion: {anchor_end}}: {node: {label: "$", extra: <></>, width: 0, height: 0, x: 0, y: 0, color: Color.cadetblue}}
       case {assertion: {match_word_boundary}}: {node: {label: "\\b", extra: <></>, width: 0, height: 0, x: 0, y: 0, color: Color.cadetblue}}
@@ -391,8 +391,8 @@ module RegexpToSvg {
     }
   }
 
-  function SvgElement do_atom(atom atom, quantifier quantifier) {
-    extra = do_quantifier(quantifier)
+  function SvgElement do_atom(atom atom, quantifier quantifier, bool greedy) {
+    extra = do_quantifier(quantifier, greedy)
 
     match (atom) {
       case {~char}:
@@ -417,15 +417,20 @@ module RegexpToSvg {
     }
   }
 
-  function xhtml do_quantifier(quantifier quantifier) {
-    match (quantifier) {
-      case {noop}: <></>
-      case {star}: <>0-&infin;</>
-      case {plus}: <>1-&infin;</>
-      case {qmark}: <>0-1</>
-      case {exactly: x}: <>{x}</>
-      case {at_least: x}: <>{x}-&infin;</>
-      case {~min, ~max}: <>{min}-{max}</>
+  function xhtml do_quantifier(quantifier quantifier, bool greedy) {
+    match ((quantifier, greedy)) {
+      case {f1:{noop}, f2:_}: <></>
+      case {f1:{star}, f2:{true}}: <>0-&infin;</>
+      case {f1:{star}, f2:{false}}: <>&infin;-0</>
+      case {f1:{plus}, f2:{true}}: <>1-&infin;</>
+      case {f1:{plus}, f2:{false}}: <>&infin;-1</>
+      case {f1:{qmark}, f2:{true}}: <>0-1</>
+      case {f1:{qmark}, f2:{false}}: <>1-0</>
+      case {f1:{exactly: x}, f2:_}: <>{x}</>
+      case {f1:{at_least: x}, f2:{true}}: <>{x}-&infin;</>
+      case {f1:{at_least: x}, f2:{false}}: <>&infin;-{x}</>
+      case {f1:{~min, ~max}, f2:{true}}: <>{min}-{max}</>
+      case {f1:{~min, ~max}, f2:{false}}: <>{max}-{min}</>
     }
   }
 
