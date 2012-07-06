@@ -269,13 +269,15 @@ module RegexpSvgPrinter {
 
     arrows = computeArrows(node, [], [])
     List.fold(
-      function((a1, a2), r) {
+      function((SvgNode a1, SvgNode a2), r) {
         // starting point
-        x1 = a2.x + a2.width - 18
+        w1 = Int.max(10 + String.length(a2.label)*7, 30)/2
+        x1 = a2.x + w1 + a2.width / 2
         y1 = a2.y + a2.height / 2
 
         // arrow tip
-        x4 = a1.x + 18
+        w2 = Int.max(10 + String.length(a1.label)*7, 30)/2
+        x4 = a1.x - w2 + a1.width / 2
         y4 = a1.y + a1.height / 2
 
         // bezier curve

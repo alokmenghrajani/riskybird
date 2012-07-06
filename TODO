@@ -3,17 +3,12 @@ Launch blocking:
 2. make sure the tool works on various browsers
 3. make sure everything is client side
 4. class linter should know that '-' goes at the end.
-5. wait for opa ? bugfix
-6. fix some minor rendering issues:
-   - (ab|c)d
-   - facebook.com (merge letters)
+5. wait for opa "?" bugfix
 
 At some point:
 - Handle differences between various regexp implementations (e.g. php vs javascript)
   - python auto anchors
   - other languages can use % % as the regexp seperator
-- Make sure parser is complete
-  - why can't it parse the crazy regexp?
 - More lint rules:
   - x*x => x+
   - x*x* => x*
@@ -36,8 +31,3 @@ At some point:
 
 - detect www., .com or .net and
   suggest replacing "." with "\.".
-
-
-a a a b c c c
-
-aaa b ccc
