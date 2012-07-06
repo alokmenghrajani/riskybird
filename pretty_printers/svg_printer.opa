@@ -420,7 +420,7 @@ module RegexpToSvg {
   function xhtml do_quantifier(quantifier quantifier) {
     match (quantifier) {
       case {noop}: <></>
-      case {star}: <>&infin;</>
+      case {star}: <>0-&infin;</>
       case {plus}: <>1-&infin;</>
       case {qmark}: <>0-1</>
       case {exactly: x}: <>{x}</>
