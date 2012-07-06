@@ -420,17 +420,17 @@ module RegexpToSvg {
   function xhtml do_quantifier(quantifier quantifier, bool greedy) {
     match ((quantifier, greedy)) {
       case {f1:{noop}, f2:_}: <></>
-      case {f1:{star}, f2:{true}}: <>0-&infin;</>
-      case {f1:{star}, f2:{false}}: <>&infin;-0</>
-      case {f1:{plus}, f2:{true}}: <>1-&infin;</>
-      case {f1:{plus}, f2:{false}}: <>&infin;-1</>
-      case {f1:{qmark}, f2:{true}}: <>0-1</>
-      case {f1:{qmark}, f2:{false}}: <>1-0</>
+      case {f1:{star}, f2:{false}}: <>0-&infin;</>
+      case {f1:{star}, f2:{true}}: <>&infin;-0</>
+      case {f1:{plus}, f2:{false}}: <>1-&infin;</>
+      case {f1:{plus}, f2:{true}}: <>&infin;-1</>
+      case {f1:{qmark}, f2:{false}}: <>0-1</>
+      case {f1:{qmark}, f2:{true}}: <>1-0</>
       case {f1:{exactly: x}, f2:_}: <>{x}</>
-      case {f1:{at_least: x}, f2:{true}}: <>{x}-&infin;</>
-      case {f1:{at_least: x}, f2:{false}}: <>&infin;-{x}</>
-      case {f1:{~min, ~max}, f2:{true}}: <>{min}-{max}</>
-      case {f1:{~min, ~max}, f2:{false}}: <>{max}-{min}</>
+      case {f1:{at_least: x}, f2:{false}}: <>{x}-&infin;</>
+      case {f1:{at_least: x}, f2:{true}}: <>&infin;-{x}</>
+      case {f1:{~min, ~max}, f2:{false}}: <>{min}-{max}</>
+      case {f1:{~min, ~max}, f2:{true}}: <>{max}-{min}</>
     }
   }
 
