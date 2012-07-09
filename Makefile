@@ -9,6 +9,7 @@ SRC= \
 	lint/lint.opa \
 	lint/fix.opa \
 	lint/escaped_char.opa \
+	lint/character_class.opa \
 	utils/anchors.opa \
 	utils/misc.opa \
   utils/test.opa

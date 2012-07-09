@@ -2,8 +2,8 @@
  * Lint rules for escaped characters.
  *
  * These rules can detect things like:
- *  \i => equivalent to i
- *  \u0020 => equivalent to \x20
+ *  \i => i
+ *  \u0020 => \x20
  *  \cj => \x10
  *  \x61 => a
  *  etc.
