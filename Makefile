@@ -10,7 +10,8 @@ SRC= \
 	lint/fix.opa \
 	lint/escaped_char.opa \
 	utils/anchors.opa \
-	utils/misc.opa
+	utils/misc.opa \
+  utils/test.opa
 
 default: run
 

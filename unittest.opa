@@ -3,6 +3,8 @@
  *
  * Running: make test
  *
+ *
+ *
  *   This file is part of RiskyBird
  *
  *   RiskyBird is free software: you can redistribute it and/or modify
@@ -22,180 +24,181 @@
  * @author Alok Menghrajani
  */
 
-import stdlib.tests
-
-function expect_parse(rule_str, s) {
-  p = RegexpParser.parse(s)
-  r = RegexpStringPrinter.pretty_print(p)
-  OK.check_equal(String.pad_right(" ", 50, "test [{rule_str}]: {s}"), r, s)
+function Test.result expect_parse(res, string test_name, string regexp) {
+  p = RegexpParser.parse(regexp)
+  pp = RegexpStringPrinter.pretty_print(p)
+  Test.expect_equals(res, test_name, pp, regexp)
 }
 
-function expect_fail(rule_str, s) {
-  p = RegexpParser.parse(s)
-  OK.ok_ko(String.pad_right(" ", 50, "test [{rule_str}]: {s}"), Option.is_none(p))
+function expect_fail(res, string test_name, string regexp) {
+  p = RegexpParser.parse(regexp)
+  Test.expect_none(res, test_name, p, "")
 }
 
-function expect_lint_error(string rule_str, string s, lint_rule_type expected_lint_error) {
-  p = RegexpParser.parse(s)
+function expect_lint_error(res, string test_name, string regexp, lint_rule_type expected_lint_error) {
+  p = RegexpParser.parse(regexp)
   match(p) {
-    case {none}: OK.fail(String.pad_right(" ", 50, "test [{rule_str}]: {s} FAILED TO PARSE!"))
+    case {none}: Test.fail(res, test_name, "{regexp} FAILED TO PARSE!")
     case {some: tree}:
       lint_result r = RegexpLinter.regexp(tree)
-      OK.ok_ko(String.pad_right(" ", 50, "test [{rule_str}]: {s}"), Set.mem(expected_lint_error, r.matched_rules))
+      Test.expect_true(res, test_name, Set.mem(expected_lint_error, r.matched_rules), "")
   }
 }
 
-function expect_clean_lint(string rule_str, string s) {
-  p = RegexpParser.parse(s)
+function expect_clean_lint(res, string test_name, string regexp) {
+  p = RegexpParser.parse(regexp)
   match(p) {
-    case {none}: OK.fail(String.pad_right(" ", 50, "test [{rule_str}]: {s} FAILED TO PARSE!"))
+    case {none}: Test.fail(res, test_name, "{regexp} FAILED TO PARSE!")
     case {some: tree}:
       lint_result r = RegexpLinter.regexp(tree)
-      OK.ok_ko(String.pad_right(" ", 50, "test [{rule_str}]: {s}"), Set.is_empty(r.matched_rules))
+      Test.expect_true(res, test_name, Set.is_empty(r.matched_rules), "")
   }
 }
 
-expect_clean_lint("character range", "[\\x00-\\x0a]")
+function run_tests() {
+  t = Test.begin()
+  t = expect_clean_lint(t, "character range", "[\\x00-\\x0a]")
 
-// empty regexp
-expect_parse("empty regexp", "")
-expect_clean_lint("almost empty regexp", " ")
+  // empty regexp
+  t = expect_parse(t, "empty regexp", "")
+  t =  expect_clean_lint(t, "almost empty regexp", " ")
 
-// alternatives
-expect_parse("alternative", "a|bde|efg")
+  // alternatives
+  t = expect_parse(t, "alternative", "a|bde|efg")
 
-// assertions
-expect_parse("anchored at beginning", "^abc")
-expect_parse("anchored at end", "abc$")
-expect_parse("anchored in an alternative", "a|^b")
-expect_parse("anchored in an alternative", "^a|^b")
-expect_parse("anchored in an alternative", "a$|b")
-expect_parse("anchored in an alternative", "a$|b$")
-expect_parse("word boundary", "\\bfoo\\b")
-expect_parse("word boundary", "\\Bthing")
-expect_parse("look ahead", "(?=abc|def)")
-expect_parse("look ahead", "(?!abc|def)")
+  // assertions
+  t = expect_parse(t, "anchored at beginning", "^abc")
+  t = expect_parse(t, "anchored at end", "abc$")
+  t = expect_parse(t, "anchored in an alternative", "a|^b")
+  t = expect_parse(t, "anchored in an alternative", "^a|^b")
+  t = expect_parse(t, "anchored in an alternative", "a$|b")
+  t = expect_parse(t, "anchored in an alternative", "a$|b$")
+  t = expect_parse(t, "word boundary", "\\bfoo\\b")
+  t = expect_parse(t, "word boundary", "\\Bthing")
+  t = expect_parse(t, "look ahead", "(?=abc|def)")
+  t = expect_parse(t, "look ahead", "(?!abc|def)")
 
-expect_lint_error("not always anchored", "^ab|c", {inconsistent_start_anchors});
-expect_lint_error("not always anchored", "ab|c$", {inconsistent_end_anchors});
-expect_lint_error("not always anchored", "^a$|b|c", {inconsistent_start_anchors});
-expect_lint_error("not always anchored", "^a$|b|c", {inconsistent_end_anchors});
+  t = expect_lint_error(t, "not always anchored", "^ab|c", {inconsistent_start_anchors});
+  t = expect_lint_error(t, "not always anchored", "ab|c$", {inconsistent_end_anchors});
+  t = expect_lint_error(t, "not always anchored", "^a$|b|c", {inconsistent_start_anchors});
+  t = expect_lint_error(t, "not always anchored", "^a$|b|c", {inconsistent_end_anchors});
 
-// quantifiers
-expect_parse("zero or more quantifier", "a*")
-expect_parse("one or more quantifier", "a+")
-expect_parse("zero or one quantifier", "a?")
-expect_parse("exactly 4 quantifier", "a\{4\}")
-expect_parse("at least 20 quantifier", "a\{20,\}")
-expect_parse("range quantifier", "a\{4,4\}")
-expect_parse("range quantifier", "a\{4,100\}")
+  // quantifiers
+  t = expect_parse(t, "zero or more quantifier", "a*")
+  t = expect_parse(t, "one or more quantifier", "a+")
+  t = expect_parse(t, "zero or one quantifier", "a?")
+  t = expect_parse(t, "exactly 4 quantifier", "a\{4\}")
+  t = expect_parse(t, "at least 20 quantifier", "a\{20,\}")
+  t = expect_parse(t, "range quantifier", "a\{4,4\}")
+  t = expect_parse(t, "range quantifier", "a\{4,100\}")
 
-expect_lint_error("invalid quantifier", "a\{4,2\}", {incorrect_quantifier})
-expect_lint_error("possible improvement", "a\{4,4\}", {non_ideal_quantifier})
+  t = expect_lint_error(t, "invalid quantifier", "a\{4,2\}", {incorrect_quantifier})
+  t = expect_lint_error(t, "possible improvement", "a\{4,4\}", {non_ideal_quantifier})
 
-expect_lint_error("quantifier ?", "a\{0,1\}", {non_ideal_quantifier})
-expect_lint_error("quantifier *", "a\{0,\}", {non_ideal_quantifier})
-expect_lint_error("quantifier +", "a\{1,\}", {non_ideal_quantifier})
-expect_lint_error("useless quantifier", "a\{1\}", {non_ideal_quantifier})
-expect_lint_error("useless quantifier", "a\{0\}", {non_ideal_quantifier})
+  t = expect_lint_error(t, "quantifier ?", "a\{0,1\}", {non_ideal_quantifier})
+  t = expect_lint_error(t, "quantifier *", "a\{0,\}", {non_ideal_quantifier})
+  t = expect_lint_error(t, "quantifier +", "a\{1,\}", {non_ideal_quantifier})
+  t = expect_lint_error(t, "useless quantifier", "a\{1\}", {non_ideal_quantifier})
+  t = expect_lint_error(t, "useless quantifier", "a\{0\}", {non_ideal_quantifier})
 
-// non greedy quantifiers
-expect_parse("zero or more non greedy", "x??")
-expect_parse("non greedy one or more quantifier", "a+?")
-expect_parse("non greedy zero or more quantifier", "a*?")
-expect_parse("non greedy exactly 4 quantifier", "a\{4\}?")
-expect_parse("non greedy at least 20 quantifier", "a\{20,\}?")
-expect_parse("non greedy range quantifier", "a\{4,4\}?")
-expect_parse("non greedy range quantifier", "a\{4,100\}?")
+  // non greedy quantifiers
+  t = expect_parse(t, "zero or more non greedy", "x??")
+  t = expect_parse(t, "non greedy one or more quantifier", "a+?")
+  t = expect_parse(t, "non greedy zero or more quantifier", "a*?")
+  t = expect_parse(t, "non greedy exactly 4 quantifier", "a\{4\}?")
+  t = expect_parse(t, "non greedy at least 20 quantifier", "a\{20,\}?")
+  t = expect_parse(t, "non greedy range quantifier", "a\{4,4\}?")
+  t = expect_parse(t, "non greedy range quantifier", "a\{4,100\}?")
 
-expect_lint_error("non greedy exactly 4 quantifier", "a\{4\}?", {useless_non_greedy})
+  t = expect_lint_error(t, "non greedy exactly 4 quantifier", "a\{4\}?", {useless_non_greedy})
 
-// atoms
-expect_parse("dot", "a.c")
-expect_parse("non capturing group", "abc(?:xyz)")
-expect_parse("group with reference", "(a)\\1")
-expect_parse("class range", "[a-z]")
-expect_parse("class range", "[a-cde-f]")
-expect_parse("special characters", "a\\d")
-expect_parse("special characters", "a\\D");
-expect_parse("special characters", "a\\s");
-expect_parse("special characters", "a\\S");
-expect_parse("special characters", "a\\w");
-expect_parse("special characters", "a\\W");
+  // atoms
+  t = expect_parse(t, "dot", "a.c")
+  t = expect_parse(t, "non capturing group", "abc(?:xyz)")
+  t = expect_parse(t, "group with reference", "(a)\\1")
+  t = expect_parse(t, "class range", "[a-z]")
+  t = expect_parse(t, "class range", "[a-cde-f]")
+  t = expect_parse(t, "special characters", "a\\d")
+  t = expect_parse(t, "special characters", "a\\D");
+  t = expect_parse(t, "special characters", "a\\s");
+  t = expect_parse(t, "special characters", "a\\S");
+  t = expect_parse(t, "special characters", "a\\w");
+  t = expect_parse(t, "special characters", "a\\W");
 
-expect_lint_error("group which doesn't exist", "(a)\\2", {incorrect_reference})
-expect_lint_error("group which doesn't yet exist", "\\1(a)", {incorrect_reference})
-expect_lint_error("group which doesn't yet exist", "(a\\1)", {incorrect_reference})
-expect_lint_error("group which doesn't yet exist", "((a)\\1)", {incorrect_reference})
-expect_lint_error("group not referenced", "(a)", {unused_group})
-expect_lint_error("group not referenced", "((x) (y))\\1\\2", {unused_group})
+  t = expect_lint_error(t, "group which doesn't exist", "(a)\\2", {incorrect_reference})
+  t = expect_lint_error(t, "group which doesn't yet exist", "\\1(a)", {incorrect_reference})
+  t = expect_lint_error(t, "group which doesn't yet exist", "(a\\1)", {incorrect_reference})
+  t = expect_lint_error(t, "group which doesn't yet exist", "((a)\\1)", {incorrect_reference})
+  t = expect_lint_error(t, "group not referenced", "(a)", {unused_group})
+  t = expect_lint_error(t, "group not referenced", "((x) (y))\\1\\2", {unused_group})
 
-// character sets and ranges
-expect_parse("a set of characters", "[abc]")
-expect_parse("a range of characters", "[a-m]")
-expect_parse("a negative set of characters", "[^abc]")
-expect_parse("a negative range of characters", "[^a-m]")
-expect_parse("a set and range", "[abcx-z]")
-expect_parse("a negative set and range", "[^abcx-z]")
-expect_parse("escaped -", "[a\\-c]")
-expect_parse("front -", "[-ac]")
-expect_parse("middle -", "[a-c-e]")
-expect_parse("end -", "[abc-]")
-expect_parse("special characters", "[?.]")
-expect_parse("special characters in a range", "[.-?]")
+  // character sets and ranges
+  t = expect_parse(t, "a set of characters", "[abc]")
+  t = expect_parse(t, "a range of characters", "[a-m]")
+  t = expect_parse(t, "a negative set of characters", "[^abc]")
+  t = expect_parse(t, "a negative range of characters", "[^a-m]")
+  t = expect_parse(t, "a set and range", "[abcx-z]")
+  t = expect_parse(t, "a negative set and range", "[^abcx-z]")
+  t = expect_parse(t, "escaped -", "[a\\-c]")
+  t = expect_parse(t, "front -", "[-ac]")
+  t = expect_parse(t, "middle -", "[a-c-e]")
+  t = expect_parse(t, "end -", "[abc-]")
+  t = expect_parse(t, "special characters", "[?.]")
+  t = expect_parse(t, "special characters in a range", "[.-?]")
 
-expect_lint_error("overlapping ranges", "[a-mb-z]", {non_optimal_class_range})
-expect_lint_error("included ranges", "[a-md-g]", {non_optimal_class_range})
-expect_lint_error("character from range", "[a-zx]", {non_optimal_class_range})
-expect_lint_error("duplicate character", "[xabcx]", {non_optimal_class_range})
-expect_lint_error("contiguous ranges", "[a-cde-f]", {non_optimal_class_range})
-expect_lint_error("repeated ranges", "[a-ca-c]", {non_optimal_class_range})
+  t = expect_lint_error(t, "overlapping ranges", "[a-mb-z]", {non_optimal_class_range})
+  t = expect_lint_error(t, "included ranges", "[a-md-g]", {non_optimal_class_range})
+  t = expect_lint_error(t, "character from range", "[a-zx]", {non_optimal_class_range})
+  t = expect_lint_error(t, "duplicate character", "[xabcx]", {non_optimal_class_range})
+  t = expect_lint_error(t, "contiguous ranges", "[a-cde-f]", {non_optimal_class_range})
+  t = expect_lint_error(t, "repeated ranges", "[a-ca-c]", {non_optimal_class_range})
 
-expect_lint_error("complex overlapping", "[fg-ia-ec-j]", {non_optimal_class_range})
-expect_lint_error("complex inclusion", "[fg-ia-ec-h]", {non_optimal_class_range})
-expect_lint_error("invalid range", "[z-a]", {invalid_range_in_character_class})
-expect_lint_error("useless range", "[x-x]", {non_optimal_class_range})
-expect_lint_error("lazyness", "[0-9A-z]", {lazy_character_class})
+  t = expect_lint_error(t, "complex overlapping", "[fg-ia-ec-j]", {non_optimal_class_range})
+  t = expect_lint_error(t, "complex inclusion", "[fg-ia-ec-h]", {non_optimal_class_range})
+  t = expect_lint_error(t, "invalid range", "[z-a]", {invalid_range_in_character_class})
+  t = expect_lint_error(t, "useless range", "[x-x]", {non_optimal_class_range})
+  t = expect_lint_error(t, "lazyness", "[0-9A-z]", {lazy_character_class})
 
-expect_lint_error("overlapping ranges", "[\\x10-\\x20\\x15-\\x25]", {non_optimal_class_range})
-expect_lint_error("overlapping ranges", "[\\x10-\\x70a-e]", {non_optimal_class_range})
-expect_lint_error("character from range", "[\\00-\\0a\\cj]", {non_optimal_class_range})
-expect_lint_error("character from range", "[\\00-\\0a\\n]", {non_optimal_class_range})
-expect_clean_lint("character range", "[\\x00-\\x0a]")
+  t = expect_lint_error(t, "overlapping ranges", "[\\x10-\\x20\\x15-\\x25]", {non_optimal_class_range})
+  t = expect_lint_error(t, "overlapping ranges", "[\\x10-\\x70a-e]", {non_optimal_class_range})
+  t = expect_lint_error(t, "character from range", "[\\00-\\0a\\cj]", {non_optimal_class_range})
+  t = expect_lint_error(t, "character from range", "[\\00-\\0a\\n]", {non_optimal_class_range})
+  t = expect_clean_lint(t, "character range", "[\\x00-\\x0a]")
 
-expect_lint_error("empty character class", "foo[]bar", {empty_character_class})
+  t = expect_lint_error(t, "empty character class", "foo[]bar", {empty_character_class})
 
-// escape characters
-expect_parse("control escape", "a\\n")
-expect_parse("control letter", "a\\cj")
-expect_parse("hex escape", "a\\x0ab")
-expect_parse("unicode escape", "a\\u000ab")
-expect_parse("identity escape", "a\\[b")
+  // escape characters
+  t = expect_parse(t, "control escape", "a\\n")
+  t = expect_parse(t, "control letter", "a\\cj")
+  t = expect_parse(t, "hex escape", "a\\x0ab")
+  t = expect_parse(t, "unicode escape", "a\\u000ab")
+  t = expect_parse(t, "identity escape", "a\\[b")
 
-expect_lint_error("escaped char", "\\i", {improve_escaped_char})
-expect_lint_error("escaped char", "\\cj", {improve_escaped_char})
-expect_lint_error("escaped char", "\\x0a", {improve_escaped_char})
-expect_lint_error("escaped char", "\\x61", {improve_escaped_char})
-expect_clean_lint("escaped char", "\\$")
-expect_lint_error("escaped char", "\\u0065", {improve_escaped_char})
+  t = expect_lint_error(t, "escaped char", "\\i", {improve_escaped_char})
+  t = expect_lint_error(t, "escaped char", "\\cj", {improve_escaped_char})
+  t = expect_lint_error(t, "escaped char", "\\x0a", {improve_escaped_char})
+  t = expect_lint_error(t, "escaped char", "\\x61", {improve_escaped_char})
+  t = expect_clean_lint(t, "escaped char", "\\$")
+  t = expect_lint_error(t, "escaped char", "\\u0065", {improve_escaped_char})
 
-// class escapes
-expect_parse("control escape", "[\\nz]")
-expect_parse("control letter", "[\\cjz]")
-expect_parse("hex escape", "[\\x0az]")
-expect_parse("unicode escape", "[\\u000az]")
-expect_parse("identity escape", "[\\[z]")
-expect_parse("character class", "[\\dz]")
+  // class escapes
+  t = expect_parse(t, "control escape", "[\\nz]")
+  t = expect_parse(t, "control letter", "[\\cjz]")
+  t = expect_parse(t, "hex escape", "[\\x0az]")
+  t = expect_parse(t, "unicode escape", "[\\u000az]")
+  t = expect_parse(t, "identity escape", "[\\[z]")
+  t = expect_parse(t, "character class", "[\\dz]")
 
-// other tests
-expect_fail("open parenthesis", "abc(")
-expect_fail("invalid quantifier combination", "^*ab")
-expect_fail("invalid quantifier combination", "x+*")
-expect_fail("invalid quantifier combination", "x\{2,3\}+")
-expect_fail("invalid quantifier", "a\{-4,-2\}")
-expect_fail("invalid quantifier", "a\{-4,\}")
-expect_fail("invalid quantifier", "a\{-4\}")
-
-expect_fail("invalid character", "a//")
-
+  // other tests
+  t = expect_fail(t, "open parenthesis", "abc(t, ")
+  t = expect_fail(t, "invalid quantifier combination", "^*ab")
+  t = expect_fail(t, "invalid quantifier combination", "x+*")
+  t = expect_fail(t, "invalid quantifier combination", "x\{2,3\}+")
+  t = expect_fail(t, "invalid quantifier", "a\{-4,-2\}")
+  t = expect_fail(t, "invalid quantifier", "a\{-4,\}")
+  t = expect_fail(t, "invalid quantifier", "a\{-4\}")
+  t = expect_fail(t, "invalid character", "a//")
+  Test.end(t)
+}
+run_tests()
 
