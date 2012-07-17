@@ -154,7 +154,7 @@ function resource display_about() {
             </div>
             <div class="span8" style="margin-top: 12px">
               <h3>Erling Ellingsen</h3>
-              <p>Found bugs and helped fix them.</p>
+              <p>Found bugs, helped fix them and will continue to find more.</p>
             </div>
           </div>
           <div class="row">
