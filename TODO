@@ -8,6 +8,8 @@ Launch blocking:
 7. anchor start-end
 8. improve char set rendering (use space instead of ,)
 9. facebook\.com should be rendered as "facebook.com"
+10. bugs:
+    - [\b] and [\B]
 
 At some point:
 - Handle differences between various regexp implementations (e.g. php vs javascript)

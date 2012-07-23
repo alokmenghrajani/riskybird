@@ -48,7 +48,8 @@ function expect_lint_error(res, string test_name, string regexp, lint_rule_type 
 function expect_clean_lint(res, string test_name, string regexp) {
   p = RegexpParser.parse(regexp)
   match(p) {
-    case {none}: Test.fail(res, test_name, "{regexp} FAILED TO PARSE!")
+    case {none}:
+      Test.fail(res, test_name, "{regexp} FAILED TO PARSE!")
     case {some: tree}:
       lint_result r = RegexpLinter.regexp(tree)
       Test.expect_true(res, test_name, Set.is_empty(r.matched_rules), "")
@@ -57,6 +58,7 @@ function expect_clean_lint(res, string test_name, string regexp) {
 
 function run_tests() {
   t = Test.begin()
+
   t = expect_clean_lint(t, "character range", "[\\x00-\\x0a]")
 
   // empty regexp
@@ -168,6 +170,9 @@ function run_tests() {
   t = expect_lint_error(t, "empty character class", "foo[]bar", {empty_character_class})
 
   t = expect_clean_lint(t, "character range", "[.-]")
+  t = expect_clean_lint(t, "\\[ in character range", "[\\[]")
+  t = expect_clean_lint(t, "\\] in character range", "[\\]]")
+  t = expect_clean_lint(t, "\\\\ in character range", "[\\\\]")
 
   // escape characters
   t = expect_parse(t, "control escape", "a\\n")
@@ -200,6 +205,7 @@ function run_tests() {
   t = expect_fail(t, "invalid quantifier", "a\{-4,\}")
   t = expect_fail(t, "invalid quantifier", "a\{-4\}")
   t = expect_fail(t, "invalid character", "a//")
+
   Test.end(t)
 }
 run_tests()
