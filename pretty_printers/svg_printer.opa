@@ -446,7 +446,7 @@ module RegexpToSvg {
         }
       },
       char_class.class_ranges)
-    t2 = join(t1, ",")
+    t2 = join(t1, " ")
 
     s = if (char_class.neg) {
       "[^{t2}]"
