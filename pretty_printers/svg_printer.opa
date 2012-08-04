@@ -4,7 +4,7 @@
  * Converts a parsed regexp into svg (scalable vector graphics).
  *
  * We initially tried to pretty print the regexp using xhtml. SVG however
- * looks much nicer and gives us a ton of flexibility.
+ * looks much nicer and gives a ton of flexibility.
  *
  * Doing things in SVG land is however a little more complicated. We need to:
  * 1. convert the regexp into SVG nodes.
@@ -337,6 +337,9 @@ and SvgMaxSum =
     int max_height,
     int sum_height }
 
+/**
+ * Deals with merging consecutive atoms together.
+ */
 module RegexpToSvg {
   recursive function SvgElement regexp(regexp r) {
     items = List.map(alternative, r)
@@ -348,19 +351,31 @@ module RegexpToSvg {
    * and which are simple characters for rendering purpose.
    */
   function list(term) group_terms(list(term) terms) {
-    function bool comparison_f(term x, term y) {
-      match ((x, y)) {
-        case {f1:{atom:{char:_}, quantifier:{noop}, ...},
-          f2:{atom:{char:_}, quantifier:{noop}, ...}}: true
+    /**
+     * Returns true if a given term can be merged with the following term.
+     */
+    function bool can_merge(term x) {
+      match (x) {
+        case {atom:{char:_}, quantifier:{noop}, ...}: true
+        case {atom:{escaped_char:{identity_escape:_}}, quantifier:{noop}, ...}: true
         case _: false
       }
     }
+    /**
+     * Returns true if two consecutive terms can be merged.
+     */
+    function bool comparison_f(term x, term y) {
+      can_merge(x) && can_merge(y)
+    }
     function term merge_f(term x, term y) {
       match((x, y)) {
-        case {f1:{atom:{char:c1}, ...},
-          f2:{atom:{char:c2}, ...}}: {id:0, atom: {char:"{c1}{c2}"}, quantifier: {noop}, greedy: false}
+        case {f1:{atom:{char:c1}, ...}, f2:{atom:{char:c2}, ...}}:
+          {id:0, atom: {char:"{c1}{c2}"}, quantifier: {noop}, greedy: false}
+        case {f1:{atom:{escaped_char:{identity_escape:c1}}, ...}, f2:{atom:{char:c2}, ...}}:
+          {id:0, atom: {char:"{c1}{c2}"}, quantifier: {noop}, greedy: false}
         case _:
-          // never happens
+          // something is broken
+          @assert(false)
           x
       }
     }
