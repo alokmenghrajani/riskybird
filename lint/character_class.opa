@@ -6,6 +6,17 @@
  *  [x\-a-c] => [a-cx-]
  *  etc.
  *
+ * This is achieved by:
+ * 1. normalizing the regexp into an internal structure
+ * 2. denormalizing the internal structure
+ * 3. comparing if the input string in 1. matches the output of 2.
+ *
+ * This is pretty simple and works. It's however hard to give a good reason when the strings mismatch:
+ * it could be because the input is in a format that's hard to read, the input might not be cross browser
+ * or it might simply be inefficient.
+ *
+ * At some we'll have to therefore revisit all this code...
+ *
  *
  *
  *   This file is part of RiskyBird
@@ -29,7 +40,7 @@
 
 module LintCharacterClass {
   function lint_result character_class(regexp re, int id, character_class char_class, lint_result res) {
-    res = List.fold(do_item, char_class.class_ranges, res)
+    res = List.fold(_do_item, char_class.class_ranges, res)
     res = check_set(re, id, char_class, res)
 
     // Check if the character class is empty.
@@ -57,7 +68,7 @@ module LintCharacterClass {
     }
   }
 
-  function lint_result do_item(class_range i, lint_result res) {
+  function lint_result _do_item(class_range i, lint_result res) {
     match (i) {
       case {~start_char, ~end_char}:
         start = class_atom_to_int(start_char)
@@ -113,6 +124,11 @@ module LintCharacterClass {
     }
   }
 
+  /**
+   * Convert a class_atom to an int. This is useful when normalizing the regexp.
+   *
+   * E.g. [a] would become an 61, and [\x20] would become 32.
+   */
   function int class_atom_to_int(class_atom class_atom) {
     match (class_atom) {
       case {~char}:

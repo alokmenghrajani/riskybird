@@ -267,7 +267,13 @@ module RegexpLinterHelper {
           case {none}: 0
         }
       case {~identity_escape}:
-        int_of_first_char(identity_escape)
+        // in a character class, \b means \x08. We don't really need to track if we are in the character class case,
+        // because \b in a regexp gets parsed as a {match_word_boundary}.
+        if (identity_escape == "b") {
+          8;
+        } else {
+          int_of_first_char(identity_escape)
+        }
       case {~character_class_escape}:
         int_of_first_char(character_class_escape)
     }

@@ -1,15 +1,12 @@
-Launch blocking:
+\Launch blocking:
 1. google analytics
 2. make sure the tool works on various browsers
 3. make sure everything is client side
-4. class linter should know that '-' goes at the end.
-5. wait for opa "?" bugfix
-6. hover over character class should show an ascii map
-7. anchor start-end
-8. improve char set rendering (use space instead of ,)
-9. facebook\.com should be rendered as "facebook.com"
-10. bugs:
-    - [\b] and [\B]
+4. wait for opa "?" bugfix
+5. hover over character class should show an ascii map
+6. anchor start-end
+7. improve char set rendering (use space instead of ,)
+8. facebook\.com should be rendered as "facebook.com"
 
 At some point:
 - Handle differences between various regexp implementations (e.g. php vs javascript)
@@ -29,11 +26,12 @@ At some point:
   - inside ranges: \]-
 
 - Note:
-  we aren't handling octal escapes:
+  the spec doesn't really talk about octal escapes. We'll ignore them for now.
     /[\92]/ matches '2'
     /[\12]/ doesn't match '2'
   don't know how to handle \01, \010, etc. there is a potential
-  confusion between octal & group ref
+  confusion between octal & group ref?
 
 - detect www., .com or .net and
   suggest replacing "." with "\.".
+
