@@ -115,6 +115,9 @@ module LintCharacterClass {
   function class_atom int_to_class_atom(int i) {
     if (i<33) {
       {escaped_char: {hex_escape_sequence: RegexpLinterHelper.int_to_hex(i)}}
+    } else if ((i >= 91) && (i <= 93)) {
+      // [, ] and \
+      {escaped_char: {identity_escape: textToString(Text.from_character(i))}}
     } else if (i < 127) {
       {char: textToString(Text.from_character(i))}
     } else if (i < 256) {
@@ -139,10 +142,11 @@ module LintCharacterClass {
   }
 
   /**
-   * The easiest way to lint a character set is to rewrite
-   * the set and then compare the results. If the length
-   * of the resulting set is shorter than the length
-   * of the initial set, we will suggest a fix.
+   * The easiest way to lint a character set is to rewrite the set and then compare the results. If the length
+   * of the resulting set is shorter than the length initial set, we know there is a nicer way to write things.
+   *
+   * We also raise a lint warning if the output doesn't exactly match the input, as it might indicate other forms
+   * of errors (cross browser issue or short-but-hard-to-read input).
    */
   function lint_result check_set(regexp re, int character_class_id, character_class set, lint_result res) {
     recursive function intset range_to_charmap(int start, int end, intset map) {
@@ -200,7 +204,6 @@ module LintCharacterClass {
    * - if - appears by itself, we push it to the end
    *
    * TODO: A good test: [(\-x] should convert to [(x-]
-   * And [\]] should remain [\]]
    */
   function list(class_range) denormalize_charmap(intset map) {
     recursive function (list(class_range), map) charmap_to_range(
@@ -242,33 +245,11 @@ module LintCharacterClass {
     list(class_range) r = charmap_to_set(map, [])
 
     // Filter out "-" if its in r
-    // If we see "[", we keep it but escape it
     t = List.fold_right(
       function (r, class_range e) {
         match (e) {
           case {class_atom: {char: "-"}}:
             {ll: r.ll, dash: true}
-          case {class_atom: {char: "["}}:
-            {
-              ll: List.cons(
-                {class_atom: {escaped_char: {identity_escape: "["}}},
-                r.ll),
-              dash: r.dash
-            }
-          case {class_atom: {char: "]"}}:
-            {
-              ll: List.cons(
-                {class_atom: {escaped_char: {identity_escape: "]"}}},
-                r.ll),
-              dash: r.dash
-            }
-          case {class_atom: {char: "\\"}}:
-            {
-              ll: List.cons(
-                {class_atom: {escaped_char: {identity_escape: "\\"}}},
-                r.ll),
-              dash: r.dash
-            }
           case _:
             {ll: List.cons(e, r.ll), dash: r.dash}
         }

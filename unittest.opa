@@ -170,10 +170,11 @@ function run_tests() {
 
   t = expect_lint_error(t, "empty character class", "foo[]bar", {empty_character_class})
 
-  t = expect_clean_lint(t, "character range", "[.-]")
-  t = expect_clean_lint(t, "\\[ in character range", "[\\[]")
-  t = expect_clean_lint(t, "\\] in character range", "[\\]]")
-  t = expect_clean_lint(t, "\\\\ in character range", "[\\\\]")
+  t = expect_clean_lint(t, "character class", "[.-]")
+  t = expect_clean_lint(t, "\\[ in character class", "[\\[]")
+  t = expect_clean_lint(t, "\\] in character class", "[\\]]")
+  t = expect_clean_lint(t, "\\\\ in character class", "[\\\\]")
+  t = expect_clean_lint(t, "\\[-x in character range", "[\\[-x]")
 
   // escape characters
   t = expect_parse(t, "control escape", "a\\n")
