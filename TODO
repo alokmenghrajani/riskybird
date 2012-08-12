@@ -1,11 +1,10 @@
-\Launch blocking:
+Launch blocking:
 1. google analytics
 2. make sure the tool works on various browsers
 3. make sure everything is client side
 4. wait for opa "?" bugfix
 5. hover over character class should show an ascii map
 6. anchor start-end
-7. play with viewBox and svg to better fit text in the rectangles
 
 At some point:
 - Handle differences between various regexp implementations (e.g. php vs javascript)

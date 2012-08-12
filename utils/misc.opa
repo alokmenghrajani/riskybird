@@ -23,7 +23,7 @@
  */
 
 server function my_log(obj) {
-  Debug.warning(Debug.dump(obj))
+  Debug.error(Debug.dump(obj))
 }
 
 /**
@@ -71,7 +71,6 @@ function list_group(list('a) l, ('a, 'a -> bool) comparison_f, ('a, 'a -> 'a) me
             current = {some: merge_f(e, Option.get(acc.current))}
             {acc with ~current}
           } else {
-            _ = Debug.warning("HERE 1");
             // we have a mismatch, push current
             ll = List.cons(Option.get(acc.current), acc.ll)
             {prev:{some: e}, current:{some: e}, ~ll}
