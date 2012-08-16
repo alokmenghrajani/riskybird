@@ -32,7 +32,7 @@ module RegexpStringPrinter {
       case {none}:
         ""
       case {some: x}: print_regexp(x)
-     }
+    }
   }
 
   function string print_regexp(regexp regexp) {
@@ -51,7 +51,8 @@ module RegexpStringPrinter {
 
   function string print_term(term term) {
     match (term) {
-      case {~assertion}: print_assertion(assertion)
+      case {id:_, ~assertion}:
+        print_assertion(assertion)
       case {id:_, ~atom, ~quantifier, ~greedy}:
         g = if(greedy) {""} else {"?"}
         "{print_atom(atom)}{print_quantifier(quantifier)}{g}"

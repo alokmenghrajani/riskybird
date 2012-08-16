@@ -169,34 +169,34 @@ module RegexpLinterAnchor {
   function check_anchors get_anchor_term(term term, check_anchors r) {
     if (r.at_start == true) {
       match (term) {
-        case {assertion: {anchor_start}}:
+        case {id:_, assertion: {anchor_start}}:
         {at_start:true, result:List.cons(true, r.result)}
-        case {assertion: {anchor_end}}:
+        case {id:_, assertion: {anchor_end}}:
           {at_start:true, result:List.cons(false, r.result)}
-        case {assertion: {match_ahead:_}}:
+        case {id:_, assertion: {match_ahead:_}}:
           {at_start:true, result:List.cons(true, r.result)}
-        case {assertion: {dont_match_ahead:_}}:
+        case {id:_, assertion: {dont_match_ahead:_}}:
           {at_start:true, result:List.cons(true, r.result)}
-        case {assertion: {match_word_boundary}}:
+        case {id:_, assertion: {match_word_boundary}}:
           {at_start:true, result:List.cons(true, r.result)}
-        case {assertion: {dont_match_word_boundary}}:
+        case {id:_, assertion: {dont_match_word_boundary}}:
           {at_start:true, result:List.cons(true, r.result)}
         case {~atom, ...}:
           get_anchor_atom(atom, r)
       }
     } else {
       match (term) {
-        case {assertion: {anchor_start}}:
+        case {id:_, assertion: {anchor_start}}:
           {at_start:false, result:List.cons(false, r.result)}
-        case {assertion: {anchor_end}}:
+        case {id:_, assertion: {anchor_end}}:
           {at_start:false, result:List.cons(true, r.result)}
-        case {assertion: {match_ahead:_}}:
+        case {id:_, assertion: {match_ahead:_}}:
           {at_start:true, result:List.cons(true, r.result)}
-        case {assertion: {dont_match_ahead:_}}:
+        case {id:_, assertion: {dont_match_ahead:_}}:
           {at_start:true, result:List.cons(true, r.result)}
-        case {assertion: {match_word_boundary}}:
+        case {id:_, assertion: {match_word_boundary}}:
           {at_start:true, result:List.cons(true, r.result)}
-        case {assertion: {dont_match_word_boundary}}:
+        case {id:_, assertion: {dont_match_word_boundary}}:
           {at_start:true, result:List.cons(true, r.result)}
         case {~atom, ...}: get_anchor_atom(atom, r)
       }

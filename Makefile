@@ -2,9 +2,10 @@ OPA=opa
 OPAPLUGIN=opa-plugin-builder
 
 SRC= \
-  parsing/parser.opa \
+ 	parsing/parser.opa \
 	parsing/assign_id.opa \
-  pretty_printers/string_printer.opa \
+  	pretty_printers/string_printer.opa \
+  	pretty_printers/highlight_string_printer.opa \
 	pretty_printers/svg_printer.opa \
 	lint/lint.opa \
 	lint/fix.opa \

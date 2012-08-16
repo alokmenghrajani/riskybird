@@ -72,8 +72,9 @@ module RegexpAssignId {
         t = do_atom(st2, atom)
         b2 = {id: st.term_id, atom: t.v, ~quantifier, ~greedy}
         do_wrap(t.st, b2)
-      case { assertion:_ }:
-        do_wrap(st, b)
+      case {id:_, ~assertion}:
+        t = {id: st.term_id, ~assertion}
+        do_wrap({st with term_id: st.term_id + 1}, t)
     }
   }
 

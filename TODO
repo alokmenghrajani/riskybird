@@ -1,10 +1,8 @@
 Launch blocking:
 1. google analytics
-2. make sure the tool works on various browsers
-3. make sure everything is client side
-4. wait for opa "?" bugfix
-5. hover over character class should show an ascii map
-6. anchor start-end
+2. wait for opa "?" bugfix
+3. hover over character class should show an ascii map
+4. anchor start-end
 
 At some point:
 - Handle differences between various regexp implementations (e.g. php vs javascript)
@@ -16,6 +14,9 @@ At some point:
   - xx* => x+
   - [0-9] => \d
     etc.
+  - is it possible to detect rules which can cause a DOS?
+    .*.*foo or (.*)*
+
 
   /\b/ matches word boundary
   /[\b]/ matches back space (\x08)

@@ -33,6 +33,10 @@ html, body {
   width: 940px;
 }
 
+.highlight {
+  background-color: red;
+}
+
 /*Opera Fix*/
 //body:before {/* thanks to Maleika (Kohoutec)*/
 //  content:"";

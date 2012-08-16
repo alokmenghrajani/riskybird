@@ -77,6 +77,7 @@ function resource display(string r) {
             </div>
             <div class="row">
               <div class="span12">
+                <div id=#string_output/>
                 <div id=#parser_output/>
               </div>
             </div>
@@ -229,19 +230,19 @@ client function void check_regexp() {
   // easter egg
   if (regexp == "xkcd") {
     #parser_output = <img src="http://imgs.xkcd.com/comics/regular_expressions.png "/>
+    #string_output = <>xkcd</>
     #lint_output = <></>
   } else {
     parsed_regexp = RegexpParser.parse(regexp)
-
-    // hack required because we currently can't render the svg on the client side
-    do_svg(parsed_regexp)
-
+    match (parsed_regexp) {
+      case {none}:
+        #string_output = <>{regexp}</>
+      case {~some}:
+        #string_output = RegexpHighlightStringPrinter.pretty_print(some)
+    }
+    #parser_output = RegexpSvgPrinter.pretty_print(parsed_regexp)
     linter_run(parsed_regexp)
   }
-}
-
-server function void do_svg(parsed_regexp) {
-  #parser_output = RegexpSvgPrinter.pretty_print(parsed_regexp)
 }
 
 function resource start(Uri.relative uri) {

@@ -15,6 +15,10 @@
  * 3. generate the pair of arrows
  * 4. generate the xml
  *
+ * Note: the SVG rendering code is generic. We could pull it out into a nice and clean module.
+ *
+ *
+ *
  *   This file is part of RiskyBird
  *
  *   RiskyBird is free software: you can redistribute it and/or modify
@@ -181,12 +185,22 @@ module RegexpSvgPrinter {
       c = Color.color_to_string(node.color)
       s1 = "fill:{c};font-size: 15px;text-anchor:middle;"
       s2 = "fill:{c};font-size: 10px;text-anchor:middle;"
-      <>
+
+      e1 = match (node.mouseenter) {
+        case {none}: function(_){void}
+        case {~some}: some
+      }
+      e2 = match (node.mouseleave) {
+        case {none}: function(_){void}
+        case {~some}: some
+      }
+
+      <svg:g onmouseenter={e1} onmouseleave={e2}>
         <svg:rect x={x-width/2} y={y-height/2} rx="20" ry="20" width={width} height={height}
-          style="fill:none; stroke:{c};stroke-width:1"/>
+          style="fill:white; stroke:{c};stroke-width:1"/>
         <svg:text x={x} y={y+5} style="{s1}">{node.label}</svg:text>
         <svg:text x={x} y={y-20} style="{s2}">{node.extra}</svg:text>
-      </>
+      </svg:g>
     }
 
     function xhtml toXmlNodes(list(SvgElement) nodes) {
@@ -204,9 +218,18 @@ module RegexpSvgPrinter {
       case {~choice}: toXmlNodes(choice.items)
       case {~seq}:
         items = toXmlNodes(seq.items)
+        e1 = match (seq.mouseenter) {
+          case {none}: function(_){void}
+          case {~some}: some
+        }
+        e2 = match (seq.mouseleave) {
+          case {none}: function(_){void}
+          case {~some}: some
+        }
         rect = if (seq.border > 0) {
           <svg:rect x={seq.x} y={seq.y} rx="5" ry="5" width={seq.width} height={seq.height}
-            style="fill: none; stroke: #dc143c; stroke-width: 1;"/>
+            style="fill: white; stroke: #dc143c; stroke-width: 1;"
+            onmouseenter={e1} onmouseleave={e2}/>
         } else {
           <></>
         }
@@ -308,13 +331,17 @@ type SvgElement =
   { SvgSeq seq }
 
 and SvgNode =
-  { string label,
-    xhtml extra,
-    int width,
-    int height,
-    int x,
-    int y,
-    Color.color color }
+  {
+    string label,                         // Gets displayed in the center of the node.
+    xhtml extra,                          // Gets displayed above the node.
+    int width,                            // width of the node, in pixels.
+    int height,                           // height of the node, in pixels.
+    int x,                                // x position of the node, in pixels.
+    int y,                                // y position of the node, in pixels.
+    Color.color color,                    // border color.
+    option(FunAction.t) mouseenter,       // callback
+    option(FunAction.t) mouseleave        // callback
+  }
 
 and SvgChoice =
   { int width,
@@ -322,20 +349,44 @@ and SvgChoice =
     list(SvgElement) items }
 
 and SvgSeq =
-  { option(string) group_id,
+  {
+    option(string) group_id,
     xhtml extra,
     int width,
     int height,
     int x,
     int y,
     int border,
-    list(SvgElement) items }
+    list(SvgElement) items,
+    option(FunAction.t) mouseenter,       // callback
+    option(FunAction.t) mouseleave        // callback
+  }
 
 and SvgMaxSum =
   { int max_width,
     int sum_width,
     int max_height,
     int sum_height }
+
+module SvgMouseEvents {
+  function enter(int id) {
+    r = function(_) {
+      e = Dom.select_id("{id}")
+      Dom.add_class(e, "highlight")
+      void
+    }
+    {some: r}
+  }
+
+  function leave(int id) {
+    r = function(_) {
+      e = Dom.select_id("{id}")
+      Dom.remove_class(e, "highlight")
+      void
+    }
+    {some: r}
+  }
+}
 
 /**
  * Deals with merging consecutive atoms together.
@@ -368,11 +419,14 @@ module RegexpToSvg {
       can_merge(x) && can_merge(y)
     }
     function term merge_f(term x, term y) {
+      id = match (x) {
+        case {~id, ...}: id
+      }
       match((x, y)) {
         case {f1:{atom:{char:c1}, ...}, f2:{atom:{char:c2}, ...}}:
-          {id:0, atom: {char:"{c1}{c2}"}, quantifier: {noop}, greedy: false}
+          {~id, atom: {char:"{c1}{c2}"}, quantifier: {noop}, greedy: false}
         case {f1:{atom:{escaped_char:{identity_escape:c1}}, ...}, f2:{atom:{char:c2}, ...}}:
-          {id:0, atom: {char:"{c1}{c2}"}, quantifier: {noop}, greedy: false}
+          {~id, atom: {char:"{c1}{c2}"}, quantifier: {noop}, greedy: false}
         case _:
           // something is broken
           @assert(false)
@@ -384,51 +438,72 @@ module RegexpToSvg {
 
   function SvgElement alternative(alternative s) {
     if (List.is_empty(s)) {
-      {node: {label: "∅", extra: <></>, width: 0, height: 0, x: 0, y: 0, color: Color.cadetblue}}
+      {node: {label: "∅", extra: <></>, width: 0, height: 0, x: 0, y: 0, color: Color.cadetblue,
+        mouseenter:{none}, mouseleave: {none}}}
     } else {
       s = group_terms(s)
       items = List.map(do_term, s)
-      {seq: {group_id: {none}, width: 0, height: 0, x: 0, y: 0, border: 0, ~items, extra: <></>}}
+      {seq: {group_id: {none}, width: 0, height: 0, x: 0, y: 0, border: 0, ~items, extra: <></>,
+        mouseenter: {none}, mouseleave: {none}}}
     }
   }
 
   function SvgElement do_term(term b) {
     match (b) {
-      case {id:_, ~atom, ~quantifier, ~greedy}: do_atom(atom, quantifier, greedy)
-      case {assertion: {anchor_start}}: {node: {label: "^", extra: <></>, width: 0, height: 0, x: 0, y: 0, color: Color.cadetblue}}
-      case {assertion: {anchor_end}}: {node: {label: "$", extra: <></>, width: 0, height: 0, x: 0, y: 0, color: Color.cadetblue}}
-      case {assertion: {match_word_boundary}}: {node: {label: "\\b", extra: <></>, width: 0, height: 0, x: 0, y: 0, color: Color.cadetblue}}
-      case {assertion: {dont_match_word_boundary}}: {node: {label: "\\B", extra: <></>, width: 0, height: 0, x: 0, y: 0, color: Color.cadetblue}}
-      case {assertion: {~match_ahead}}:
-        {seq: {group_id: {some: "?="}, width: 0, height: 0, x: 0, y: 0, border: 20, items: [regexp(match_ahead)], extra: <></>}}
-      case {assertion: {~dont_match_ahead}}:
-        {seq: {group_id: {some: "?!"}, width: 0, height: 0, x: 0, y: 0, border: 20, items: [regexp(dont_match_ahead)], extra: <></>}}
+      case {~id, ~atom, ~quantifier, ~greedy}:
+        do_atom(id, atom, quantifier, greedy)
+      case {~id, assertion: {anchor_start}}:
+        {node: {label: "^", extra: <></>, width: 0, height: 0, x: 0, y: 0, color: Color.cadetblue,
+          mouseenter: SvgMouseEvents.enter(id), mouseleave: SvgMouseEvents.leave(id)}}
+      case {~id, assertion: {anchor_end}}:
+        {node: {label: "$", extra: <></>, width: 0, height: 0, x: 0, y: 0, color: Color.cadetblue,
+          mouseenter: SvgMouseEvents.enter(id), mouseleave: SvgMouseEvents.leave(id)}}
+      case {~id, assertion: {match_word_boundary}}:
+        {node: {label: "\\b", extra: <></>, width: 0, height: 0, x: 0, y: 0, color: Color.cadetblue,
+          mouseenter: SvgMouseEvents.enter(id), mouseleave: SvgMouseEvents.leave(id)}}
+      case {~id, assertion: {dont_match_word_boundary}}:
+        {node: {label: "\\B", extra: <></>, width: 0, height: 0, x: 0, y: 0, color: Color.cadetblue,
+          mouseenter: SvgMouseEvents.enter(id), mouseleave: SvgMouseEvents.leave(id)}}
+      case {~id, assertion: {~match_ahead}}:
+        {seq: {group_id: {some: "?="}, width: 0, height: 0, x: 0, y: 0, border: 20, items: [regexp(match_ahead)],
+          extra: <></>,
+          mouseenter: SvgMouseEvents.enter(id), mouseleave: SvgMouseEvents.leave(id)}}
+      case {~id, assertion: {~dont_match_ahead}}:
+        {seq: {group_id: {some: "?!"}, width: 0, height: 0, x: 0, y: 0, border: 20, items: [regexp(dont_match_ahead)],
+          extra: <></>,
+          mouseenter: SvgMouseEvents.enter(id), mouseleave: SvgMouseEvents.leave(id)}}
     }
   }
 
-  function SvgElement do_atom(atom atom, quantifier quantifier, bool greedy) {
+  function SvgElement do_atom(int id, atom atom, quantifier quantifier, bool greedy) {
     extra = do_quantifier(quantifier, greedy)
 
     match (atom) {
       case {~char}:
         s = if (char == " ") "⎵" else char
-        {node: {label: s, ~extra, width: 0, height: 0, x:0, y: 0, color: Color.black}}
+        {node: {label: s, ~extra, width: 0, height: 0, x:0, y: 0, color: Color.black,
+          mouseenter: SvgMouseEvents.enter(id), mouseleave: SvgMouseEvents.leave(id)}}
       case {dot}:
-        {node: {label: ".", ~extra, width: 0, height: 0, x:0, y: 0, color: Color.cadetblue}}
+        {node: {label: ".", ~extra, width: 0, height: 0, x:0, y: 0, color: Color.cadetblue,
+          mouseenter: SvgMouseEvents.enter(id), mouseleave: SvgMouseEvents.leave(id)}}
       case {~character_class_escape}:
-        {node: {label: "\\{character_class_escape}", ~extra, width:0, height:0, x:0, y:0, color: Color.cadetblue}}
+        {node: {label: "\\{character_class_escape}", ~extra, width:0, height:0, x:0, y:0, color: Color.cadetblue,
+          mouseenter: SvgMouseEvents.enter(id), mouseleave: SvgMouseEvents.leave(id)}}
       case {~escaped_char}:
-        do_escaped_char(escaped_char, extra)
-      case {~group_ref}: {node: {label: "\\{group_ref}", ~extra, width: 0, height: 0, x:0, y: 0, color: Color.cadetblue}}
+        do_escaped_char(id, escaped_char, extra)
+      case {~group_ref}:
+        {node: {label: "\\{group_ref}", ~extra, width: 0, height: 0, x:0, y: 0, color: Color.cadetblue,
+          mouseenter: SvgMouseEvents.enter(id), mouseleave: SvgMouseEvents.leave(id)}}
       case {~group, ~group_id, ...}:
         {seq: {group_id: {some: "{group_id}"}, width: 0, height: 0, x: 0, y: 0, border: 20,
-          items: [regexp(group)], ~extra
-        }}
+          items: [regexp(group)], ~extra,
+          mouseenter: SvgMouseEvents.enter(id), mouseleave: SvgMouseEvents.leave(id)}}
       case {~ncgroup, ...}:
         {seq: {group_id: {none}, width: 0, height: 0, x: 0, y: 0, border: 20, items: [regexp(ncgroup)],
-          ~extra}}
+          ~extra,
+          mouseenter: SvgMouseEvents.enter(id), mouseleave: SvgMouseEvents.leave(id)}}
       case {~char_class, ...}:
-        do_character_class(char_class, extra)
+        do_character_class(id, char_class, extra)
     }
   }
 
@@ -449,7 +524,7 @@ module RegexpToSvg {
     }
   }
 
-  function SvgElement do_character_class(character_class char_class, xhtml extra) {
+  function SvgElement do_character_class(int id, character_class char_class, xhtml extra) {
     t1 = List.map(
       function(class_range item) {
         match (item) {
@@ -468,7 +543,9 @@ module RegexpToSvg {
     } else {
       "[{t2}]"
     }
-    {node: {label: s, ~extra, width: 0, height: 0, x:0, y: 0, color: Color.black}}
+
+    {node: {label: s, ~extra, width: 0, height: 0, x:0, y: 0, color: Color.black,
+      mouseenter: SvgMouseEvents.enter(id), mouseleave: SvgMouseEvents.leave(id)}}
   }
 
   function string do_class_atom(class_atom class_atom) {
@@ -499,9 +576,10 @@ module RegexpToSvg {
     }
   }
 
-  function SvgElement do_escaped_char(escaped_char escaped_char, xhtml extra) {
+  function SvgElement do_escaped_char(int id, escaped_char escaped_char, xhtml extra) {
     c = print_escaped_char(escaped_char)
-    {node: {label: c, ~extra, width:0, height:0, x:0, y:0, color: Color.cadetblue}}
+    {node: {label: c, ~extra, width:0, height:0, x:0, y:0, color: Color.cadetblue,
+      mouseenter: SvgMouseEvents.enter(id), mouseleave: SvgMouseEvents.leave(id)}}
   }
 }
 

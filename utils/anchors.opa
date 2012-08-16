@@ -28,7 +28,7 @@ module RegexpAnchor {
   function intset findUnanchoredStarts(regexp) {
     function intset do_term(term term, intset set) {
       match (term) {
-        case { assertion: {anchor_start} }: set
+        case {id:_, assertion: {anchor_start} }: set
         case {~id, atom:_, quantifier:_, greedy:_}: IntSet.add(id, set)
         case _: set // unsure?
       }
@@ -45,7 +45,7 @@ module RegexpAnchor {
   function intset findUnanchoredEnds(regexp) {
     function intset do_term(term term, intset set) {
       match (term) {
-        case { assertion: {anchor_end} }: set
+        case {id:_, assertion: {anchor_end}}: set
         case {~id, atom:_, quantifier:_, greedy:_}: IntSet.add(id, set)
         case _: set
       }
@@ -59,6 +59,4 @@ module RegexpAnchor {
     }
     List.fold(do_alternative, regexp, IntSet.empty)
   }
-
-
 }

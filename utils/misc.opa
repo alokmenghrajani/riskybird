@@ -55,6 +55,28 @@ function bool contains(string haystack, string needle) {
 }
 
 /**
+ * Takes a list (works best with a list of string or xhtml) and glues each element together.
+ *
+ * E.g. xhtml_join(["hello", "world"], <br/>) will return
+ * hello<br/>world
+ */
+function xhtml xhtml_join(list('a) l, xhtml glue) {
+  r = List.fold(
+      function (x, r) {
+        if (r.f1) {
+          (false, <>{x}</>)
+        } else {
+          (false, <>{r.f2}{glue}{x}</>)
+        }
+      }
+    ,
+    l,
+    (true, <></>)
+  )
+  r.f2
+}
+
+/**
  * Functional look&say. Takes a list and groups items
  * which match some criteria
  */

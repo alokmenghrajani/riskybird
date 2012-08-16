@@ -48,7 +48,8 @@ type regexp = list(alternative)
 and alternative = list(term)
 
 and term  =
-   { assertion assertion } or
+   { int id,
+     assertion assertion } or
    { int id,
      atom atom,
      quantifier quantifier,
@@ -113,7 +114,7 @@ module RegexpParser {
   }
 
   term = parser {
-    case x = { assertion }: {assertion: x}
+    case x = { assertion }: { id: 0, assertion: x }
     case ~atom ~quantifier "?": { id: 0, ~atom, ~quantifier, greedy: false }
     case ~atom ~quantifier: { id: 0, ~atom, ~quantifier, greedy: true }
   }
