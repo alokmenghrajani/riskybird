@@ -79,7 +79,7 @@ module RegexpLinterRender {
       case {none}: <></>
       case {~some}:
         <>
-          <a href="/?r={Uri.encode_string(some)}" class="btn btn-mini btn-success pull-right">
+          <a onclick={function(_){set_regexp(some)}} class="btn btn-mini btn-success pull-right" _debug={some}>
             apply fix
           </a>
           <br/>
@@ -321,14 +321,14 @@ module RegexpLinter {
       groups: IntSet.empty,
       groups_referenced: IntSet.empty
     }
-    res = do_regexp(re, res)
+    res = do_regexp(re, re, res)
 
     res = RegexpLinterHelper.check_groups(re, res)
 
     RegexpLinterAnchor.check_anchors(re, res)
   }
 
-  function lint_result do_regexp(regexp re, lint_result res) {
+  function lint_result do_regexp(regexp original, regexp re, lint_result res) {
     if (re == [[]]) {
       err = {
         lint_rule: {empty_regexp},
@@ -339,21 +339,21 @@ module RegexpLinter {
       }
       RegexpLinter.add(res, err)
     } else {
-      List.fold(function(e, r){do_alternative(re, e, r)}, re, res)
+      List.fold(function(e, r){do_alternative(original, e, r)}, re, res)
     }
   }
 
-  function lint_result do_alternative(regexp re, alternative s, lint_result res) {
-    List.fold(function(e,r){do_term(re, e, r)}, s, res)
+  function lint_result do_alternative(regexp original, alternative s, lint_result res) {
+    List.fold(function(e,r){do_term(original, e, r)}, s, res)
   }
 
-  function lint_result do_term(regexp re, term term, lint_result res) {
+  function lint_result do_term(regexp original, term term, lint_result res) {
     match (term) {
       case {id:_, ~atom, ~quantifier, ~greedy}:
         // process quantifier
         res = do_quantifier(quantifier, greedy, res)
         // process atom
-        do_atom(re, atom, res)
+        do_atom(original, atom, res)
       case _:
         res
     }
@@ -446,13 +446,13 @@ module RegexpLinter {
     }
   }
 
-  function lint_result do_atom(regexp re, atom atom, lint_result res) {
+  function lint_result do_atom(regexp original, atom atom, lint_result res) {
     match (atom) {
       case {id:_, ~group_id, ~group}:
-        res = do_regexp(group, res)
+        res = do_regexp(original, group, res)
         {res with groups: IntSet.add(group_id, res.groups)}
       case {~ncgroup}:
-        do_regexp(ncgroup, res)
+        do_regexp(original, ncgroup, res)
       case {~group_ref}:
         res = if (IntSet.mem(group_ref, res.groups)) {
           res;
@@ -470,7 +470,7 @@ module RegexpLinter {
       case {~escaped_char}:
         LintEscapedChar.escaped_char(escaped_char, res)
       case {~id, ~char_class}:
-        LintCharacterClass.character_class(re, id, char_class, res)
+        LintCharacterClass.character_class(original, id, char_class, res)
       case _:
         res
     }

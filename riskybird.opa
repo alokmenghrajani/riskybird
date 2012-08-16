@@ -52,9 +52,9 @@ function resource display() {
             We graphically render regular expressions and point out common pitfalls.
           </p>
           <p>
-            Try <a onclick={function(_){do_example("^a.*|b$")}}>example 1</a> ·
-            <a onclick={function(_){do_example("a(bc?|[d-e])\{4,\}f")}}>example 2</a> ·
-            <a onclick={function(_){do_example("(abc).(efg).\2\4")}}>example 3</a>
+            Try <a onclick={function(_){set_regexp("^a.*|b$")}}>example 1</a> ·
+            <a onclick={function(_){set_regexp("a(bc?|[d-e])\{4,\}f")}}>example 2</a> ·
+            <a onclick={function(_){set_regexp("(abc).(efg).\2\4")}}>example 3</a>
           </p>
         </section>
 
@@ -99,8 +99,8 @@ function resource display() {
   )
 }
 
-client function do_example(string r) {
-  #regexp = r
+client function set_regexp(string r) {
+  Dom.set_value(#regexp, r)
   check_regexp()
 }
 
