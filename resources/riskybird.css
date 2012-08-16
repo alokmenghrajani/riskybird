@@ -34,7 +34,11 @@ html, body {
 }
 
 .highlight {
-  background-color: red;
+  background-color: #D9EDF7;
+}
+
+.hidden {
+  display: none;
 }
 
 /*Opera Fix*/

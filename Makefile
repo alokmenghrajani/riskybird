@@ -13,7 +13,8 @@ SRC= \
 	lint/character_class.opa \
 	utils/anchors.opa \
 	utils/misc.opa \
-  utils/test.opa
+	utils/group_regexp.opa \
+    utils/test.opa
 
 default: run
 

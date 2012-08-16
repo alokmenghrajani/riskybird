@@ -32,7 +32,7 @@ import stdlib.themes.bootstrap
  * - the svg rendering gets stuffed in #parser_output
  * - the lint results are put in #lint_output
  */
-function resource display(string r) {
+function resource display() {
   Resource.styled_page(
     "RegexpLint",
     ["/resources/riskybird.css"],
@@ -45,21 +45,21 @@ function resource display(string r) {
         </div>
       </div>
 
-      <div id="main" class="container" onready={function(_){check_regexp()}}>
+      <div id="main" class="container">
         <section id="info">
           <p class="lead">
             RegexpLint helps you understand and analyze regular expressions.<br/>
             We graphically render regular expressions and point out common pitfalls.
           </p>
           <p>
-            Try <a href="/?r=%5ea.*%7cb%24">example 1</a> ·
-            <a href="/?r=a%28bc%3F%7C%5Bd-e%5D%29%7B4%2C%7Df">example 2</a> ·
-            <a href="/?r=(abc).(efg).%5c2%5c4">example 3</a> or
+            Try <a onclick={function(_){do_example("^a.*|b$")}}>example 1</a> ·
+            <a onclick={function(_){do_example("a(bc?|[d-e])\{4,\}f")}}>example 2</a> ·
+            <a onclick={function(_){do_example("(abc).(efg).\2\4")}}>example 3</a>
           </p>
         </section>
 
         <section id="go">
-            <div class="row">
+            <div id="row1" class="row">
               <div class="span12">
                 <div class="input">
                   <input
@@ -68,20 +68,25 @@ function resource display(string r) {
                     id=#regexp
                     placeholder="Enter a regular expression"
                     style="width: 80%"
-                    value="{r}"
+                    value=""
                     onnewline={function(_){check_regexp()}}
                   />
+                  <input class="btn" type="submit" value="Go" style="margin-bottom: 9px"
+                    onclick={function(_){check_regexp()}}/>
                 </div>
                 <br/>
               </div>
             </div>
-            <div class="row">
+            <div id="row2" class="row hidden">
               <div class="span12">
-                <div id=#string_output/>
+                <span id=#string_output class="uneditable-input" style="width: 80%"/>
+                <input class="btn" type="submit" value="Edit" style="position: relative; bottom: 20px"
+                  onclick={function(_){Dom.add_class(#row2, "hidden"); Dom.add_class(#row3, "hidden"); Dom.remove_class(#row1, "hidden"); }}/>
+                <br/>
                 <div id=#parser_output/>
               </div>
             </div>
-            <div class="row" style="margin-top: 12px">
+            <div id="row3" class="row hidden" style="margin-top: 12px">
               <div class="span4" id=#lint_output/>
               <div class="span8">&nbsp;</div>
             </div>
@@ -92,6 +97,11 @@ function resource display(string r) {
       {display_footer()}
     </>
   )
+}
+
+client function do_example(string r) {
+  #regexp = r
+  check_regexp()
 }
 
 /**
@@ -204,14 +214,10 @@ function xhtml display_footer() {
 /**
  * Runs the lint engine.
  */
-function void linter_run(option(regexp) tree_opt) {
-  l =
-    match(tree_opt) {
-      case {none}: {none}
-      case {some: tree}:
-        lint_result status = RegexpLinter.regexp(tree)
-        RegexpLinterRender.render(status)
-     }
+function void linter_run(regexp regexp) {
+  lint_result status = RegexpLinter.regexp(regexp)
+  l = RegexpLinterRender.render(status)
+
   if (Option.is_some(l)) {
     #lint_output = Option.get(l)
   } else {
@@ -225,6 +231,10 @@ function void linter_run(option(regexp) tree_opt) {
  * - runs it throught the lint engine
  */
 client function void check_regexp() {
+  Dom.add_class(#row1, "hidden")
+  Dom.remove_class(#row2, "hidden")
+  Dom.remove_class(#row3, "hidden")
+
   string regexp = Dom.get_value(#regexp)
 
   // easter egg
@@ -237,25 +247,27 @@ client function void check_regexp() {
     match (parsed_regexp) {
       case {none}:
         #string_output = <>{regexp}</>
+        #parser_output =
+          <div class="alert-message error">
+            <strong>oh snap!</strong> Parsing failed!
+          </div>
+        #lint_output = <></>
       case {~some}:
-        #string_output = RegexpHighlightStringPrinter.pretty_print(some)
+        #string_output = RegexpHighlightStringPrinter.pretty_print(
+          GroupRegexp.do_regexp(some, {highlight_string_printer}))
+        #parser_output = RegexpSvgPrinter.pretty_print(
+          GroupRegexp.do_regexp(some, {svg_printer}))
+        linter_run(some)
     }
-    #parser_output = RegexpSvgPrinter.pretty_print(parsed_regexp)
-    linter_run(parsed_regexp)
   }
 }
 
 function resource start(Uri.relative uri) {
   match (uri) {
-    case {path:{nil}, query:{nil} ...}:
-      display("")
-    case {path:{nil}, query:[("r",v)] ...}:
-      display(v)
     case {path:["about"] ...}:
       display_about()
-    case {~path ...}:
-      my_log(path)
-      Resource.styled_page("Lost?", [], <>* &lt;------- you are here</>)
+    case {...}:
+      display()
   }
 }
 

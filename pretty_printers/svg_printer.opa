@@ -47,30 +47,21 @@ module RegexpSvgPrinter {
     }
   }
 
-  function xhtml pretty_print(option(regexp) parsed_regexp) {
-    match (parsed_regexp) {
-      case {none}:
-        <>
-          <div class="alert-message error">
-            <strong>oh snap!</strong> Parsing failed!
-          </div>
-        </>
-      case {some: regexp}:
-        //unanchored_starts = RegexpAnchor.findUnanchoredStarts(regexp)
-        //unanchored_ends = RegexpAnchor.findUnanchoredEnds(regexp)
+  function xhtml pretty_print(regexp regexp) {
+    //unanchored_starts = RegexpAnchor.findUnanchoredStarts(regexp)
+    //unanchored_ends = RegexpAnchor.findUnanchoredEnds(regexp)
 
-        nodes = RegexpToSvg.regexp(regexp)
+    nodes = RegexpToSvg.regexp(regexp)
 
-        nodes = computeLayout(nodes)
-        svg = toXml(nodes)
-        arrows = drawArrows(nodes)
+    nodes = computeLayout(nodes)
+    svg = toXml(nodes)
+    arrows = drawArrows(nodes)
 
-        d = getDimensions(nodes)
-        <svg:svg xmlns:svg="http://www.w3.org/2000/svg" version="1.1" style="height: {d.height+2}px; width: {d.width+2}px">
-          {svg}
-          {arrows}
-        </svg:svg>
-     }
+    d = getDimensions(nodes)
+    <svg:svg xmlns:svg="http://www.w3.org/2000/svg" version="1.1" style="height: {d.height+2}px; width: {d.width+2}px">
+      {svg}
+      {arrows}
+    </svg:svg>
   }
 
   function SvgElement computeLayout(SvgElement node) {
@@ -397,51 +388,11 @@ module RegexpToSvg {
     {choice: {width: 0, height: 0, ~items}}
   }
 
-  /**
-   * Groups atoms which don't have any quantifiers
-   * and which are simple characters for rendering purpose.
-   */
-  function list(term) group_terms(list(term) terms) {
-    /**
-     * Returns true if a given term can be merged with the following term.
-     */
-    function bool can_merge(term x) {
-      match (x) {
-        case {atom:{char:_}, quantifier:{noop}, ...}: true
-        case {atom:{escaped_char:{identity_escape:_}}, quantifier:{noop}, ...}: true
-        case _: false
-      }
-    }
-    /**
-     * Returns true if two consecutive terms can be merged.
-     */
-    function bool comparison_f(term x, term y) {
-      can_merge(x) && can_merge(y)
-    }
-    function term merge_f(term x, term y) {
-      id = match (x) {
-        case {~id, ...}: id
-      }
-      match((x, y)) {
-        case {f1:{atom:{char:c1}, ...}, f2:{atom:{char:c2}, ...}}:
-          {~id, atom: {char:"{c1}{c2}"}, quantifier: {noop}, greedy: false}
-        case {f1:{atom:{escaped_char:{identity_escape:c1}}, ...}, f2:{atom:{char:c2}, ...}}:
-          {~id, atom: {char:"{c1}{c2}"}, quantifier: {noop}, greedy: false}
-        case _:
-          // something is broken
-          @assert(false)
-          x
-      }
-    }
-    list_group(terms, comparison_f, merge_f)
-  }
-
   function SvgElement alternative(alternative s) {
     if (List.is_empty(s)) {
       {node: {label: "∅", extra: <></>, width: 0, height: 0, x: 0, y: 0, color: Color.cadetblue,
         mouseenter:{none}, mouseleave: {none}}}
     } else {
-      s = group_terms(s)
       items = List.map(do_term, s)
       {seq: {group_id: {none}, width: 0, height: 0, x: 0, y: 0, border: 0, ~items, extra: <></>,
         mouseenter: {none}, mouseleave: {none}}}
