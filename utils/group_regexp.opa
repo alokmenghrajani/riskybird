@@ -91,6 +91,8 @@ module GroupRegexp {
           }
         case {atom:{char:c}, ...}:
           "{c}"
+        case _:
+          "TODO: FIXME"
       }
     }
 
