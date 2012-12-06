@@ -56,6 +56,9 @@ function expect_clean_lint(res, string test_name, string regexp) {
   }
 }
 
+function set_regexp(_) {
+  void;
+}
 
 function run_tests() {
   t = Test.begin()

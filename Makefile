@@ -2,10 +2,10 @@ OPA=opa
 OPAPLUGIN=opa-plugin-builder
 
 SRC= \
- 	parsing/parser.opa \
+	parsing/parser.opa \
 	parsing/assign_id.opa \
-  	pretty_printers/string_printer.opa \
-  	pretty_printers/highlight_string_printer.opa \
+	pretty_printers/string_printer.opa \
+	pretty_printers/highlight_string_printer.opa \
 	pretty_printers/svg_printer.opa \
 	lint/lint.opa \
 	lint/fix.opa \
@@ -14,7 +14,7 @@ SRC= \
 	utils/anchors.opa \
 	utils/misc.opa \
 	utils/group_regexp.opa \
-    utils/test.opa
+	utils/test.opa
 
 default: run
 
@@ -31,7 +31,7 @@ riskybird_unittest.exe: $(SRC) unittest.opa
 	$(OPA) --no-server -o riskybird_unittest.exe $(SRC) unittest.opa
 
 clean:
-	rm -Rf *~ *.exe *.log _build/ *.opp *.js parsing/*.js pretty_printers/*.js utils/*.js lint/*.js _tracks/
+	rm -Rf *~ *.exe *.log _build/ *.opp *.js parsing/*.js pretty_printers/*.js utils/*.js lint/*.js _tracks/ package.json
 
 $(SRC):
 
