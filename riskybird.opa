@@ -71,7 +71,7 @@ function resource display() {
                     value=""
                     onnewline={function(_){check_regexp()}}
                   />
-                  <input class="btn" type="submit" value="Go" style="margin-bottom: 9px"
+                  <input class="btn" type="submit" value="Render & lint" style="margin-bottom: 9px"
                     onclick={function(_){check_regexp()}}/>
                 </div>
                 <br/>
@@ -79,10 +79,10 @@ function resource display() {
             </div>
             <div id="row2" class="row hidden">
               <div class="span12">
-                <span id=#string_output class="uneditable-input" style="width: 80%"/>
-                <input class="btn" type="submit" value="Edit" style="position: relative; bottom: 20px"
-                  onclick={function(_){Dom.add_class(#row2, "hidden"); Dom.add_class(#row3, "hidden"); Dom.remove_class(#row1, "hidden"); }}/>
-                <br/>
+                <div class="input">
+                  <span id=#string_output class="uneditable-input xxlarge" style="width: 80%"
+                    onclick={function(_){Dom.add_class(#row2, "hidden"); Dom.add_class(#row3, "hidden"); Dom.remove_class(#row1, "hidden"); }}/>
+                </div>
                 <div id=#parser_output/>
               </div>
             </div>

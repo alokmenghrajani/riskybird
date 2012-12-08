@@ -8,3 +8,4 @@ node_modules/
 riskybird.sublime-project
 riskybird.sublime-workspace
 riskybird_unittest_depends/
+package.json
