@@ -41,6 +41,10 @@ html, body {
   display: none;
 }
 
+iframe {
+  border: 0px;
+}
+
 /*Opera Fix*/
 //body:before {/* thanks to Maleika (Kohoutec)*/
 //  content:"";
