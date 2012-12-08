@@ -52,7 +52,7 @@ function resource display() {
             We graphically render regular expressions and point out common pitfalls.
           </p>
           <p>
-            Try <a onclick={function(_){set_regexp("^a.*|b$")}}>example 1</a> ·
+            Enter a regular expression or try <a onclick={function(_){set_regexp("^a.*|b$")}}>example 1</a> ·
             <a onclick={function(_){set_regexp("a(bc?|[d-e])\{4,\}f")}}>example 2</a> ·
             <a onclick={function(_){set_regexp("(abc).(efg).\2\4")}}>example 3</a>
           </p>
@@ -67,11 +67,10 @@ function resource display() {
                     type="text"
                     id=#regexp
                     placeholder="Enter a regular expression"
-                    style="width: 80%"
                     value=""
                     onnewline={function(_){check_regexp()}}
                   />
-                  <input class="btn" type="submit" value="Render & lint" style="margin-bottom: 9px"
+                  <input class="btn" type="submit" value="render & lint" style="margin-bottom: 9px"
                     onclick={function(_){check_regexp()}}/>
                 </div>
                 <br/>
@@ -80,7 +79,7 @@ function resource display() {
             <div id="row2" class="row hidden">
               <div class="span12">
                 <div class="input">
-                  <span id=#string_output class="uneditable-input xxlarge" style="width: 80%"
+                  <span id=#string_output class="uneditable-input xxlarge"
                     onclick={function(_){Dom.add_class(#row2, "hidden"); Dom.add_class(#row3, "hidden"); Dom.remove_class(#row1, "hidden"); }}/>
                 </div>
                 <div id=#parser_output/>

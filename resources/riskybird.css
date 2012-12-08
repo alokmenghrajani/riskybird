@@ -33,6 +33,10 @@ html, body {
   width: 940px;
 }
 
+.footer a {
+  margin: 0 10px 0 10px;
+}
+
 .highlight {
   background-color: #D9EDF7;
 }
@@ -43,6 +47,10 @@ html, body {
 
 iframe {
   border: 0px;
+}
+
+.xxlarge {
+  width: 80%;
 }
 
 /*Opera Fix*/
