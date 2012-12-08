@@ -4,6 +4,7 @@
  * These rules can detect things like:
  *  [a-cd] => [a-d]
  *  [x\-a-c] => [a-cx-]
+ *  [0-9] => \d
  *  etc.
  *
  * This is achieved by:
@@ -11,9 +12,10 @@
  * 2. denormalizing the internal structure
  * 3. comparing if the input string in 1. matches the output of 2.
  *
- * This is pretty simple and works. It's however hard to give a good reason when the strings mismatch:
- * it could be because the input is in a format that's hard to read, the input might not be cross browser
- * or it might simply be inefficient.
+ * This is pretty simple and works. It's however hard to give a good reason when
+ * the strings mismatch:
+ * it could be because the input is in a format that's hard to read, the input
+ * might not be cross browser or it might simply be inefficient.
  *
  * At some we'll have to therefore revisit all this code...
  *
