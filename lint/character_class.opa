@@ -88,15 +88,6 @@ module LintCharacterClass {
             patch: {none}
           }
           RegexpLinter.add(res, err)
-        } else if (start == end) {
-          err = {
-            lint_rule: {non_optimal_class_range},
-            title: "useless range in character class",
-            body: "[{start2}-{end2}] is useless.",
-            class: "",
-            patch: {none}
-          }
-          RegexpLinter.add(res, err)
         } else if (start_char == {char: "A"} && end_char == {char: "z"}) {
           err = {
             lint_rule: {lazy_character_class},
