@@ -265,6 +265,8 @@ function resource start(Uri.relative uri) {
   match (uri) {
     case {path:["about"] ...}:
       display_about()
+    case {path:["favicon.ico"] ...}:
+      @static_resource("resources/favicon.png")
     case {...}:
       display()
   }
