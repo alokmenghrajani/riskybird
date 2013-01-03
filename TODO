@@ -41,4 +41,5 @@ A few things I learned while writing this code:
 
 3.
   Internet Explorer is weird when it comes to this:
-  ...TODO...
+  /[]x]/.test("x") is true in IE, but false in most other browsers.
+

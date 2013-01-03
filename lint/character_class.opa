@@ -51,7 +51,7 @@ module LintCharacterClass {
         {
           lint_rule: {empty_character_class},
           title: "empty negative character class",
-          body: "[^] is equivalent to . and will match any character.",
+          body: "[^] is equivalent to . and will match any character. It is however not cross-browser safe.",
           class: "",
           patch: {none}
         }
@@ -59,7 +59,7 @@ module LintCharacterClass {
         {
           lint_rule: {empty_character_class},
           title: "empty character class",
-          body: "[] is an empty character class and will never match.",
+          body: "[] is an empty character class and will never match. It is however not cross-browser safe.",
           class: "",
           patch: {none}
         }

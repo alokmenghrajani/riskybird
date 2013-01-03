@@ -200,6 +200,8 @@ function run_tests() {
   t = expect_parse(t, "unicode escape", "[\\u000az]")
   t = expect_parse(t, "identity escape", "[\\[z]")
   t = expect_parse(t, "character class", "[\\dz]")
+  t = expect_clean_lint(t, "character class", "[\\d]")
+  t = expect_lint_error(t, "character class", "[\\d5]", {improve_escaped_char})
 
   // other tests
   t = expect_fail(t, "open parenthesis", "abc(t, ")

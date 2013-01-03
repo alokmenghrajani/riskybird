@@ -243,6 +243,7 @@ client function void check_regexp() {
     #lint_output = <></>
   } else {
     parsed_regexp = RegexpParser.parse(regexp)
+    my_log(parsed_regexp)
     match (parsed_regexp) {
       case {none}:
         #string_output = <>{regexp}</>

@@ -43,34 +43,34 @@
  * @author Alok Menghrajani
  */
 
-type regexp = list(alternative)
+type regexp = list(alternative)         // foo|bar
 
-and alternative = list(term)
+and alternative = list(term)            // foo
 
 and term  =
    { int id,
-     assertion assertion } or
+     assertion assertion } or           // ^foo
    { int id,
-     atom atom,
+     atom atom,                         // f*?
      quantifier quantifier,
      bool greedy }
 
 and assertion =
-  { anchor_start } or
-  { anchor_end } or
-  { match_word_boundary } or
-  { dont_match_word_boundary } or
-  { regexp match_ahead } or
-  { regexp dont_match_ahead }
+  { anchor_start } or                   // ^foo
+  { anchor_end } or                     // bar$
+  { match_word_boundary } or            // \bfoo bar\b
+  { dont_match_word_boundary } or       // foo\Bbar
+  { regexp match_ahead } or             // (?=...)
+  { regexp dont_match_ahead }           // (?!...)
 
 and quantifier =
   { noop } or
-  { star } or
-  { plus } or
-  { qmark } or
-  { int exactly } or
-  { int at_least } or
-  { int min, int max }
+  { star } or                           // f*
+  { plus } or                           // f+
+  { qmark } or                          // f?
+  { int exactly } or                    // f{5}
+  { int at_least } or                   // f{5,}
+  { int min, int max }                  // f{5,10}
 
 and atom =
   { string char } or
@@ -91,7 +91,7 @@ and escaped_char =
   { string hex_escape_sequence } or
   { string unicode_escape_sequence } or
   { string identity_escape } or
-  { string character_class_escape }  // only used in class_escape
+  { string character_class_escape }
 
 and class_range =
   { class_atom class_atom } or
@@ -215,8 +215,8 @@ module RegexpParser {
   }
 
   class_escape = parser {
-    case x = { character_escape }: x
     case "\\" x = { character_class_escape }: { character_class_escape: x }
+    case x = { character_escape }: x
   }
 
   class_atom = parser {
