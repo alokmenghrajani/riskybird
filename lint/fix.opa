@@ -86,6 +86,10 @@ module RegexpFixNonOptimalCharacterRange {
         } else {
           atom;
         }
+      case {~id, ~group_id, group:sub_re}:
+        {~id, ~group_id, group: regexp(sub_re, character_class_id, new_range)}
+      case {ncgroup: sub_re}:
+        {ncgroup: regexp(sub_re, character_class_id, new_range)}
       case _: atom
     }
   }

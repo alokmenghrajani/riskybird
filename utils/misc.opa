@@ -23,7 +23,7 @@
  */
 
 server function my_log(obj) {
-  Debug.error(Debug.dump(obj))
+  jlog(Debug.dump(obj))
 }
 
 /**

@@ -1,8 +1,10 @@
-Launch blocking:
-2. hover over character class should show an ascii map
-3. anchor start-end
+Feature ideas:
+- hover over character class should show an ascii map
+- figure out a way to tell users that /foo$/ matches "foo\n"
+- bookmark / share url
 
-At some point:
+
+Things I wished I had time to implement, but will probably never have time for:
 - Handle differences between various regexp implementations (e.g. php vs javascript)
   - python auto anchors
   - other languages can use % % as the regexp seperator
@@ -14,7 +16,12 @@ At some point:
     etc.
   - is it possible to detect rules which can cause a DOS?
     .*.*foo or (.*)*
+  - detect www., .com or .net and
+    suggest replacing "." with "\.".
 
+A few things I learned while writing this code:
+
+1.
 
   /\b/ matches word boundary
   /[\b]/ matches back space (\x08)
@@ -22,13 +29,16 @@ At some point:
   - outside ranges: ^$\.*+?()[]{}|
   - inside ranges: \]-
 
-- Note:
+2.
   the spec doesn't really talk about octal escapes. We'll ignore them for now.
-    /[\92]/ matches '2'
-    /[\12]/ doesn't match '2'
+    /[\92]/ matches '9' or '2'
+    /[\12]/ doesn't match '2'. It matches \x0a.
+
   don't know how to handle \01, \010, etc. there is a potential
   confusion between octal & group ref?
 
-- detect www., .com or .net and
-  suggest replacing "." with "\.".
+  I decided to punt on this issue and just fail to parse such expressions.
 
+3.
+  Internet Explorer is weird when it comes to this:
+  ...TODO...
