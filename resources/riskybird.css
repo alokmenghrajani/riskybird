@@ -53,6 +53,10 @@ iframe {
   width: 80%;
 }
 
+.alert {
+  border: 1px solid #DBCEA5;
+}
+
 /*Opera Fix*/
 //body:before {/* thanks to Maleika (Kohoutec)*/
 //  content:"";
