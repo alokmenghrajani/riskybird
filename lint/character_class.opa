@@ -183,15 +183,29 @@ module LintCharacterClass {
           case "d":
             range_to_charmap(int_of_first_char("0"), int_of_first_char("9"), map)
           case "D":
-            range_to_charmap(int_of_first_char("0"), int_of_first_char("9"), map)
+            /* todo: support \D */
+            map
           case "s":
-            range_to_charmap(int_of_first_char("0"), int_of_first_char("9"), map)
+            map = IntSet.add(9, map)
+            map = IntSet.add(10, map)
+            map = IntSet.add(11, map)
+            map = IntSet.add(12, map)
+            map = IntSet.add(13, map)
+            map = IntSet.add(32, map)
+            map = IntSet.add(160, map)
+            /* todo: unicode stuff */
+            map
           case "S":
-            range_to_charmap(int_of_first_char("0"), int_of_first_char("9"), map)
+            /* todo: support S */
+            map
           case "w":
-            range_to_charmap(int_of_first_char("0"), int_of_first_char("9"), map)
+            map = range_to_charmap(int_of_first_char("0"), int_of_first_char("9"), map)
+            map = range_to_charmap(int_of_first_char("a"), int_of_first_char("z"), map)
+            map = range_to_charmap(int_of_first_char("A"), int_of_first_char("Z"), map)
+            IntSet.add(int_of_first_char("_"), map)
           case "W":
-            range_to_charmap(int_of_first_char("0"), int_of_first_char("9"), map)
+            /* todo: support W */
+            map
           case _:
             map
         }
