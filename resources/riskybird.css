@@ -19,6 +19,14 @@ html, body {
   padding-top: 80px;
 }
 
+table {
+  border: 1px solid black;
+}
+
+table td .code {
+  white-space: nowrap;
+}
+
 .push {
   height: 71px;
 }

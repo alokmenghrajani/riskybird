@@ -91,6 +91,105 @@ function resource display() {
               <div class="span8">&nbsp;</div>
             </div>
         </section>
+
+        <section id="cheatsheet">
+          <p class="lead">
+            Use the table below as a cheat sheet:
+          </p>
+            <table>
+              <tr>
+                <td><code>[abc]</code></td>
+                <td>a, b or c</td>
+
+                <td><code>.</code></td>
+                <td>any single character</td>
+
+                <td><code>a?</code></td>
+                <td>zero or one of a</td>
+              </tr>
+              <tr>
+                <td><code>[^abc]</code></td>
+                <td>any character except a, b, or c</td>
+
+                <td><code>\\s</code></td>
+                <td>whitespace</td>
+
+                <td><code>a*</code></td>
+                <td>zero or more of a</td>
+              </tr>
+              <tr>
+                <td><code>[a-z]</code></td>
+                <td>range a-z</td>
+
+                <td><code>\\S</code></td>
+                <td>non-whitespace</td>
+
+                <td><code>a+</code></td>
+                <td>one or more of a</td>
+              </tr>
+              <tr>
+                <td><code>[a-zA-Z]</code></td>
+                <td>a-z or A-Z</td>
+
+                <td><code>\\d</code></td>
+                <td>any digit</td>
+
+                <td><code>a\{n\}</code></td>
+                <td>exactly n of a</td>
+              </tr>
+              <tr>
+                <td><code>^</code></td>
+                <td>anchor at start of line</td>
+
+                <td><code>\\D</code></td>
+                <td>any non-digit</td>
+
+                <td><code>a\{n,\}</code></td>
+                <td>n or more of a</td>
+              </tr>
+              <tr>
+                <td><code>$</code></td>
+                <td>anchor at end of line</td>
+
+                <td><code>\\w</code></td>
+                <td>any word character (letter, number, underscore)</td>
+
+                <td><code>a\{n,m\}</code></td>
+                <td>between n and m of a</td>
+              </tr>
+              <tr>
+                <td><code>(...)</code></td>
+                <td>capture everything enclosed</td>
+
+                <td><code>\\W</code></td>
+                <td>any non-word character</td>
+
+                <td><code>a*?</code></td>
+                <td>zero or more of a (non greedy)</td>
+              </tr>
+              <tr>
+                <td><code>(a|b)</code></td>
+                <td>a or b</td>
+
+                <td><code>\\b</code></td>
+                <td>any word boundary</td>
+
+                <td><code>(a)...\\1</code></td>
+                <td>back reference</td>
+              </tr>
+              <tr>
+                <td><code>(?=a)</code></td>
+                <td>look ahead (positive)</td>
+
+                <td><code>(?!a)</code></td>
+                <td>look ahead (negative)</td>
+
+                <td><code>\\B</code></td>
+                <td>any non-word boundary</td>
+              </tr>
+            </table>
+        </section>
+
       </div>
       <div class="push"></div>
       </div>
