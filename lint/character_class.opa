@@ -17,7 +17,8 @@
  * it could be because the input is in a format that's hard to read, the input
  * might not be cross browser or it might simply be inefficient.
  *
- * At some we'll have to therefore revisit all this code...
+ * At some point we'll have to therefore revisit all this code, if
+ * we want to generate better lint messages.
  *
  *
  *
@@ -124,6 +125,8 @@ module LintCharacterClass {
    * Convert a class_atom to an int. This is useful when normalizing the regexp.
    *
    * E.g. [a] would become an 61, and [\x20] would become 32.
+   *
+   * Note: this code might be wrong, since \d becomes d...
    */
   function int class_atom_to_int(class_atom class_atom) {
     match (class_atom) {
@@ -131,6 +134,79 @@ module LintCharacterClass {
         int_of_first_char(char)
       case {~escaped_char}:
         RegexpLinterHelper.escaped_char_to_int(escaped_char)
+    }
+  }
+
+  function intset insert_set_class_atom(class_atom class_atom, intset map) {
+    match (class_atom) {
+      case {~char}:
+        IntSet.add(int_of_first_char(char), map)
+      case {~escaped_char}:
+        insert_set_escaped_char(escaped_char, map)
+    }
+  }
+
+  function intset insert_set_escaped_char(escaped_char escaped_char, intset map) {
+    match (escaped_char) {
+      case {~control_escape}:
+        match (control_escape) {
+          case "f": IntSet.add(12, map)
+          case "n": IntSet.add(10, map)
+          case "r": IntSet.add(13, map)
+          case "t": IntSet.add(9, map)
+          case "v": IntSet.add(11, map)
+          case _: map
+        }
+      case {~control_letter}:
+        IntSet.add(mod(int_of_first_char(control_letter), 32), map)
+      case {~hex_escape_sequence}:
+        match (Parser.try_parse(Rule.hexadecimal_number, hex_escape_sequence)) {
+          case {~some}: IntSet.add(some, map)
+          case {none}: map
+        }
+      case {~unicode_escape_sequence}:
+        match (Parser.try_parse(Rule.hexadecimal_number, unicode_escape_sequence)) {
+          case {~some}: IntSet.add(some, map)
+          case {none}: map
+        }
+      case {~identity_escape}:
+        // in a character class, \b means \x08. We don't really need to track if we are in the character class case,
+        // because \b in a regexp gets parsed as a {match_word_boundary}.
+        if (identity_escape == "b") {
+          IntSet.add(8, map)
+        } else {
+          r = int_of_first_char(identity_escape)
+          IntSet.add(r, map)
+        }
+      case {~character_class_escape}:
+        match (character_class_escape) {
+          case "d":
+            range_to_charmap(int_of_first_char("0"), int_of_first_char("9"), map)
+          case "D":
+            range_to_charmap(int_of_first_char("0"), int_of_first_char("9"), map)
+          case "s":
+            range_to_charmap(int_of_first_char("0"), int_of_first_char("9"), map)
+          case "S":
+            range_to_charmap(int_of_first_char("0"), int_of_first_char("9"), map)
+          case "w":
+            range_to_charmap(int_of_first_char("0"), int_of_first_char("9"), map)
+          case "W":
+            range_to_charmap(int_of_first_char("0"), int_of_first_char("9"), map)
+          case _:
+            map
+        }
+    }
+  }
+
+  /**
+   * Inserts a range into a map
+   */
+  function intset range_to_charmap(int start, int end, intset map) {
+    map = IntSet.add(start, map)
+    if (start == end) {
+      map;
+    } else {
+      range_to_charmap(start+1, end, map)
     }
   }
 
@@ -142,19 +218,10 @@ module LintCharacterClass {
    * of errors (cross browser issue or short-but-hard-to-read input).
    */
   function lint_result check_set(regexp re, int character_class_id, character_class set, lint_result res) {
-    recursive function intset range_to_charmap(int start, int end, intset map) {
-      map = IntSet.add(start, map)
-      if (start == end) {
-        map;
-      } else {
-        range_to_charmap(start+1, end, map)
-      }
-    }
-
     function intset set_to_charmap(class_range i, intset map) {
       match (i) {
         case {~class_atom}:
-          IntSet.add(class_atom_to_int(class_atom), map)
+          insert_set_class_atom(class_atom, map)
         case {~start_char, ~end_char}:
           range_to_charmap(class_atom_to_int(start_char), class_atom_to_int(end_char), map)
       }

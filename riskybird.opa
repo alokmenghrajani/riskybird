@@ -83,7 +83,7 @@ function resource display() {
                     onclick={function(_){Dom.add_class(#row2, "hidden"); Dom.add_class(#row3, "hidden"); Dom.remove_class(#row1, "hidden"); }}/>
                 </div>
                 <div id=#parser_output/>
-                <div id=#debug_output style="display:none"/>
+                <div id=#debug_output style="display: none"/>
               </div>
             </div>
             <div id="row3" class="row hidden" style="margin-top: 12px">
@@ -244,7 +244,6 @@ client function void check_regexp() {
     #lint_output = <></>
   } else {
     parsed_regexp = RegexpParser.parse(regexp)
-    my_log(parsed_regexp)
     match (parsed_regexp) {
       case {none}:
         #string_output = <>{regexp}</>
@@ -258,6 +257,7 @@ client function void check_regexp() {
           GroupRegexp.do_regexp(some, {highlight_string_printer}))
         #parser_output = RegexpSvgPrinter.pretty_print(
           GroupRegexp.do_regexp(some, {svg_printer}))
+        linter_run(some)
         #debug_output = <>{Debug.dump(some)}</>
     }
   }
