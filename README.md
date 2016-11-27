@@ -30,7 +30,7 @@ We love AngryBirds and we wanted a name that starts with R.
 
 See it in action
 ----------------
-When ready, this code will be running on: http://riskybird.quaxio.com/
+https://www.quaxio.com/regexp_lint/
 
 
 Some notes
